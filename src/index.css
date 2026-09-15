@@ -6552,3 +6552,104 @@ button {
   color: #ffffff;
   border-color: #ffd88a;
 }
+
+/* =========================================================
+   ROYAL GRAND GATE SPLIT ENTRANCE LOADER (LOADER 1 & 2)
+   ========================================================= */
+.grand-gate-loader-root {
+  background:
+    linear-gradient(90deg, rgba(3, 10, 18, 0.44), rgba(4, 14, 24, 0.08) 50%, rgba(3, 10, 18, 0.44)),
+    linear-gradient(0deg, rgba(3, 7, 12, 0.42), transparent 54%),
+    url('/sprites/horse races bg1.png') center / cover no-repeat;
+  will-change: opacity, transform;
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+.gate-door {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 50.1vw;
+  overflow: hidden;
+  pointer-events: none;
+  will-change: transform;
+  backface-visibility: hidden;
+  transform-style: preserve-3d;
+  transition: transform 1.18s cubic-bezier(0.2, 0.95, 0.25, 1);
+}
+
+.gate-door--left {
+  left: 0;
+  z-index: 10;
+  transform-origin: left center;
+}
+
+.gate-door--right {
+  right: 0;
+  z-index: 11;
+  transform-origin: right center;
+}
+
+.gate-door-image {
+  position: absolute;
+  top: 50%;
+  display: block;
+  width: auto;
+  height: 100%;
+  max-width: none;
+  transform: translateY(-50%);
+  filter: drop-shadow(0 15px 35px rgba(0, 0, 0, 0.9));
+}
+
+/* These percentages are the actual transparent-canvas positions of the two
+   PNGs' glowing inner edges. Pinning those edges together makes one clean gate. */
+.gate-door--left .gate-door-image {
+  left: 100%;
+  transform: translate(-66.25%, -50%);
+}
+
+.gate-door--right .gate-door-image {
+  left: 0;
+  /* Mirror the left panel: its centre edge now lands at the viewport centre. */
+  transform: translate(-33.75%, -50%) scaleX(-1);
+}
+
+.gate-door--left.gate-door--opening {
+  animation: gate-open-left 1.45s cubic-bezier(0.2, 0.95, 0.25, 1) forwards;
+}
+
+.gate-door--right.gate-door--opening {
+  animation: gate-open-right 1.45s cubic-bezier(0.2, 0.95, 0.25, 1) forwards;
+}
+
+@keyframes gate-open-left {
+  0% { transform: translateX(0); }
+  14% { transform: translateX(-3.2%); }
+  25% { transform: translateX(0); }
+  33% { transform: translateX(0.7%); }
+  100% { transform: translateX(-103%); }
+}
+
+@keyframes gate-open-right {
+  0% { transform: translateX(0); }
+  14% { transform: translateX(3.2%); }
+  25% { transform: translateX(0); }
+  33% { transform: translateX(-0.7%); }
+  100% { transform: translateX(103%); }
+}
+
+@media (max-width: 520px) {
+  .gate-door {
+    width: 50.35vw;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gate-door,
+  .gate-door--left.gate-door--opening,
+  .gate-door--right.gate-door--opening {
+    animation-duration: 0.01ms;
+    transition-duration: 0.01ms;
+  }
+}
