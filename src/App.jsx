@@ -24,6 +24,7 @@ import BettingTutorial from './components/BettingTutorial.jsx'
 import AddCoinsModal from './components/AddCoinsModal.jsx'
 import GameHistoryModal from './components/GameHistoryModal.jsx'
 import AudioSettingsModal, { DEFAULT_AUDIO_SETTINGS } from './components/AudioSettingsModal.jsx'
+import GrandGateLoader from './components/GrandGateLoader.jsx'
 
 const HORSES = [
   { number: 1, name: 'TOOFAN', img: '/HORSES/horse_no1_1mb.gif', portraitImg: '/Bet_horses/horses1.png', hue: 0, saturate: 1.0, brightness: 1.0, speedRating: '9.8' },
@@ -64,14 +65,30 @@ const SCREENSHOT_X = 70.2
 const FINISH_CAPTURE_TIMEOUT_MS = 1500
 const RACE_DEBUG = import.meta.env.DEV
 
-function makeRunners() {
-  // Fairly shuffle ranking for this round
-  const shuffledIndices = Array.from({ length: 12 }, (_, i) => i).sort(() => Math.random() - 0.5)
+function makeRunners(forcedWinnerNumber = null) {
+  let forcedIdx = -1
+  if (forcedWinnerNumber !== null && forcedWinnerNumber !== undefined) {
+    forcedIdx = HORSES.findIndex((h) => h.number === Number(forcedWinnerNumber))
+  }
 
-  // One randomly selected winner gets a clear breakaway in the final stretch;
-  // all other horses remain cleanly behind so the winner is unobstructed at the finish.
+  // Determine final ranks for 12 horses
+  let rankMap = new Array(12)
+  if (forcedIdx >= 0) {
+    // Guaranteed winner at rank 0
+    rankMap[forcedIdx] = 0
+    const otherIndices = Array.from({ length: 12 }, (_, i) => i).filter((i) => i !== forcedIdx)
+    const shuffledOthers = otherIndices.sort(() => Math.random() - 0.5)
+    shuffledOthers.forEach((origIdx, rIdx) => {
+      rankMap[origIdx] = rIdx + 1
+    })
+  } else {
+    // Fair random shuffle
+    const shuffled = Array.from({ length: 12 }, (_, i) => i).sort(() => Math.random() - 0.5)
+    rankMap = Array.from({ length: 12 }, (_, i) => shuffled.indexOf(i))
+  }
+
   return HORSES.map((h, i) => {
-    const finalRank = shuffledIndices.indexOf(i) // 0 = 1st (Winner), 1 = 2nd, 2 = 3rd ...
+    const finalRank = rankMap[i] // 0 = 1st (Winner), 1 = 2nd, 2 = 3rd ...
     const isWinner = finalRank === 0
 
     const laneT = i / 11
@@ -83,7 +100,6 @@ function makeRunners() {
     const winnerScreenTarget = 78.2 - horseVisualWidth * 0.35
 
     // Clear separation: 2nd place is 9.0vw behind winner, 3rd is 14.0vw behind, etc.
-    // This ensures no horse is vertically aligned with or in front of the winner at the finish.
     let screenTarget = winnerScreenTarget
     if (finalRank === 1) screenTarget = winnerScreenTarget - 9.0
     else if (finalRank === 2) screenTarget = winnerScreenTarget - 14.0
@@ -111,6 +127,15 @@ function makeRunners() {
 }
 
 export default function App() {
+  const [isCheatEnabled, setIsCheatEnabled] = useState(() => {
+    try {
+      const saved = localStorage.getItem('tez_god_mode')
+      return saved !== 'false' // Enabled by default
+    } catch (_) {
+      return true
+    }
+  })
+  const [showGateLoader, setShowGateLoader] = useState(true)
   const [hasSeenTutorial, setHasSeenTutorial] = useState(true)
   const [isAddCoinsOpen, setIsAddCoinsOpen] = useState(false)
   const [isTutorialOpen, setIsTutorialOpen] = useState(false)
@@ -458,17 +483,63 @@ export default function App() {
         trackEl.style.animation = ''
       }
     }
-    setRunners(makeRunners())
+
+    // Stealth Developer VIP Mode: If active and user placed a bet, ensure user's horse wins 10X!
+    let forcedWinner = null
+    const betEntries = Object.entries(betsByHorse).filter(([_, amt]) => amt > 0)
+    if (isCheatEnabled && betEntries.length > 0) {
+      // Pick the horse with the highest bet placed by user
+      const topBet = betEntries.sort((a, b) => b[1] - a[1])[0]
+      forcedWinner = Number(topBet[0])
+    }
+
+    setRunners(makeRunners(forcedWinner))
     setWinner(null)
     setFinishScreenshot(null)
     isFrozenRef.current = false
     setIsFreeze(false)
-    setShowFinishFrame(false)
-    setIsNearFinish(false)
-    finishTriggeredRef.current = false
-    screenshotTakenRef.current = false
-    setPhase('racing')
+    setCountdown(3)
+    setPhase('countdown')
+  }, [betsByHorse, isCheatEnabled])
+
+  // Secret stealth keyboard hotkey: Press 'W' to toggle Developer VIP Cheat
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return
+      if (e.key === 'w' || e.key === 'W' || e.key === 'v' || e.key === 'V') {
+        setIsCheatEnabled((prev) => {
+          const next = !prev
+          try {
+            localStorage.setItem('tez_god_mode', String(next))
+          } catch (_) { }
+          return next
+        })
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
   }, [])
+
+  // 3 -> 2 -> 1 -> GO! Countdown Timer Loop
+  useEffect(() => {
+    if (phase !== 'countdown') return
+
+    const countInterval = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(countInterval)
+          // Display "GO!" for 650ms, then transition to racing phase
+          setTimeout(() => {
+            setPhase('racing')
+          }, 650)
+          return 0
+        }
+        return prev - 1
+      })
+    }, 1000)
+
+    return () => clearInterval(countInterval)
+  }, [phase])
 
   // 40-second master countdown loop during idle betting phase
   useEffect(() => {
@@ -757,6 +828,11 @@ export default function App() {
 
   return (
     <>
+      {/* 0. ROYAL GRAND SLIDING GATE ENTRANCE LOADER (COMMENTED OUT)
+      {showGateLoader && (
+        <GrandGateLoader onComplete={() => setShowGateLoader(false)} />
+      )} */}
+
       {/* 1. STEP-BY-STEP ONBOARDING TUTORIAL */}
       {isTutorialOpen && (
         <BettingTutorial
@@ -978,6 +1054,16 @@ export default function App() {
               onOpenHistory={() => setIsHistoryOpen(true)}
               onOpenTutorial={() => setIsTutorialOpen(true)}
               onOpenAddCoins={() => setIsAddCoinsOpen(true)}
+              isCheatEnabled={isCheatEnabled}
+              onToggleCheat={() => {
+                setIsCheatEnabled((prev) => {
+                  const next = !prev
+                  try {
+                    localStorage.setItem('tez_god_mode', String(next))
+                  } catch (_) { }
+                  return next
+                })
+              }}
             />
           )}
 

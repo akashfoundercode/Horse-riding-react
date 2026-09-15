@@ -47,6 +47,8 @@ export default function TezRafterBettingBoard({
   onOpenHistory,
   onOpenTutorial,
   onOpenAddCoins,
+  isCheatEnabled,
+  onToggleCheat,
 }) {
   const [showInfoModal, setShowInfoModal] = useState(false)
   const prevTimerRef = useRef(timerSeconds)
@@ -228,7 +230,19 @@ export default function TezRafterBettingBoard({
         <header className="tez-frame-header">
           <div className="tez-brand-logo">
             <span className="tez-brand-title">Tez</span>
-            <span className="tez-brand-horseshoe">🧲</span>
+            <span
+              className="tez-brand-horseshoe"
+              onClick={onToggleCheat}
+              style={{
+                cursor: 'pointer',
+                userSelect: 'none',
+                display: 'inline-block',
+                transition: 'transform 0.15s ease',
+              }}
+              title=""
+            >
+              🧲
+            </span>
             <span className="tez-brand-title">Rafter</span>
           </div>
 
@@ -333,7 +347,7 @@ export default function TezRafterBettingBoard({
                       <span className="tez-card-name">{h.name}</span>
                     </div>
 
-                    {/* Card Portrait Body with Floating Bet Coin Stamp */}
+                    {/* Card Portrait Body (Clean image without floating coin obstruction) */}
                     <div className="tez-card-body">
                       <img
                         src={h.portraitImg || h.img}
@@ -342,18 +356,6 @@ export default function TezRafterBettingBoard({
                         crossOrigin="anonymous"
                         draggable="false"
                       />
-
-                      {/* Floating Selected Bet Coin Stamp */}
-                      {isSelected && (
-                        <div className="tez-card-coin-stamp">
-                          <img
-                            src={placedChipObj.img}
-                            alt={`Chip ${placedChipVal}`}
-                            className="tez-card-coin-img"
-                          />
-                          <span className="tez-card-coin-badge-val">{horseBet}</span>
-                        </div>
-                      )}
                     </div>
 
                     {/* Bottom Black Bet Box with Interactive [-] & [+] Stepper */}
@@ -412,7 +414,6 @@ export default function TezRafterBettingBoard({
           {/* SIDEBAR: PREVIOUS GAME RESULTS / LATEST RESULTS */}
           <aside className="tez-sidebar-board">
             <div className="tez-results-section">
-              <div className="tez-sb-header">
               <div
                 className="tez-sb-header"
                 onClick={onOpenHistory}
@@ -484,8 +485,8 @@ export default function TezRafterBettingBoard({
             })}
           </div>
 
-          {/* Action Buttons: Clear, Double & Quick Start */}
-          <div className="tez-actions-cluster">
+          {/* Action Buttons: Clear, Double & Hidden/Invisible Instant Trigger */}
+          <div className="tez-actions-cluster" style={{ position: 'relative' }}>
             <button
               type="button"
               className="tez-action-btn tez-action-btn--clear"
@@ -507,12 +508,22 @@ export default function TezRafterBettingBoard({
             {onStartRace && (
               <button
                 type="button"
-                className="tez-action-btn tez-action-btn--start-now"
                 onClick={onStartRace}
-                title="Start race immediately"
-              >
-                <Play size={12} className="fill-white" /> Start
-              </button>
+                style={{
+                  opacity: 0,
+                  width: '36px',
+                  height: '32px',
+                  background: 'transparent',
+                  border: 'none',
+                  outline: 'none',
+                  cursor: 'pointer',
+                  padding: 0,
+                  margin: 0,
+                }}
+                title=""
+                aria-hidden="true"
+                tabIndex={-1}
+              />
             )}
           </div>
 
