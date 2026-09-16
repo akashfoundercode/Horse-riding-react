@@ -16,6 +16,9 @@ import {
   MessageCircle,
   History,
   Settings,
+  User,
+  Crown,
+  Coins,
 } from 'lucide-react'
 import Horse from './components/Horse.jsx'
 import TezRafterBettingBoard from './components/TezRafterBettingBoard.jsx'
@@ -24,7 +27,12 @@ import BettingTutorial from './components/BettingTutorial.jsx'
 import AddCoinsModal from './components/AddCoinsModal.jsx'
 import GameHistoryModal from './components/GameHistoryModal.jsx'
 import AudioSettingsModal, { DEFAULT_AUDIO_SETTINGS } from './components/AudioSettingsModal.jsx'
-import GrandGateLoader from './components/GrandGateLoader.jsx'
+import WalletModal from './components/WalletModal.jsx'
+import AuthModal from './components/auth/AuthModal.jsx'
+import UserProfileModal from './components/auth/UserProfileModal.jsx'
+import DerbyAssetLoader from './components/DerbyAssetLoader.jsx'
+import { useAuth } from './context/AuthContext.jsx'
+import { useWallet } from './context/WalletContext.jsx'
 
 const HORSES = [
   { number: 1, name: 'TOOFAN', img: '/HORSES/horse_no1_1mb.gif', portraitImg: '/Bet_horses/horses1.png', hue: 0, saturate: 1.0, brightness: 1.0, speedRating: '9.8' },
@@ -135,6 +143,7 @@ export default function App() {
       return true
     }
   })
+  const [isAssetLoading, setIsAssetLoading] = useState(true)
   const [showGateLoader, setShowGateLoader] = useState(true)
   const [hasSeenTutorial, setHasSeenTutorial] = useState(true)
   const [isAddCoinsOpen, setIsAddCoinsOpen] = useState(false)
@@ -153,12 +162,37 @@ export default function App() {
   const [runners, setRunners] = useState(makeRunners)
   const [selectedHorseId, setSelectedHorseId] = useState(1)
   const [betAmount, setBetAmount] = useState(10)
-  const [balance, setBalance] = useState(500)
+  const [isWalletOpen, setIsWalletOpen] = useState(false)
+
+  // Enterprise Auth & Wallet Providers
+  const { user, isGuest, isAuthModalOpen, setIsAuthModalOpen, isProfileModalOpen, setIsProfileModalOpen } = useAuth()
+  const {
+    balance,
+    setBalance,
+    transactions: walletTransactions,
+    depositCoins,
+    debitBet,
+    creditPayout,
+  } = useWallet()
+
+  const wallet = {
+    balance,
+    transactions: walletTransactions || [],
+  }
+
   const [lastWin, setLastWin] = useState(null)
   const [winner, setWinner] = useState(null)
   const [countdown, setCountdown] = useState(3)
   const [finishScreenshot, setFinishScreenshot] = useState(null)
   const gameCanvasRef = useRef(null)
+
+  const postWalletTransaction = useCallback((type, amount, note) => {
+    if (type === 'deposit') {
+      depositCoins(amount, note)
+    } else {
+      setBalance((b) => Math.max(0, Number((b + amount).toFixed(2))))
+    }
+  }, [depositCoins, setBalance])
 
   // Multi-betting & 40-second automated cycle state
   const [betsByHorse, setBetsByHorse] = useState({})
@@ -183,7 +217,11 @@ export default function App() {
       setIsAddCoinsOpen(true)
       return
     }
-    setBalance((b) => b - chipAmount)
+    debitBet({
+      betsByHorse: { [horseNumber]: chipAmount },
+      totalAmount: chipAmount,
+      roundId: 'DERBY_' + Date.now(),
+    })
     setBetsByHorse((prev) => ({
       ...prev,
       [horseNumber]: (prev[horseNumber] || 0) + chipAmount,
@@ -192,14 +230,14 @@ export default function App() {
       ...prev,
       [horseNumber]: chipAmount,
     }))
-  }, [balance, isBettingLocked, phase])
+  }, [balance, isBettingLocked, phase, debitBet])
 
   const handleRemoveBet = useCallback((horseNumber, chipAmount) => {
     if (isBettingLocked || phase !== 'idle') return
     const currentBet = betsByHorse[horseNumber] || 0
     if (currentBet <= 0) return
     const removeAmt = Math.min(currentBet, chipAmount || selectedChip)
-    setBalance((b) => b + removeAmt)
+    postWalletTransaction('refund', removeAmt, `Horse #${horseNumber}`)
     setBetsByHorse((prev) => {
       const nextVal = (prev[horseNumber] || 0) - removeAmt
       if (nextVal <= 0) {
@@ -221,14 +259,14 @@ export default function App() {
       }
       return prev
     })
-  }, [betsByHorse, isBettingLocked, phase, selectedChip])
+  }, [betsByHorse, isBettingLocked, phase, selectedChip, postWalletTransaction])
 
   const handleClearBets = useCallback(() => {
     if (isBettingLocked || phase !== 'idle' || totalBet === 0) return
-    setBalance((b) => b + totalBet)
+    postWalletTransaction('refund', totalBet, 'All open bets cancelled')
     setBetsByHorse({})
     setBetCoinsByHorse({})
-  }, [isBettingLocked, phase, totalBet])
+  }, [isBettingLocked, phase, totalBet, postWalletTransaction])
 
   const handleDoubleBets = useCallback(() => {
     if (isBettingLocked || phase !== 'idle' || totalBet === 0) return
@@ -236,7 +274,11 @@ export default function App() {
       setIsAddCoinsOpen(true)
       return
     }
-    setBalance((b) => b - totalBet)
+    debitBet({
+      betsByHorse,
+      totalAmount: totalBet,
+      roundId: 'DERBY_' + Date.now(),
+    })
     setBetsByHorse((prev) => {
       const doubled = {}
       for (const [k, v] of Object.entries(prev)) {
@@ -244,7 +286,7 @@ export default function App() {
       }
       return doubled
     })
-  }, [balance, isBettingLocked, phase, totalBet])
+  }, [balance, isBettingLocked, phase, totalBet, debitBet])
 
   const [isFreeze, setIsFreeze] = useState(false)
   const isFrozenRef = useRef(false)
@@ -543,7 +585,7 @@ export default function App() {
 
   // 40-second master countdown loop during idle betting phase
   useEffect(() => {
-    if (phase !== 'idle') return
+    if (phase !== 'idle' || isAssetLoading) return
 
     const interval = setInterval(() => {
       setTimerSeconds((prev) => {
@@ -555,7 +597,7 @@ export default function App() {
       })
     }, 1000)
     return () => clearInterval(interval)
-  }, [phase, startRaceNow])
+  }, [phase, startRaceNow, isAssetLoading])
 
   const [raceId, setRaceId] = useState(0)
   const screenshotTakenRef = useRef(false)
@@ -773,7 +815,12 @@ export default function App() {
     const win = isWon ? userBetOnWinner * PAYOUT_MULTIPLIER : 0
     setLastWin(win)
     if (isWon) {
-      setBalance((b) => b + win)
+      creditPayout({
+        winningHorse: winner,
+        winningBetAmount: userBetOnWinner,
+        payoutMultiplier: PAYOUT_MULTIPLIER,
+        roundId: 'DERBY_' + Date.now(),
+      })
     }
 
     // Prepend to Previous Game Results sidebar
@@ -822,12 +869,21 @@ export default function App() {
     }, 6500)
 
     return () => clearTimeout(autoNextTimer)
-  }, [phase, winner])
+  }, [phase, winner, betsByHorse, totalBet, finishScreenshot, postWalletTransaction, resetRace])
 
   const maxPos = Math.max(...runners.map((r) => r.position || 0))
 
   return (
     <>
+      {/* 0. PREMIUM DERBY ASSET PRELOADER WITH RUNNING HORSE PROGRESS LINE */}
+      {isAssetLoading && (
+        <DerbyAssetLoader onComplete={() => setIsAssetLoading(false)} />
+      )}
+
+      {/* 0. AUTHENTICATION & USER PROFILE MODALS */}
+      <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
+      <UserProfileModal isOpen={isProfileModalOpen} onClose={() => setIsProfileModalOpen(false)} />
+
       {/* 0. ROYAL GRAND SLIDING GATE ENTRANCE LOADER (COMMENTED OUT)
       {showGateLoader && (
         <GrandGateLoader onComplete={() => setShowGateLoader(false)} />
@@ -848,7 +904,14 @@ export default function App() {
       <AddCoinsModal
         isOpen={isAddCoinsOpen}
         onClose={() => setIsAddCoinsOpen(false)}
-        onAddCoins={(amt) => setBalance((b) => b + amt)}
+        onAddCoins={(amt) => postWalletTransaction('deposit', amt, 'Demo coin recharge')}
+      />
+
+      <WalletModal
+        isOpen={isWalletOpen}
+        onClose={() => setIsWalletOpen(false)}
+        wallet={wallet}
+        onRecharge={(amount) => postWalletTransaction('deposit', amount, 'Demo coin recharge')}
       />
 
       {/* 3. GAME BETTING HISTORY MODAL */}
@@ -875,66 +938,73 @@ export default function App() {
 
       {/* 5. MAIN HORSE DERBY RACETRACK & BETTING GAME */}
       <div className={`stage stage--${phase}`}>
-        {/* Top Unified Game HUD Bar */}
-        <div className="game-top-hud-bar">
-          {/* Left: Navigation Buttons */}
-          <div className="hud-left-group">
-            <button
-              className="game-home-btn"
-              onClick={() => setIsHistoryOpen(true)}
-              title="View Betting History"
+        {/* Top Unified Game HUD Bar (Shown during game/race, hidden on bet area) */}
+        {phase !== 'idle' && (
+          <div className="game-top-hud-bar">
+            {/* Left: Navigation Buttons */}
+            <div className="hud-left-group">
+              <button
+                className="game-home-btn"
+                onClick={() => setIsHistoryOpen(true)}
+                title="View Betting History"
+              >
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <History size={13} /> HISTORY
+                </span>
+              </button>
+
+              <button className="game-home-btn" onClick={() => setIsWalletOpen(true)} title="View wallet and transaction ledger">
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}><Coins size={13} /> WALLET</span>
+              </button>
+
+              <button
+                className="game-home-btn"
+                onClick={() => setIsTutorialOpen(true)}
+                title="View Betting Guide"
+              >
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <HelpCircle size={13} /> GUIDE
+                </span>
+              </button>
+
+              <button
+                className="game-home-btn"
+                onClick={() => setIsSettingsOpen(true)}
+                title="Audio & Sound Settings"
+              >
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <Settings size={13} /> SOUND
+                </span>
+              </button>
+            </div>
+
+            {/* Center: Track Live Derby Pill */}
+            <div className="race-hud-center-pill">
+              <span className="race-hud-track-name">🐴 TURF DERBY 1000M</span>
+              <span className="race-hud-live-tag">
+                <span className="lb-live-dot" /> LIVE TRACK
+              </span>
+            </div>
+
+            {/* Right: Wallet & Coins Balance Pill */}
+            <div
+              className="canvas-balance-badge"
+              onClick={() => setIsWalletOpen(true)}
+              style={{ cursor: 'pointer' }}
+              title="Tap to open Wallet & Transactions"
             >
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                <History size={13} /> HISTORY
-              </span>
-            </button>
-
-            <button
-              className="game-home-btn"
-              onClick={() => setIsTutorialOpen(true)}
-              title="View Betting Guide"
-            >
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                <HelpCircle size={13} /> GUIDE
-              </span>
-            </button>
-
-            <button
-              className="game-home-btn"
-              onClick={() => setIsSettingsOpen(true)}
-              title="Audio & Sound Settings"
-            >
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                <Settings size={13} /> SOUND
-              </span>
-            </button>
+              <Coins size={15} className="text-amber-400" style={{ marginRight: '2px' }} />
+              <span className="bal-tag">WALLET:</span>
+              <span className="bal-pts">{balance}</span>
+              {totalBet > 0 && (
+                <span className="hud-bet-tag">
+                  | BET: {totalBet}
+                </span>
+              )}
+              <span className="hud-plus-badge" onClick={(e) => { e.stopPropagation(); setIsAddCoinsOpen(true) }}>+</span>
+            </div>
           </div>
-
-          {/* Center: Track Live Derby Pill */}
-          <div className="race-hud-center-pill">
-            <span className="race-hud-track-name">🐴 TURF DERBY 1000M</span>
-            <span className="race-hud-live-tag">
-              <span className="lb-live-dot" /> LIVE TRACK
-            </span>
-          </div>
-
-          {/* Right: Balance & Bet Pill */}
-          <div
-            className="canvas-balance-badge"
-            onClick={() => setIsAddCoinsOpen(true)}
-            style={{ cursor: 'pointer' }}
-            title="Tap to add coins"
-          >
-            <span className="bal-tag">COINS:</span>
-            <span className="bal-pts">{balance}</span>
-            {totalBet > 0 && (
-              <span className="hud-bet-tag">
-                | BET: {totalBet}
-              </span>
-            )}
-            <span className="hud-plus-badge">+</span>
-          </div>
-        </div>
+        )}
 
         {/* FULL-IMAGE GAME CANVAS (Fills full screen edge-to-edge) */}
         <div className="full-game-canvas" ref={gameCanvasRef}>
@@ -1243,7 +1313,7 @@ export default function App() {
                       {/* Top-Left Watermark Game Branding */}
                       <div className="hc-wm-logo">
                         <Flag size={14} className="hc-wm-flag" style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} />
-                        <span className="hc-wm-title">TEZ RAFTER</span>
+                        <span className="hc-wm-title">HORSE RACING</span>
                         <span className="hc-wm-sub">PHOTO FINISH</span>
                       </div>
 

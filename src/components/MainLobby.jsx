@@ -15,7 +15,9 @@ import {
   Gamepad2,
   Lock,
   Play,
+  LogIn,
 } from 'lucide-react'
+import { useAuth } from '../context/AuthContext.jsx'
 
 const CASINO_GAMES = [
   {
@@ -68,20 +70,30 @@ export default function MainLobby({
   onOpenTutorial,
   onOpenHistory,
 }) {
+  const { user, isGuest, setIsAuthModalOpen, setIsProfileModalOpen } = useAuth()
+
   return (
     <div className="main-lobby-screen">
       {/* TOP USER PROFILE & WALLET HEADER */}
       <header className="lobby-top-bar">
         {/* User Info */}
-        <div className="lobby-user-profile">
+        <div
+          className="lobby-user-profile"
+          onClick={() => (isGuest ? setIsAuthModalOpen(true) : setIsProfileModalOpen(true))}
+          style={{ cursor: 'pointer' }}
+          title={isGuest ? 'Click to Sign In or Register' : 'View VIP Profile'}
+        >
           <div className="user-avatar-wrap">
             <User className="w-5 h-5 text-amber-400" size={20} />
-            <span className="user-vip-tag">VIP 1</span>
+            <span className="user-vip-tag">VIP {user?.vipLevel || 1}</span>
           </div>
           <div className="user-details">
-            <div className="user-name">Player #7890</div>
+            <div className="user-name" style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <span>{user?.username || 'Guest Player'}</span>
+              {isGuest && <span style={{ fontSize: '10px', color: '#fbbf24', background: 'rgba(251, 191, 36, 0.15)', padding: '1px 5px', borderRadius: '4px' }}>SIGN IN</span>}
+            </div>
             <div className="user-rank" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <Star size={13} className="text-amber-400 fill-amber-400" /> Master Jockey • Level 4
+              <Star size={13} className="text-amber-400 fill-amber-400" /> {isGuest ? 'Casual Guest Rider' : 'Master Jockey • Level 4'}
             </div>
           </div>
         </div>
