@@ -5,17 +5,44 @@ import { assetCacheService, ALL_GAME_ASSETS, GAME_IMAGE_ASSETS } from '../servic
 export default function DerbyAssetLoader({ onComplete }) {
   const [progress, setProgress] = useState(0)
   const [isFadingOut, setIsFadingOut] = useState(false)
+  const [isMoving, setIsMoving] = useState(true)
   const isFinishedRef = useRef(false)
   const mountedRef = useRef(true)
   const realProgressRef = useRef(0)
   const isAssetsReadyRef = useRef(false)
   const displayedProgressRef = useRef(0)
+  const prevProgressRef = useRef(0)
+  const lastMoveTimeRef = useRef(Date.now())
+  const isMovingRef = useRef(true)
+  const imgRef = useRef(null)
+  const canvasRef = useRef(null)
+
+  const captureFreezeFrame = () => {
+    if (imgRef.current && canvasRef.current) {
+      try {
+        const imgEl = imgRef.current
+        const canvas = canvasRef.current
+        const w = imgEl.naturalWidth || imgEl.clientWidth || 300
+        const h = imgEl.naturalHeight || imgEl.clientHeight || 200
+        if (canvas.width !== w) canvas.width = w
+        if (canvas.height !== h) canvas.height = h
+        const ctx = canvas.getContext('2d')
+        if (ctx) {
+          ctx.clearRect(0, 0, w, h)
+          ctx.drawImage(imgEl, 0, 0, w, h)
+        }
+      } catch (_) { }
+    }
+  }
 
   useEffect(() => {
     mountedRef.current = true
     isFinishedRef.current = false
     isAssetsReadyRef.current = false
     displayedProgressRef.current = 0
+    prevProgressRef.current = 0
+    lastMoveTimeRef.current = Date.now()
+    isMovingRef.current = true
 
     const handleProgress = (pct) => {
       if (!mountedRef.current) return
@@ -45,21 +72,41 @@ export default function DerbyAssetLoader({ onComplete }) {
 
       // Smooth step towards target
       if (displayedProgressRef.current < target) {
-        const step = Math.max(1, Math.ceil((target - displayedProgressRef.current) * 0.18))
+        const step = Math.max(1, Math.ceil((target - displayedProgressRef.current) * 0.15))
         displayedProgressRef.current = Math.min(target, displayedProgressRef.current + step)
         setProgress(displayedProgressRef.current)
+      }
+
+      // Check if horse is actively moving forward or paused
+      if (displayedProgressRef.current > prevProgressRef.current) {
+        prevProgressRef.current = displayedProgressRef.current
+        lastMoveTimeRef.current = Date.now()
+        if (!isMovingRef.current) {
+          isMovingRef.current = true
+          setIsMoving(true)
+        }
+      } else if (Date.now() - lastMoveTimeRef.current > 180) {
+        // Horse has stopped moving forward -> Freeze legs on canvas!
+        if (isMovingRef.current) {
+          captureFreezeFrame()
+          isMovingRef.current = false
+          setIsMoving(false)
+        }
       }
 
       // STRICT GATE: Complete ONLY when 100% of all images have finished downloading/decoding
       if (displayedProgressRef.current >= 100 && isAssetsReadyRef.current) {
         isFinishedRef.current = true
+        captureFreezeFrame()
+        isMovingRef.current = false
+        setIsMoving(false)
         clearInterval(timer)
         setIsFadingOut(true)
         setTimeout(() => {
           if (mountedRef.current && onComplete) {
             onComplete()
           }
-        }, 180)
+        }, 220)
       }
     }, 20)
 
@@ -146,7 +193,9 @@ export default function DerbyAssetLoader({ onComplete }) {
                 transition: 'left 0.04s linear',
               }}
             >
+              {/* Animated Running Horse GIF while moving forward */}
               <img
+                ref={imgRef}
                 src="/HORSES/horse5_1mb.gif"
                 alt="Running Derby Horse"
                 style={{
@@ -154,6 +203,18 @@ export default function DerbyAssetLoader({ onComplete }) {
                   height: '100%',
                   objectFit: 'contain',
                   filter: 'drop-shadow(0 3px 6px rgba(0, 0, 0, 0.8)) drop-shadow(0 0 8px rgba(245, 158, 11, 0.4))',
+                  display: isMoving ? 'block' : 'none',
+                }}
+              />
+              {/* Frozen Snapshot Canvas when horse stops so legs freeze in place */}
+              <canvas
+                ref={canvasRef}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'contain',
+                  filter: 'drop-shadow(0 3px 6px rgba(0, 0, 0, 0.8)) drop-shadow(0 0 8px rgba(245, 158, 11, 0.4))',
+                  display: isMoving ? 'none' : 'block',
                 }}
               />
             </div>
