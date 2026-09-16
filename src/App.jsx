@@ -33,6 +33,7 @@ import UserProfileModal from './components/auth/UserProfileModal.jsx'
 import DerbyAssetLoader from './components/DerbyAssetLoader.jsx'
 import { useAuth } from './context/AuthContext.jsx'
 import { useWallet } from './context/WalletContext.jsx'
+import { getSafeAudioContext } from './utils/audioContextHelper.js'
 
 const HORSES = [
   { number: 1, name: 'TOOFAN', img: '/HORSES/horse_no1_1mb.gif', portraitImg: '/Bet_horses/horses1.png', hue: 0, saturate: 1.0, brightness: 1.0, speedRating: '9.8' },
@@ -332,9 +333,8 @@ export default function App() {
 
   const playSynthShutter = () => {
     try {
-      const AudioCtx = window.AudioContext || window.webkitAudioContext
-      if (!AudioCtx) return
-      const ctx = new AudioCtx()
+      const ctx = getSafeAudioContext()
+      if (!ctx) return
       // Mechanical mirror flip
       const osc1 = ctx.createOscillator()
       const gain1 = ctx.createGain()
@@ -397,9 +397,8 @@ export default function App() {
       const vol = getEffectiveVolume('coinVoice')
       if (vol <= 0) return
       try {
-        const AudioCtx = window.AudioContext || window.webkitAudioContext
-        if (!AudioCtx) return
-        const ctx = new AudioCtx()
+        const ctx = getSafeAudioContext()
+        if (!ctx) return
         const osc = ctx.createOscillator()
         const gain = ctx.createGain()
         osc.type = 'triangle'
@@ -761,15 +760,17 @@ export default function App() {
                     const fallbackCanvas = document.createElement('canvas')
                     fallbackCanvas.width = 960
                     fallbackCanvas.height = 540
-                    const ctx = fallbackCanvas.getContext('2d')
-                    ctx.fillStyle = '#180a29'
-                    ctx.fillRect(0, 0, 960, 540)
-                    ctx.fillStyle = '#ff003b'
-                    ctx.fillRect(720, 0, 6, 540)
-                    ctx.fillStyle = '#ffffff'
-                    ctx.font = 'bold 24px sans-serif'
-                    ctx.fillText(`PHOTO FINISH — #${r.number} ${r.name}`, 40, 60)
-                    setFinishScreenshot(fallbackCanvas.toDataURL('image/jpeg', 0.9))
+                    const ctx = fallbackCanvas.getContext('2d', { willReadFrequently: true })
+                    if (ctx) {
+                      ctx.fillStyle = '#180a29'
+                      ctx.fillRect(0, 0, 960, 540)
+                      ctx.fillStyle = '#ff003b'
+                      ctx.fillRect(720, 0, 6, 540)
+                      ctx.fillStyle = '#ffffff'
+                      ctx.font = 'bold 24px sans-serif'
+                      ctx.fillText(`PHOTO FINISH — #${r.number} ${r.name}`, 40, 60)
+                      setFinishScreenshot(fallbackCanvas.toDataURL('image/jpeg', 0.9))
+                    }
                   } catch (_) { }
                   setTimeout(() => {
                     startTimeRef.current = performance.now() - frozenElapsedRef.current * 1000
@@ -1046,7 +1047,6 @@ export default function App() {
                 alt="Starting Gate"
                 className="starting-gate-img"
                 draggable="false"
-                crossOrigin="anonymous"
               />
             </div>
 
