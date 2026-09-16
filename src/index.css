@@ -5227,7 +5227,7 @@ button {
    SIDEBAR: DEDICATED LIVE BETS BOARD
    ========================================================= */
 .tez-sidebar-board {
-  width: clamp(140px, 15vw, 200px);
+  width: clamp(110px, 11vw, 150px);
   background:
     linear-gradient(180deg, rgba(255, 200, 100, 0.1) 0%, transparent 35%),
     linear-gradient(180deg, #42220d 0%, #251206 100%);
@@ -5766,7 +5766,7 @@ button {
   }
 
   .tez-sidebar-board {
-    width: clamp(160px, 16vw, 220px);
+    width: clamp(120px, 11vw, 155px);
     height: 100%;
     max-height: clamp(180px, 44vh, 310px);
     max-height: clamp(210px, 48vh, 340px);
@@ -5774,38 +5774,38 @@ button {
   }
 
   .tez-sb-header {
-    padding: 7px 10px;
+    padding: 5px 8px;
   }
 
   .tez-sb-title {
-    font-size: 12.5px;
-    letter-spacing: 0.08em;
+    font-size: 10.5px;
+    letter-spacing: 0.05em;
   }
 
   .tez-results-list {
-    padding: 6px;
-    gap: 4px;
+    padding: 4px;
+    gap: 3px;
   }
 
   .tez-res-row {
-    padding: 3.5px 8px;
-    min-height: 32px;
-    gap: 8px;
+    padding: 2.5px 6px;
+    min-height: 28px;
+    gap: 6px;
   }
 
   .tez-res-badge {
-    width: 22px;
-    height: 22px;
-    font-size: 11px;
+    width: 19px;
+    height: 19px;
+    font-size: 10px;
   }
 
   .tez-res-name {
-    font-size: 11.5px;
+    font-size: 10px;
   }
 
   .tez-res-mult {
-    font-size: 10.5px;
-    padding: 2px 6px;
+    font-size: 9.5px;
+    padding: 1.5px 4px;
   }
 
   .tez-bottom-plank {
@@ -5954,7 +5954,7 @@ button {
   }
 
   .tez-sidebar-board {
-    width: clamp(130px, 16vw, 165px);
+    width: clamp(100px, 12vw, 130px);
     height: 100%;
     max-height: clamp(160px, 38vh, 230px);
     max-height: clamp(180px, 45vh, 290px);
@@ -6112,13 +6112,42 @@ button {
   }
 
   .tez-sidebar-board {
-    width: clamp(100px, 16vw, 125px);
+    width: clamp(75px, 11vw, 95px);
     height: 100%;
     max-height: clamp(155px, 48vh, 220px);
     min-width: 0;
     box-sizing: border-box;
     position: relative;
     z-index: 1;
+  }
+
+  .tez-sb-header {
+    padding: 2px 4px;
+  }
+
+  .tez-sb-title {
+    font-size: 7.5px;
+  }
+
+  .tez-res-row {
+    padding: 1.5px 3px;
+    min-height: 22px;
+    gap: 3px;
+  }
+
+  .tez-res-badge {
+    width: 14px;
+    height: 14px;
+    font-size: 7.5px;
+  }
+
+  .tez-res-name {
+    font-size: 8px;
+  }
+
+  .tez-res-mult {
+    font-size: 7.5px;
+    padding: 0.5px 2px;
   }
 
   .tez-bottom-plank {
@@ -6152,6 +6181,37 @@ button {
 
   .tez-timer-num {
     font-size: 19px;
+  }
+
+  /* Mobile Landscape Loader: Shift downwards and ensure zero clipping */
+  .derby-asset-loader-root {
+    padding-top: 10px;
+    padding-bottom: clamp(6px, 1.5vh, 12px);
+    justify-content: flex-end;
+  }
+
+  .derby-loader-content-wrap {
+    justify-content: flex-end;
+  }
+
+  .derby-loader-logo-wrap {
+    width: min(48vw, 220px);
+    margin-bottom: 2px;
+    margin-top: auto;
+    transform: none;
+  }
+
+  .derby-loader-logo-img {
+    max-height: min(20vh, 65px);
+  }
+
+  .derby-loader-dock {
+    width: min(86vw, 460px);
+    transform: none;
+  }
+
+  .derby-loader-track-wrap {
+    max-height: 68px;
   }
 }
 
@@ -6376,6 +6436,37 @@ button {
 
   .tez-timer-num {
     font-size: 17px;
+  }
+
+  /* Mobile Portrait Loader: Shift downwards and ensure zero clipping */
+  .derby-asset-loader-root {
+    padding-top: clamp(30px, 8vh, 60px);
+    padding-bottom: clamp(24px, 6vh, 48px);
+    justify-content: flex-end;
+  }
+
+  .derby-loader-content-wrap {
+    justify-content: flex-end;
+  }
+
+  .derby-loader-logo-wrap {
+    width: min(76vw, 280px);
+    margin-bottom: 12px;
+    margin-top: auto;
+    transform: none;
+  }
+
+  .derby-loader-logo-img {
+    max-height: min(22vh, 115px);
+  }
+
+  .derby-loader-dock {
+    width: min(94vw, 440px);
+    transform: none;
+  }
+
+  .derby-loader-track-wrap {
+    max-height: 100px;
   }
 }
 
@@ -6688,6 +6779,78 @@ button {
   background: rgba(255, 255, 255, 0.08);
   color: #ffffff;
   border-color: #ffd88a;
+}
+
+/* =========================================================
+   DERBY ASSET LOADER (FULLSCREEN GATEWAY)
+   ========================================================= */
+.derby-asset-loader-root {
+  position: fixed;
+  inset: 0;
+  z-index: 999999;
+  background-color: #070b14;
+  background-image: radial-gradient(ellipse at 50% 35%, #1e150a 0%, #080c16 80%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  padding-bottom: clamp(16px, 3vh, 32px);
+  padding-top: clamp(12px, 2vh, 24px);
+  font-family: 'Segoe UI', Roboto, sans-serif;
+  color: #ffffff;
+  user-select: none;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.derby-loader-content-wrap {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  width: 100%;
+  max-height: 100%;
+}
+
+.derby-loader-logo-wrap {
+  position: relative;
+  width: min(84vw, 400px);
+  margin-bottom: clamp(10px, 2.5vh, 22px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  pointer-events: none;
+  flex-shrink: 1;
+}
+
+.derby-loader-logo-img {
+  width: 100%;
+  height: auto;
+  max-height: min(32vh, 180px);
+  object-fit: contain;
+  filter: drop-shadow(0 12px 30px rgba(0, 0, 0, 0.85)) drop-shadow(0 0 16px rgba(245, 158, 11, 0.45));
+}
+
+.derby-loader-dock {
+  position: relative;
+  width: min(94vw, 660px);
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.derby-loader-track-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 2170 / 725;
+  max-height: 155px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* =========================================================
