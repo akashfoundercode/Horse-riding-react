@@ -30,7 +30,7 @@ export default function AddCoinsModal({ isOpen, onClose, onAddCoins }) {
       onClose()
     }, 900)
   }
-
+//test
   return (
     <div className="modal-backdrop-generic" onClick={onClose}>
       <div className="add-coins-modal" onClick={(e) => e.stopPropagation()}>
