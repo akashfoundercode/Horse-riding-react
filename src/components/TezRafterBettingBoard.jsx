@@ -312,6 +312,9 @@ export default function TezRafterBettingBoard({
 
         {/* 2. INNER ARENA (12 HORSES GRID + PREVIOUS RESULTS SIDEBAR) */}
         <div className="tez-main-arena">
+          {/* Blurry Atmosphere Racetrack Background Layer */}
+          <div className="tez-arena-bg-layer" />
+
           {/* Betting Grid Area */}
           <div className="tez-grid-section">
             {isBettingLocked && (
