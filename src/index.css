@@ -5819,7 +5819,7 @@ button {
     padding: 6px 0;
     align-items: center;
     margin-left: clamp(28px, 4vw, 65px);
-    transform: translateY(4px);
+    transform: translateY(-2px);
   }
 
   .tez-casino-chip {
@@ -5835,7 +5835,7 @@ button {
   .tez-timer-display {
     padding: 3px 12px;
     margin-right: clamp(28px, 4vw, 65px);
-    transform: translateY(4px);
+    transform: translateY(-2px);
   }
 
   .tez-timer-num {
