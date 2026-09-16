@@ -31,6 +31,7 @@ import WalletModal from './components/WalletModal.jsx'
 import AuthModal from './components/auth/AuthModal.jsx'
 import UserProfileModal from './components/auth/UserProfileModal.jsx'
 import DerbyAssetLoader from './components/DerbyAssetLoader.jsx'
+import LiveLeaderboard from './components/LiveLeaderboard.jsx'
 import { useAuth } from './context/AuthContext.jsx'
 import { useWallet } from './context/WalletContext.jsx'
 import { getSafeAudioContext } from './utils/audioContextHelper.js'
@@ -297,6 +298,7 @@ export default function App() {
   const [finishLineX, setFinishLineX] = useState(78.2)
   const finishTriggeredRef = useRef(false)
   const raceFinishedRef = useRef(false)
+  const resultProcessedRef = useRef(false)
   const lockedWinnerRef = useRef(null)
   const finishPhaseRef = useRef('running')
   const screenshotInProgressRef = useRef(false)
@@ -509,6 +511,7 @@ export default function App() {
     setIsNearFinish(false)
     finishTriggeredRef.current = false
     screenshotTakenRef.current = false
+    resultProcessedRef.current = false
     setPhase('idle')
   }, [])
 
@@ -539,6 +542,7 @@ export default function App() {
     setFinishScreenshot(null)
     isFrozenRef.current = false
     setIsFreeze(false)
+    resultProcessedRef.current = false
     setCountdown(3)
     setPhase('countdown')
   }, [betsByHorse, isCheatEnabled])
@@ -808,9 +812,12 @@ export default function App() {
     }
   }, [phase])
 
-  // Win / Loss balance update on race result & persistent history log
+  // Win / Loss balance update on race result & persistent history log (STRICTLY ONCE PER ROUND)
   useEffect(() => {
     if (phase !== 'result' || !winner) return
+    if (resultProcessedRef.current) return
+    resultProcessedRef.current = true
+
     const userBetOnWinner = betsByHorse[winner.number] || 0
     const isWon = userBetOnWinner > 0
     const win = isWon ? userBetOnWinner * PAYOUT_MULTIPLIER : 0
@@ -870,7 +877,7 @@ export default function App() {
     }, 6500)
 
     return () => clearTimeout(autoNextTimer)
-  }, [phase, winner, betsByHorse, totalBet, finishScreenshot, postWalletTransaction, resetRace])
+  }, [phase, winner])
 
   const maxPos = Math.max(...runners.map((r) => r.position || 0))
 
@@ -1195,96 +1202,9 @@ export default function App() {
           )}
         </div>
 
-        {/* DEDICATED HORIZONTAL BOTTOM LIVE SCOREBOARD / LEADERBOARD */}
+        {/* AUTHENTIC TOP LIVE SCOREBOARD / LEADERBOARD (DITTO REFERENCE MOCKUP) */}
         {(phase === 'racing' || phase === 'photofinish' || phase === 'result' || phase === 'resultOpen' || phase === 'countdown') && (
-          <aside className="race-bottom-live-leaderboard">
-            {/* Left Live Badge */}
-            <div className="hlb-live-badge-col">
-              <div className="hlb-live-indicator">
-                <span className="rlb-pulse-dot" />
-                <span className="hlb-live-text">LIVE</span>
-              </div>
-              <span className="hlb-sub-text">1000M</span>
-            </div>
-
-            {/* Horizontal 12 Runners Grid - Fixed slots 1 to 12 with smooth vertical elevation */}
-            <div className="hlb-runners-track">
-              {(() => {
-                // Calculate live rank map based on current track position
-                const sortedByPos = [...runners].sort((a, b) => b.position - a.position)
-                const rankMap = {}
-                sortedByPos.forEach((r, idx) => {
-                  rankMap[r.number] = idx
-                })
-
-                return [...runners]
-                  .sort((a, b) => b.position - a.position)
-                  .map((r) => {
-                    const rankIdx = rankMap[r.number] ?? 0
-                    const userBet = betsByHorse[r.number] || 0
-                    const isMyBet = userBet > 0
-                    const medalClass =
-                      rankIdx === 0
-                        ? 'hlb-pill--gold hlb-pill--elevated-1st'
-                        : rankIdx === 1
-                          ? 'hlb-pill--silver hlb-pill--elevated-2nd'
-                          : rankIdx === 2
-                            ? 'hlb-pill--bronze hlb-pill--elevated-3rd'
-                            : 'hlb-pill--normal'
-
-                    return (
-                      <div
-                        key={r.number}
-                        className={`hlb-horse-pill ${medalClass} ${isMyBet ? 'hlb-horse-pill--my-bet' : ''}`}
-                      >
-                        {/* Top Row inside box: Rank Badge on top + Horse Silk Number */}
-                        <div className="hlb-pill-top">
-                          <span
-                            className={`hlb-rank ${rankIdx === 0
-                              ? 'hlb-rank--podium hlb-rank--1st'
-                              : rankIdx === 1
-                                ? 'hlb-rank--podium hlb-rank--2nd'
-                                : rankIdx === 2
-                                  ? 'hlb-rank--podium hlb-rank--3rd'
-                                  : 'hlb-rank--normal'
-                              }`}
-                          >
-                            {rankIdx === 0 ? '1st' : rankIdx === 1 ? '2nd' : rankIdx === 2 ? '3rd' : `${rankIdx + 1}`}
-                          </span>
-
-                          <span
-                            className="hlb-horse-num"
-                            style={{
-                              background: HORSE_SILK_COLORS[r.number] || '#c57835',
-                            }}
-                          >
-                            #{r.number}
-                          </span>
-                        </div>
-
-                        {/* Middle Row inside box: Horse Name & Bet */}
-                        <div className="hlb-pill-mid">
-                          <span className="hlb-horse-name" title={r.name}>
-                            {r.name}
-                          </span>
-                          {isMyBet && <span className="hlb-my-bet-tag">🪙 {userBet}</span>}
-                        </div>
-
-                        {/* Bottom: Progress Bar */}
-                        <div className="hlb-progress-bar">
-                          <div
-                            className="hlb-progress-fill"
-                            style={{
-                              width: `${Math.min(100, Math.max(6, (r.position / 90) * 100))}%`,
-                            }}
-                          />
-                        </div>
-                      </div>
-                    )
-                  })
-              })()}
-            </div>
-          </aside>
+          <LiveLeaderboard runners={runners} betsByHorse={betsByHorse} />
         )}
 
         {/* SINGLE HILL CLIMB VICTORY & RESULT SCREEN (PURE TEXT & UNCROPPED POLAROID) */}
