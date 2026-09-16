@@ -16,6 +16,8 @@ import {
   History,
 } from 'lucide-react'
 
+import { getSafeAudioContext } from '../utils/audioContextHelper.js'
+
 export const CHIP_OPTIONS = [
   { value: 2, label: '2', img: '/bet_coins/betcoin2.png' },
   { value: 5, label: '5', img: '/bet_coins/betcoin5.png' },
@@ -85,9 +87,8 @@ export default function TezRafterBettingBoard({
     try {
       const coinVol = getEffectiveVolume('coinVoice')
       if (coinVol <= 0) return
-      const AudioCtx = window.AudioContext || window.webkitAudioContext
-      if (!AudioCtx) return
-      const ctx = new AudioCtx()
+      const ctx = getSafeAudioContext()
+      if (!ctx) return
       const osc = ctx.createOscillator()
       const gain = ctx.createGain()
       osc.type = 'sine'
@@ -107,9 +108,8 @@ export default function TezRafterBettingBoard({
     try {
       const gameVol = getEffectiveVolume('gameVoice')
       if (gameVol <= 0) return
-      const AudioCtx = window.AudioContext || window.webkitAudioContext
-      if (!AudioCtx) return
-      const ctx = new AudioCtx()
+      const ctx = getSafeAudioContext()
+      if (!ctx) return
 
       const bufferSize = Math.floor(ctx.sampleRate * 0.035)
       const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate)
@@ -141,9 +141,8 @@ export default function TezRafterBettingBoard({
     try {
       const gameVol = getEffectiveVolume('gameVoice')
       if (gameVol <= 0) return
-      const AudioCtx = window.AudioContext || window.webkitAudioContext
-      if (!AudioCtx) return
-      const ctx = new AudioCtx()
+      const ctx = getSafeAudioContext()
+      if (!ctx) return
 
       const baseFreq = 800 + (6 - sec) * 130
 
@@ -351,7 +350,6 @@ export default function TezRafterBettingBoard({
                         src={h.portraitImg || h.img}
                         alt={h.name}
                         className="tez-card-horse-img"
-                        crossOrigin="anonymous"
                         draggable="false"
                       />
                     </div>
@@ -467,7 +465,6 @@ export default function TezRafterBettingBoard({
                       alt={`Bet Coin ${chip.label}`}
                       className="tez-chip-img"
                       draggable="false"
-                      crossOrigin="anonymous"
                     />
                     {isActive && (
                       <>

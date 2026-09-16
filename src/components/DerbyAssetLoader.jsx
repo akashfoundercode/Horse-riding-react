@@ -94,7 +94,7 @@ export default function DerbyAssetLoader({ onComplete }) {
         src="/loader/laoder.png"
         alt="Derby Loader Background"
         loading="eager"
-        fetchPriority="high"
+        fetchpriority="high"
         style={{
           position: 'absolute',
           inset: 0,
@@ -124,7 +124,7 @@ export default function DerbyAssetLoader({ onComplete }) {
           src="/sprites/mainlogo.png"
           alt="Horse Racing Main Logo"
           loading="eager"
-          fetchPriority="high"
+          fetchpriority="high"
           style={{
             width: '100%',
             height: 'auto',

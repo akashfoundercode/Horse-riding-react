@@ -24,7 +24,7 @@ export default function Horse({
         const height = imgEl.naturalHeight || imgEl.clientHeight || 300
         if (canvas.width !== width) canvas.width = width
         if (canvas.height !== height) canvas.height = height
-        const ctx = canvas.getContext('2d')
+        const ctx = canvas.getContext('2d', { willReadFrequently: true })
         if (ctx) {
           ctx.clearRect(0, 0, width, height)
           ctx.drawImage(imgEl, 0, 0, width, height)
@@ -66,7 +66,6 @@ export default function Horse({
           alt="Horse Jockey"
           className="horse-gif-img"
           draggable="false"
-          crossOrigin="anonymous"
           style={{
             visibility: isFreeze ? 'hidden' : 'visible',
             width: '100%',
