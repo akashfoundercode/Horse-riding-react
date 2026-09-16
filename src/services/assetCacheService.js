@@ -80,23 +80,41 @@ class AssetCacheService {
         if (cache) {
           const match = await cache.match(url)
           if (!match) {
-            const resp = await fetch(url, { cache: 'force-cache' })
-            if (resp.ok) {
-              await cache.put(url, resp.clone())
+            const resp = await fetch(url, { cache: 'force-cache' }).catch(() => null)
+            if (resp && resp.ok) {
+              await cache.put(url, resp.clone()).catch(() => { })
             }
           }
         }
 
-        // Memory pre-decoding
+        // Full browser memory decode so images never pop in late
         if (url.endsWith('.mp3')) {
-          const audio = new Audio()
-          audio.src = url
-          audio.preload = 'auto'
-          this.memoryCache.set(url, audio)
+          await new Promise((resolve) => {
+            const audio = new Audio()
+            audio.preload = 'auto'
+            audio.oncanplaythrough = () => {
+              this.memoryCache.set(url, audio)
+              resolve()
+            }
+            audio.onerror = () => resolve()
+            audio.src = url
+            setTimeout(resolve, 3000) // Fallback timeout per sound
+          })
         } else {
-          const img = new Image()
-          img.src = url
-          this.memoryCache.set(url, img)
+          await new Promise((resolve) => {
+            const img = new Image()
+            img.onload = async () => {
+              try {
+                if ('decode' in img) {
+                  await img.decode()
+                }
+              } catch (_) { }
+              this.memoryCache.set(url, img)
+              resolve()
+            }
+            img.onerror = () => resolve()
+            img.src = url
+          })
         }
       } catch (_) {
         // Soft fail per asset so loading is never blocked
@@ -113,6 +131,7 @@ class AssetCacheService {
       localStorage.setItem('derby_assets_cached_v2', 'true')
       localStorage.setItem('derby_assets_cached_at', String(Date.now()))
     } catch (_) { }
+    return true
   }
 
   isCachedLocally() {
