@@ -1,51 +1,52 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { Sparkles, Trophy, Zap } from 'lucide-react'
-import { assetCacheService, ALL_GAME_ASSETS } from '../services/assetCacheService.js'
-
-const MIN_ANIMATION_MS = 2800
+import { assetCacheService, ALL_GAME_ASSETS, GAME_IMAGE_ASSETS } from '../services/assetCacheService.js'
 
 export default function DerbyAssetLoader({ onComplete }) {
   const [progress, setProgress] = useState(0)
   const [isFadingOut, setIsFadingOut] = useState(false)
   const isFinishedRef = useRef(false)
   const mountedRef = useRef(true)
-  const startTimeRef = useRef(Date.now())
   const realProgressRef = useRef(0)
   const isAssetsReadyRef = useRef(false)
+  const displayedProgressRef = useRef(0)
 
   useEffect(() => {
     mountedRef.current = true
-    startTimeRef.current = Date.now()
+    isFinishedRef.current = false
+    isAssetsReadyRef.current = false
+    displayedProgressRef.current = 0
 
-    // 1. Actively download and decode all game assets into GPU/RAM
-    assetCacheService.cacheAllAssets((pct) => {
-      realProgressRef.current = pct
-    }).then(() => {
-      isAssetsReadyRef.current = true
-    }).catch(() => {
-      isAssetsReadyRef.current = true
-    })
+    // 1. Actively preload and decode all game images and sprites using new Image()
+    assetCacheService
+      .cacheAllAssets((pct, loaded, total) => {
+        realProgressRef.current = pct
+      })
+      .then(() => {
+        isAssetsReadyRef.current = true
+        realProgressRef.current = 100
+      })
+      .catch((err) => {
+        console.warn('Asset loading warning:', err)
+        isAssetsReadyRef.current = true
+        realProgressRef.current = 100
+      })
 
+    // 2. Smoothly animate percentage bar towards the actual downloaded assets progress
     const timer = setInterval(() => {
       if (!mountedRef.current || isFinishedRef.current) return
 
-      const elapsed = Date.now() - startTimeRef.current
-      const timeRatio = Math.min(1, elapsed / MIN_ANIMATION_MS)
-      const realRatio = (realProgressRef.current || 0) / 100
+      const target = isAssetsReadyRef.current ? 100 : Math.min(98, realProgressRef.current)
 
-      // Progress is smoothly driven by time and actual downloaded assets
-      let current = Math.floor(Math.min(timeRatio, Math.max(0.2, realRatio)) * 100)
-
-      // STRICT GATE: Hold at 99% until 100% of game assets are completely decoded in memory
-      if (!isAssetsReadyRef.current) {
-        current = Math.min(98, current)
-      } else if (timeRatio >= 1) {
-        current = 100
+      // Smooth step towards target
+      if (displayedProgressRef.current < target) {
+        const step = Math.max(1, Math.ceil((target - displayedProgressRef.current) * 0.15))
+        displayedProgressRef.current = Math.min(target, displayedProgressRef.current + step)
+        setProgress(displayedProgressRef.current)
       }
 
-      setProgress(current)
-
-      if (current >= 100 && isAssetsReadyRef.current) {
+      // STRICT GATE: Complete ONLY when 100% of all images have finished downloading/decoding
+      if (displayedProgressRef.current >= 100 && isAssetsReadyRef.current) {
         isFinishedRef.current = true
         clearInterval(timer)
         setIsFadingOut(true)
@@ -53,9 +54,9 @@ export default function DerbyAssetLoader({ onComplete }) {
           if (mountedRef.current && onComplete) {
             onComplete()
           }
-        }, 150)
+        }, 200)
       }
-    }, 20)
+    }, 25)
 
     return () => {
       mountedRef.current = false
