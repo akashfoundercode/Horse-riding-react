@@ -5818,17 +5818,6 @@ button {
     max-height: calc(100vh - 150px);
   }
 
-  .tez-arena-bg-layer {
-    position: absolute;
-    inset: 0;
-    background-image: url('/sprites/horse%20races%20bg.png');
-    background-size: cover;
-    background-position: center;
-    border-radius: 6px;
-    pointer-events: none;
-    z-index: 0;
-  }
-
   .tez-horses-grid {
     grid-template-columns: repeat(6, minmax(0, 1fr));
     grid-template-rows: repeat(2, minmax(0, 1fr));
@@ -5938,20 +5927,6 @@ button {
     border-radius: 6px;
     margin: 2px 0;
     box-sizing: border-box;
-  }
-
-  .tez-arena-bg-layer {
-    position: absolute;
-    inset: 0;
-    background-image: url('/sprites/horse%20races%20bg.png');
-    background-size: cover;
-    background-position: center;
-    border-radius: 6px;
-    border: 1px solid rgba(212, 151, 85, 0.4);
-    box-shadow: inset 0 0 14px rgba(0, 0, 0, 0.85);
-    filter: blur(2px) brightness(0.9);
-    pointer-events: none;
-    z-index: 0;
   }
 
   .tez-horses-grid {
@@ -6099,21 +6074,6 @@ button {
     margin: 2px 0;
     box-sizing: border-box;
     width: 100%;
-  }
-
-  /* Background image strictly inside the center arena with zero border overflow */
-  .tez-arena-bg-layer {
-    position: absolute;
-    inset: 0;
-    background-image: url('/sprites/horse%20races%20bg.png');
-    background-size: cover;
-    background-position: center;
-    border-radius: 6px;
-    border: 1px solid rgba(212, 151, 85, 0.4);
-    box-shadow: inset 0 0 16px rgba(0, 0, 0, 0.85);
-    filter: blur(2px) brightness(0.9);
-    pointer-events: none;
-    z-index: 0;
   }
 
   .tez-grid-section {
@@ -6542,7 +6502,7 @@ button {
   background:
     linear-gradient(90deg, rgba(3, 10, 18, 0.44), rgba(4, 14, 24, 0.08) 50%, rgba(3, 10, 18, 0.44)),
     linear-gradient(0deg, rgba(3, 7, 12, 0.42), transparent 54%),
-    url('/sprites/horse races bg1.png') center / cover no-repeat;
+    url('/loader/laoder.png') center / cover no-repeat;
   will-change: opacity, transform;
   backface-visibility: hidden;
   perspective: 1000px;
