@@ -69,24 +69,11 @@ export default function DerbyAssetLoader({ onComplete }) {
 
   return (
     <div
+      className="derby-asset-loader-root"
       style={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: 999999,
-        backgroundColor: '#070b14',
-        backgroundImage: 'radial-gradient(ellipse at 50% 35%, #1e150a 0%, #080c16 80%)',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'flex-end',
-        paddingBottom: 'clamp(20px, 4vh, 40px)',
-        fontFamily: "'Segoe UI', Roboto, sans-serif",
-        color: '#ffffff',
         transition: 'opacity 0.25s ease-out',
         opacity: isFadingOut ? 0 : 1,
         pointerEvents: isFadingOut ? 'none' : 'all',
-        userSelect: 'none',
-        overflow: 'hidden',
       }}
     >
       {/* User Uploaded Loader Background Image - Subtle Blur Background */}
@@ -107,127 +94,93 @@ export default function DerbyAssetLoader({ onComplete }) {
         }}
       />
 
-      {/* Main 3D Golden Game Logo - Centered above loader line */}
-      <div
-        style={{
-          position: 'relative',
-          zIndex: 10,
-          width: 'min(86vw, 440px)',
-          marginBottom: 'clamp(14px, 3vh, 28px)',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          pointerEvents: 'none',
-        }}
-      >
-        <img
-          src="/sprites/mainlogo.png"
-          alt="Horse Racing Main Logo"
-          loading="eager"
-          fetchpriority="high"
-          style={{
-            width: '100%',
-            height: 'auto',
-            maxHeight: 'min(36vh, 220px)',
-            objectFit: 'contain',
-            filter: 'drop-shadow(0 12px 30px rgba(0, 0, 0, 0.85)) drop-shadow(0 0 16px rgba(245, 158, 11, 0.45))',
-          }}
-        />
-      </div>
-
-      {/* Clean Loader Dock Container directly on top of background without any background box/shadow */}
-      <div
-        style={{
-          position: 'relative',
-          zIndex: 10,
-          width: 'min(94vw, 680px)',
-          background: 'transparent',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-        }}
-      >
-        {/* LOADERLINE 3D TRACK CONTAINER WITH RUNNING HORSE */}
-        <div
-          style={{
-            position: 'relative',
-            width: '100%',
-            aspectRatio: '2170 / 725',
-            maxHeight: '170px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          {/* User's Loaderline Track Graphic (Start & Finish Gates, Fences, Grass, Dirt) */}
+      {/* Main Content Wrap (Logo + Track Dock + Percent) */}
+      <div className="derby-loader-content-wrap">
+        {/* Main 3D Golden Game Logo - Centered above loader line */}
+        <div className="derby-loader-logo-wrap">
           <img
-            src="/loader/loaderline.png"
-            alt="Track Loader Line"
-            style={{
-              position: 'absolute',
-              inset: 0,
-              width: '100%',
-              height: '100%',
-              objectFit: 'contain',
-              pointerEvents: 'none',
-            }}
+            src="/sprites/mainlogo.png"
+            alt="Horse Racing Main Logo"
+            loading="eager"
+            fetchpriority="high"
+            className="derby-loader-logo-img"
           />
+        </div>
 
-          {/* Running Horse Galloping Directly on the Dirt Road of loaderline.png */}
-          <div
-            style={{
-              position: 'absolute',
-              left: `${horseLeftPct}%`,
-              bottom: '36%',
-              height: '38%',
-              aspectRatio: '92 / 68',
-              transform: 'translateX(-50%)',
-              pointerEvents: 'none',
-              zIndex: 5,
-              transition: 'left 0.04s linear',
-            }}
-          >
+        {/* Clean Loader Dock Container directly on top of background without any background box/shadow */}
+        <div className="derby-loader-dock">
+          {/* LOADERLINE 3D TRACK CONTAINER WITH RUNNING HORSE */}
+          <div className="derby-loader-track-wrap">
+            {/* User's Loaderline Track Graphic (Start & Finish Gates, Fences, Grass, Dirt) */}
             <img
-              src="/HORSES/horse5_1mb.gif"
-              alt="Running Derby Horse"
+              src="/loader/loaderline.png"
+              alt="Track Loader Line"
               style={{
+                position: 'absolute',
+                inset: 0,
                 width: '100%',
                 height: '100%',
                 objectFit: 'contain',
-                filter: 'drop-shadow(0 3px 6px rgba(0, 0, 0, 0.8)) drop-shadow(0 0 8px rgba(245, 158, 11, 0.4))',
+                pointerEvents: 'none',
               }}
             />
-          </div>
-        </div>
 
-        {/* Numerical Percentage & Status Text */}
-        <div style={{ textAlign: 'center', marginTop: '2px' }}>
-          <div
-            style={{
-              fontSize: '26px',
-              fontWeight: '900',
-              color: '#fbbf24',
-              textShadow: '0 0 18px rgba(245, 158, 11, 0.65)',
-              letterSpacing: '1px',
-              lineHeight: 1.1,
-              marginBottom: '3px',
-            }}
-          >
-            {progress}%
+            {/* Running Horse Galloping Directly on the Dirt Road of loaderline.png */}
+            <div
+              style={{
+                position: 'absolute',
+                left: `${horseLeftPct}%`,
+                bottom: '36%',
+                height: '38%',
+                aspectRatio: '92 / 68',
+                transform: 'translateX(-50%)',
+                pointerEvents: 'none',
+                zIndex: 5,
+                transition: 'left 0.04s linear',
+              }}
+            >
+              <img
+                src="/HORSES/horse5_1mb.gif"
+                alt="Running Derby Horse"
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'contain',
+                  filter: 'drop-shadow(0 3px 6px rgba(0, 0, 0, 0.8)) drop-shadow(0 0 8px rgba(245, 158, 11, 0.4))',
+                }}
+              />
+            </div>
           </div>
-          <div
-            style={{
-              fontSize: '11px',
-              fontWeight: '700',
-              letterSpacing: '1.4px',
-              color: '#cbd5e1',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-            }}
-          >
-            <Zap size={12} className="text-amber-400" />
-            <span>{progress >= 100 ? 'GET READY FOR RACE! 🏁' : 'GET READY FOR RACE...'}</span>
+
+          {/* Numerical Percentage & Status Text */}
+          <div style={{ textAlign: 'center', marginTop: '2px' }}>
+            <div
+              style={{
+                fontSize: '26px',
+                fontWeight: '900',
+                color: '#fbbf24',
+                textShadow: '0 0 18px rgba(245, 158, 11, 0.65)',
+                letterSpacing: '1px',
+                lineHeight: 1.1,
+                marginBottom: '3px',
+              }}
+            >
+              {progress}%
+            </div>
+            <div
+              style={{
+                fontSize: '11px',
+                fontWeight: '700',
+                letterSpacing: '1.4px',
+                color: '#cbd5e1',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+              }}
+            >
+              <Zap size={12} className="text-amber-400" />
+              <span>{progress >= 100 ? 'GET READY FOR RACE! 🏁' : 'GET READY FOR RACE...'}</span>
+            </div>
           </div>
         </div>
       </div>
