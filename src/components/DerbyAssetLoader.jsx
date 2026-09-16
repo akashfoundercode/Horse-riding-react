@@ -17,17 +17,22 @@ export default function DerbyAssetLoader({ onComplete }) {
     isAssetsReadyRef.current = false
     displayedProgressRef.current = 0
 
-    // 1. Actively preload and decode all game images and sprites using new Image()
+    const handleProgress = (pct) => {
+      if (!mountedRef.current) return
+      realProgressRef.current = pct
+    }
+
+    // 1. Actively preload and decode all game images in parallel
     assetCacheService
-      .cacheAllAssets((pct, loaded, total) => {
-        realProgressRef.current = pct
-      })
+      .cacheAllAssets(handleProgress)
       .then(() => {
+        if (!mountedRef.current) return
         isAssetsReadyRef.current = true
         realProgressRef.current = 100
       })
       .catch((err) => {
         console.warn('Asset loading warning:', err)
+        if (!mountedRef.current) return
         isAssetsReadyRef.current = true
         realProgressRef.current = 100
       })
@@ -40,7 +45,7 @@ export default function DerbyAssetLoader({ onComplete }) {
 
       // Smooth step towards target
       if (displayedProgressRef.current < target) {
-        const step = Math.max(1, Math.ceil((target - displayedProgressRef.current) * 0.15))
+        const step = Math.max(1, Math.ceil((target - displayedProgressRef.current) * 0.18))
         displayedProgressRef.current = Math.min(target, displayedProgressRef.current + step)
         setProgress(displayedProgressRef.current)
       }
@@ -54,13 +59,14 @@ export default function DerbyAssetLoader({ onComplete }) {
           if (mountedRef.current && onComplete) {
             onComplete()
           }
-        }, 200)
+        }, 180)
       }
-    }, 25)
+    }, 20)
 
     return () => {
       mountedRef.current = false
       clearInterval(timer)
+      assetCacheService.removeProgressListener(handleProgress)
     }
   }, [onComplete])
 
