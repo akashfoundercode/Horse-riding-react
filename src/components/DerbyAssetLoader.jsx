@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { Sparkles, Trophy, Zap } from 'lucide-react'
 import { assetCacheService, ALL_GAME_ASSETS } from '../services/assetCacheService.js'
 
-const DURATION_MS = 3200
+const MIN_ANIMATION_MS = 2800
 
 export default function DerbyAssetLoader({ onComplete }) {
   const [progress, setProgress] = useState(0)
@@ -10,23 +10,42 @@ export default function DerbyAssetLoader({ onComplete }) {
   const isFinishedRef = useRef(false)
   const mountedRef = useRef(true)
   const startTimeRef = useRef(Date.now())
+  const realProgressRef = useRef(0)
+  const isAssetsReadyRef = useRef(false)
 
   useEffect(() => {
     mountedRef.current = true
     startTimeRef.current = Date.now()
 
-    // 1. Permanently cache all game assets into browser CacheStorage & memory
-    assetCacheService.cacheAllAssets().catch(() => { })
+    // 1. Actively download and decode all game assets into GPU/RAM
+    assetCacheService.cacheAllAssets((pct) => {
+      realProgressRef.current = pct
+    }).then(() => {
+      isAssetsReadyRef.current = true
+    }).catch(() => {
+      isAssetsReadyRef.current = true
+    })
 
     const timer = setInterval(() => {
       if (!mountedRef.current || isFinishedRef.current) return
 
       const elapsed = Date.now() - startTimeRef.current
-      const current = Math.min(100, Math.floor((elapsed / DURATION_MS) * 100))
+      const timeRatio = Math.min(1, elapsed / MIN_ANIMATION_MS)
+      const realRatio = (realProgressRef.current || 0) / 100
+
+      // Progress is smoothly driven by time and actual downloaded assets
+      let current = Math.floor(Math.min(timeRatio, Math.max(0.2, realRatio)) * 100)
+
+      // STRICT GATE: Hold at 99% until 100% of game assets are completely decoded in memory
+      if (!isAssetsReadyRef.current) {
+        current = Math.min(98, current)
+      } else if (timeRatio >= 1) {
+        current = 100
+      }
 
       setProgress(current)
 
-      if (current >= 100) {
+      if (current >= 100 && isAssetsReadyRef.current) {
         isFinishedRef.current = true
         clearInterval(timer)
         setIsFadingOut(true)
