@@ -5,6 +5,7 @@ import React, { useLayoutEffect, useRef } from 'react'
  * Supports instant, layout-shift-free GIF frame freezing on finish line snapshot without leg animation continuing.
  */
 export default function Horse({
+function Horse({
   img = '/HORSES/horse_jockey_6mb.gif',
   hue = 0,
   saturate = 1,
@@ -99,3 +100,4 @@ export default function Horse({
   )
 }
 
+export default React.memo(Horse)

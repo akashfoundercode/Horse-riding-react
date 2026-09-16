@@ -649,6 +649,21 @@ export default function App() {
         setShowFinishFrame(true)
       }
 
+      // Detect finish crossing ONLY near finish (>= 18.2s) and only once per frame to eliminate layout thrashing
+      let isWinnerCrossingFinish = false
+      if (elapsed >= 18.2 && !screenshotTakenRef.current) {
+        const finishLineEl = document.querySelector('.finish-sensor-line')
+        const winnerEl = plannedWinner ? document.querySelector(`[data-runner="${plannedWinner.number}"]`) : null
+        if (finishLineEl && winnerEl) {
+          const finishLineRect = finishLineEl.getBoundingClientRect()
+          const runnerRect = winnerEl.getBoundingClientRect()
+          const horseNose = runnerRect.right - runnerRect.width * 0.12
+          if (finishLineRect.left > 80 && horseNose >= finishLineRect.left) {
+            isWinnerCrossingFinish = true
+          }
+        }
+      }
+
       setRunners((prev) => {
         let firstCrossed = null
 
@@ -667,24 +682,9 @@ export default function App() {
           // Continuous linear full sprint forward from start to finish
           let curPos = Math.max(0, progress * r.targetEndPosition + gallopWave + overtakeWave + winnerSurge)
 
-          const finishLineEl = document.querySelector('.finish-sensor-line')
-          const runnerEl = document.querySelector(`[data-runner="${r.number}"]`)
-          const finishLineRect = finishLineEl?.getBoundingClientRect()
-          const runnerRect = runnerEl?.getBoundingClientRect()
-
-          // Detect exact millisecond when the winning horse's nose touches the finish line:
-          const horseNose = runnerRect ? runnerRect.right - runnerRect.width * 0.12 : 0
-          const isCrossingFinish = Boolean(
-            r.isWinner &&
-            finishLineRect &&
-            runnerRect &&
-            finishLineRect.left > 80 &&
-            horseNose >= finishLineRect.left
-          )
-
           const isDone = Boolean(
             r.isWinner &&
-            (isCrossingFinish || elapsed >= 20.3)
+            (isWinnerCrossingFinish || elapsed >= 20.3)
           )
           if (isDone && !firstCrossed) {
             firstCrossed = r
