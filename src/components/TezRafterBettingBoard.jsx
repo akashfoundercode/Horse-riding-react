@@ -227,33 +227,7 @@ export default function TezRafterBettingBoard({
       <div className="tez-frame-container">
         {/* 1. TOP ORNATE HEADER SECTION (Placed over the top wooden frame plaque) */}
         <header className="tez-frame-header">
-          <div className="tez-brand-logo">
-            <span
-              className="tez-brand-horseshoe"
-              onClick={onToggleCheat}
-              style={{
-                cursor: 'pointer',
-                userSelect: 'none',
-                display: 'inline-block',
-                transition: 'transform 0.15s ease',
-              }}
-              title=""
-            >
-              🧲
-            </span>
-          </div>
-
           <div className="tez-counters-group">
-            {/* Points Display */}
-            <div
-              className="tez-counter-box tez-counter-box--points"
-              onClick={onOpenAddCoins}
-              title="Click to Recharge Coins"
-            >
-              <span className="tez-cbox-label">Points</span>
-              <span className="tez-cbox-value">{balance.toFixed(2)}</span>
-            </div>
-
             {/* Play (Total Bet) Display */}
             <div className="tez-counter-box tez-counter-box--play">
               <span className="tez-cbox-label">Play</span>
@@ -266,6 +240,16 @@ export default function TezRafterBettingBoard({
               <span className="tez-cbox-value">
                 {lastWin !== null ? lastWin.toFixed(2) : '0.00'}
               </span>
+            </div>
+
+            {/* Points Display */}
+            <div
+              className="tez-counter-box tez-counter-box--points"
+              onClick={onOpenAddCoins}
+              title="Click to Recharge Coins"
+            >
+              <span className="tez-cbox-label">Points</span>
+              <span className="tez-cbox-value">{balance.toFixed(2)}</span>
             </div>
           </div>
 

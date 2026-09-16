@@ -114,301 +114,384 @@ button {
 }
 
 /* =========================================================
-   DEDICATED HORIZONTAL BOTTOM LIVE SCOREBOARD / LEADERBOARD
+   AUTHENTIC RACE LIVE LEADERBOARD / RIBBON (DITTO MOCKUP)
    ========================================================= */
-.race-bottom-live-leaderboard {
+.race-live-leaderboard-bar {
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
-  height: clamp(68px, 10.5vh, 88px);
+  height: clamp(82px, 12.5vh, 110px);
   background:
-    linear-gradient(180deg, rgba(38, 24, 13, 0.98), rgba(10, 8, 8, 0.99)),
-    radial-gradient(circle at 50% -100%, rgba(255, 205, 92, 0.3), transparent 58%);
-  border: 1px solid rgba(222, 164, 65, 0.72);
-  border-left: 0;
-  border-right: 0;
-  box-shadow: 0 -8px 28px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 231, 164, 0.35), inset 0 0 28px rgba(0, 0, 0, 0.65);
+    linear-gradient(180deg, rgba(22, 16, 10, 0.98) 0%, rgba(10, 7, 5, 0.99) 100%),
+    radial-gradient(circle at 50% 100%, rgba(255, 215, 0, 0.15), transparent 70%);
+  border-top: 2px solid #caa049;
+  box-shadow:
+    0 -8px 24px rgba(0, 0, 0, 0.85),
+    inset 0 1px 0 rgba(255, 225, 130, 0.4),
+    inset 0 0 20px rgba(0, 0, 0, 0.7);
   display: flex;
-  align-items: center;
-  padding: 0 clamp(4px, 0.8vw, 12px);
-  gap: clamp(4px, 0.6vw, 8px);
-  z-index: 40;
+  align-items: stretch;
+  padding: 4px clamp(4px, 0.7vw, 10px);
+  gap: clamp(4px, 0.5vw, 8px);
+  z-index: 50;
   user-select: none;
+  box-sizing: border-box;
+  overflow: visible;
   pointer-events: auto;
 }
 
-.hlb-live-badge-col {
+/* 1. Left Controls Panel: LIVE 1000M & TURF DERBY */
+.rlb-left-panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 3px;
+  width: clamp(48px, 4.4vw, 60px);
+  flex-shrink: 0;
+  padding: 1px 0;
+}
+
+.rlb-live-card {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 3px 6px;
-  background: linear-gradient(145deg, #3b2110, #120b08);
-  border: 1px solid #b77a2d;
-  border-radius: 10px;
-  box-shadow: inset 0 1px 0 rgba(255, 220, 127, 0.25), 0 4px 12px rgba(0, 0, 0, 0.6);
-  flex-shrink: 0;
-  height: clamp(56px, 8.8vh, 74px);
-  min-width: clamp(40px, 4.2vw, 52px);
+  background: linear-gradient(180deg, #990000 0%, #4a0000 55%, #1f0000 100%);
+  border: 1.2px solid #e74c3c;
+  border-radius: 5px;
+  box-shadow: 0 0 8px rgba(231, 76, 60, 0.4), inset 0 1px 0 rgba(255, 120, 120, 0.3);
+  flex: 1;
+  padding: 2px 3px;
+  min-height: 0;
 }
 
-.hlb-live-indicator {
+.rlb-live-top-row {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 3px;
 }
 
-.hlb-live-text {
-  font-size: clamp(9.5px, 0.95vw, 11px);
+.rlb-live-wave-svg {
+  width: clamp(10px, 1vw, 13px);
+  height: clamp(8px, 0.8vw, 11px);
+  flex-shrink: 0;
+}
+
+.rlb-live-title {
+  font-size: clamp(8px, 0.82vw, 10.5px);
   font-weight: 900;
-  color: #ffea75;
+  color: #ffffff;
   letter-spacing: 0.08em;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
 }
 
-.hlb-sub-text {
-  font-size: clamp(8px, 0.8vw, 9px);
-  font-weight: 800;
-  color: #cfa376;
-  letter-spacing: 0.04em;
+.rlb-live-divider {
+  width: 85%;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.22);
+  margin: 1px 0;
 }
 
-.hlb-runners-track {
+.rlb-live-dist {
+  font-size: clamp(7.5px, 0.75vw, 9.5px);
+  font-weight: 900;
+  color: #ffffff;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
+}
+
+.rlb-turf-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, #2b1f0f 0%, #140d06 100%);
+  border: 1.2px solid #a67c2e;
+  border-radius: 5px;
+  box-shadow: inset 0 1px 0 rgba(255, 220, 127, 0.25), 0 2px 6px rgba(0, 0, 0, 0.6);
   flex: 1;
-  min-width: 0;
+  padding: 2px 3px;
+  min-height: 0;
+  gap: 1px;
+}
+
+.rlb-turf-flags-svg {
+  width: clamp(15px, 1.4vw, 20px);
+  height: clamp(10px, 1vw, 14px);
+  flex-shrink: 0;
+}
+
+.rlb-turf-text {
+  font-size: clamp(6.5px, 0.65vw, 8px);
+  font-weight: 900;
+  color: #f1c40f;
+  line-height: 1.05;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  letter-spacing: 0.04em;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
+}
+
+/* 2. Grid of 12 Runners */
+.rlb-cards-grid {
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: clamp(3px, 0.38vw, 6px);
+  flex: 1;
+  min-width: 0;
   align-items: stretch;
-  align-items: flex-end;
-  gap: clamp(3px, 0.4vw, 7px);
-  padding: 2px 0;
-  padding: 10px 0 2px;
+  overflow: visible;
+  padding-top: 5px;
+}
+
+/* Individual Framed Rank Card */
+.rlb-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: 6px;
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
+  padding: 2px 2px 3px;
+  box-sizing: border-box;
+  min-width: 0;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  transition: transform 0.25s ease, border-color 0.2s ease, box-shadow 0.2s ease;
   overflow: visible;
 }
 
-/* Individual Framed Runner Box */
-.hlb-horse-pill {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: 3px clamp(3px, 0.35vw, 6px);
-  background: linear-gradient(180deg, rgba(65, 42, 22, 0.98), rgba(22, 15, 12, 0.98));
-  border: 1.5px solid rgba(153, 103, 42, 0.75);
-  border-radius: 6px;
-  height: clamp(56px, 8.8vh, 74px);
-  height: clamp(54px, 8.5vh, 70px);
-  min-width: 0;
-  box-sizing: border-box;
-  box-shadow: inset 0 1px 0 rgba(255, 224, 145, 0.18), 0 3px 8px rgba(0, 0, 0, 0.65);
-  transition: all 0.15s ease;
-  /* Smooth Vertical Elevation Animation */
-  transform: translateY(0);
-  transition: transform 0.38s cubic-bezier(0.25, 1, 0.5, 1), border-color 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
-  overflow: hidden;
-  will-change: transform;
+.rlb-card:hover {
+  transform: translateY(-2px);
 }
 
-.hlb-horse-pill:hover {
-  background: linear-gradient(180deg, rgba(97, 61, 27, 0.98), rgba(35, 21, 13, 0.98));
-  border-color: #f4c85f;
-  transform: translateY(-1px);
-}
-
-/* Smooth Dynamic Elevation based on Live Rank */
-.hlb-pill--elevated-1st {
-  transform: translateY(-8px) !important;
-  z-index: 6;
-}
-
-.hlb-pill--elevated-2nd {
-  transform: translateY(-5px) !important;
+/* Podium Rank Variations */
+.rlb-card--1st {
+  border: 2px solid #ffd700 !important;
+  box-shadow:
+    0 0 16px rgba(255, 215, 0, 0.65),
+    inset 0 0 12px rgba(255, 215, 0, 0.35) !important;
   z-index: 5;
 }
 
-.hlb-pill--elevated-3rd {
-  transform: translateY(-2.5px) !important;
+.rlb-card--2nd {
+  border: 2px solid #c5d5e8 !important;
+  box-shadow:
+    0 0 12px rgba(197, 213, 232, 0.5),
+    inset 0 0 8px rgba(197, 213, 232, 0.25) !important;
   z-index: 4;
 }
 
-.hlb-pill--normal {
-  transform: translateY(0);
-  z-index: 1;
+.rlb-card--3rd {
+  border: 2px solid #e58244 !important;
+  box-shadow:
+    0 0 12px rgba(229, 130, 68, 0.5),
+    inset 0 0 8px rgba(229, 130, 68, 0.25) !important;
+  z-index: 3;
 }
 
-/* Medal Podium Framed Boxes */
-.hlb-pill--gold {
-  border: 2px solid #ffd700 !important;
-  background: linear-gradient(180deg, rgba(82, 46, 8, 0.98) 0%, rgba(42, 22, 4, 0.99) 100%) !important;
-  box-shadow: 0 0 16px rgba(255, 215, 0, 0.55), inset 0 0 10px rgba(255, 215, 0, 0.3) !important;
+.rlb-card--my-bet {
+  outline: 2px solid #00ff88;
+  outline-offset: 1px;
+  box-shadow: 0 0 14px rgba(0, 255, 136, 0.6) !important;
 }
 
-.hlb-pill--silver {
-  border: 2px solid #e0e2e6 !important;
-  background: linear-gradient(180deg, rgba(50, 58, 70, 0.98) 0%, rgba(24, 28, 36, 0.99) 100%) !important;
-  box-shadow: 0 0 12px rgba(224, 226, 230, 0.45), inset 0 0 8px rgba(255, 255, 255, 0.25) !important;
+/* Crown on 1st Place */
+.rlb-crown-wrap {
+  position: absolute;
+  top: -14px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: clamp(22px, 2vw, 30px);
+  height: clamp(14px, 1.3vw, 18px);
+  pointer-events: none;
+  z-index: 10;
 }
 
-.hlb-pill--bronze {
-  border: 2px solid #e17055 !important;
-  background: linear-gradient(180deg, rgba(74, 34, 15, 0.98) 0%, rgba(36, 16, 7, 0.99) 100%) !important;
-  box-shadow: 0 0 12px rgba(225, 112, 85, 0.45), inset 0 0 8px rgba(225, 112, 85, 0.25) !important;
+.rlb-crown-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
 }
 
-.hlb-horse-pill--my-bet {
-  border-color: #00ff88 !important;
-  box-shadow: 0 0 12px rgba(0, 255, 136, 0.55), inset 0 0 6px rgba(0, 255, 136, 0.25) !important;
+/* Laurel Wreaths */
+.rlb-laurel-svg {
+  position: absolute;
+  top: 14px;
+  left: 0;
+  right: 0;
+  bottom: 14px;
+  width: 100%;
+  height: auto;
+  pointer-events: none;
+  z-index: 3;
+  opacity: 0.95;
 }
 
-/* Top Row inside box: Framed Header Plaque with Rank on Top & Number */
-.hlb-pill-top {
+/* Card Header: Rank Pill + Number Tag */
+.rlb-card-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  min-width: 0;
   gap: 2px;
-  padding-bottom: 2px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  z-index: 4;
+  position: relative;
+  padding: 0 1px;
 }
 
-.hlb-pill--gold .hlb-pill-top {
-  border-bottom-color: rgba(255, 215, 0, 0.35);
-}
-
-.hlb-pill--silver .hlb-pill-top {
-  border-bottom-color: rgba(224, 226, 230, 0.35);
-}
-
-.hlb-pill--bronze .hlb-pill-top {
-  border-bottom-color: rgba(225, 112, 85, 0.35);
-}
-
-/* Middle Body: Horse Name & Bet */
-.hlb-pill-mid {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  min-width: 0;
-  gap: 2px;
-  padding: 2px 0;
-  overflow: hidden;
-}
-
-.hlb-pill-mid {
-  flex: 1;
-  padding: 0;
-}
-
-/* Rank Indicator & Framed Badges */
-.hlb-rank {
-  font-size: clamp(8px, 0.8vw, 10px);
+.rlb-rank-pill {
+  font-size: clamp(7.5px, 0.75vw, 9.5px);
   font-weight: 900;
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
   line-height: 1;
-}
-
-.hlb-rank--podium {
-  padding: 1.5px 4px;
+  padding: 1.5px 3.5px;
   border-radius: 3px;
+  text-transform: uppercase;
+  white-space: nowrap;
   letter-spacing: 0.02em;
-  font-weight: 900;
 }
 
-.hlb-rank--1st {
-  background: linear-gradient(180deg, #ffe066 0%, #d49a00 100%);
-  color: #1a0a00;
-  border: 1px solid #fff5a5;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+.rlb-rank-pill--gold {
+  background: linear-gradient(180deg, #fff3a8 0%, #ffd700 45%, #c98800 100%);
+  color: #111111;
+  border: 1px solid #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
 }
 
-.hlb-rank--2nd {
-  background: linear-gradient(180deg, #ffffff 0%, #95a5a6 100%);
-  color: #111827;
-  border: 1px solid #f8f9fa;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+.rlb-rank-pill--silver {
+  background: linear-gradient(180deg, #ffffff 0%, #d0d5dd 50%, #8892a0 100%);
+  color: #111111;
+  border: 1px solid #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
 }
 
-.hlb-rank--3rd {
-  background: linear-gradient(180deg, #fbc531 0%, #c0392b 100%);
+.rlb-rank-pill--bronze {
+  background: linear-gradient(180deg, #fcd5b5 0%, #e58244 50%, #994411 100%);
   color: #ffffff;
-  border: 1px solid #f8a5c2;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+  border: 1px solid #ffdab9;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.6);
 }
 
-.hlb-rank--normal {
-  color: #e6c8a5;
-  min-width: 12px;
-  text-align: center;
+.rlb-rank-pill--normal {
+  background: rgba(0, 0, 0, 0.65);
+  color: #f1c40f;
+  border: 1px solid rgba(241, 196, 15, 0.45);
 }
 
-.hlb-horse-num {
-  width: clamp(16px, 1.6vw, 20px);
-  height: clamp(14px, 1.4vw, 18px);
-  border-radius: 3px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: clamp(8px, 0.8vw, 10px);
+.rlb-num-tag {
+  font-size: clamp(7px, 0.72vw, 9px);
   font-weight: 900;
   color: #ffffff;
+  padding: 1px 3px;
+  border-radius: 3px;
+  line-height: 1;
+  white-space: nowrap;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.7), inset 0 1px 1px rgba(255, 255, 255, 0.45);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 1px 2px rgba(0, 0, 0, 0.7);
   flex-shrink: 0;
 }
 
-.hlb-horse-name {
-  font-size: clamp(7.5px, 0.78vw, 10px);
+/* Portrait Image Center */
+.rlb-portrait-wrap {
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 2;
+  margin: 1px 0;
+  overflow: hidden;
+}
+
+.rlb-portrait-img {
+  max-width: 90%;
+  max-height: 95%;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.8));
+}
+
+/* Horse Name */
+.rlb-horse-name {
+  font-size: clamp(7px, 0.72vw, 9.5px);
   font-weight: 900;
   color: #ffffff;
   text-transform: uppercase;
   letter-spacing: 0.02em;
+  text-align: center;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  text-align: center;
-  line-height: 1.1;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
-}
-
-.hlb-my-bet-tag {
-  font-size: clamp(7px, 0.7vw, 8.5px);
-  font-weight: 900;
-  color: #00ff88;
-  background: rgba(0, 255, 136, 0.2);
-  border: 1px solid #00cc66;
-  padding: 0 3px;
-  border-radius: 2px;
-  white-space: nowrap;
-  line-height: 1.1;
-}
-
-/* Bottom Progress Groove */
-.hlb-progress-bar {
   width: 100%;
-  height: 3px;
-  background: rgba(0, 0, 0, 0.75);
-  border-radius: 2px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  overflow: hidden;
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.8);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+  z-index: 4;
+  line-height: 1.1;
+  margin-bottom: 2px;
 }
 
-.hlb-progress-fill {
+/* Stamina / Power Segmented Bar */
+.rlb-stamina-gauge {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5px;
+  width: 100%;
+  height: clamp(4px, 0.55vh, 6px);
+  z-index: 4;
+}
+
+.rlb-stamina-bar {
+  border-radius: 1.5px;
   height: 100%;
-  background: linear-gradient(90deg, #e67e22 0%, #f1c40f 100%);
-  border-radius: 1px;
-  transition: width 0.1s linear;
+  transition: background-color 0.2s ease;
 }
 
-.hlb-horse-pill--my-bet .hlb-progress-fill {
-  background: linear-gradient(90deg, #00b894 0%, #00cec9 100%);
+.rlb-stamina-bar--gold {
+  background: linear-gradient(180deg, #fff3a8 0%, #ffd700 100%);
+  box-shadow: 0 0 4px rgba(255, 215, 0, 0.8);
+}
+
+.rlb-stamina-bar--blue {
+  background: linear-gradient(180deg, #99ddff 0%, #33aaff 100%);
+  box-shadow: 0 0 4px rgba(51, 170, 255, 0.8);
+}
+
+.rlb-stamina-bar--bronze {
+  background: linear-gradient(180deg, #ffcc88 0%, #ff8833 100%);
+  box-shadow: 0 0 4px rgba(255, 136, 51, 0.8);
+}
+
+.rlb-stamina-bar--lit {
+  background: linear-gradient(180deg, #ffe066 0%, #f1c40f 100%);
+  box-shadow: 0 0 3px rgba(241, 196, 15, 0.7);
+}
+
+.rlb-stamina-bar--dim {
+  background: rgba(0, 0, 0, 0.55);
+  border: 0.5px solid rgba(255, 255, 255, 0.08);
+}
+
+/* User Bet Pill */
+.rlb-my-bet-pill {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #00e676;
+  color: #000000;
+  font-size: 7.5px;
+  font-weight: 900;
+  padding: 0.5px 3px;
+  border-radius: 3px;
+  white-space: nowrap;
+  z-index: 6;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
 }
 
 .full-bg-track {
@@ -4647,7 +4730,7 @@ button {
 /* 2. MAIN HEADER (Directly integrated into Top Wooden Plaque) */
 .tez-frame-header,
 .tez-main-header-plank {
-  height: clamp(32px, 5.8vh, 46px);
+  height: clamp(34px, 6vh, 48px);
   position: relative;
   background: transparent;
   border: none;
@@ -4655,7 +4738,11 @@ button {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 clamp(4px, 1vw, 12px);
+  width: calc(100% + clamp(60px, 12vw, 160px));
+  margin-left: calc(-0.5 * clamp(60px, 12vw, 160px));
+  margin-right: calc(-0.5 * clamp(60px, 12vw, 160px));
+  padding: 0 clamp(8px, 1.5vw, 20px);
+  box-sizing: border-box;
   flex-shrink: 0;
   z-index: 10;
 }
@@ -4682,16 +4769,13 @@ button {
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.9));
 }
 
-/* Positioned exactly in the top-middle plaque of the ornate frame */
+/* Left Group: Play, Win, Points (Shifted slightly right onto the plaque) */
 .tez-counters-group {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: clamp(4px, 0.8vw, 10px);
+  margin-left: clamp(24px, 4.5vw, 65px);
   z-index: 3;
 }
 
@@ -4752,11 +4836,15 @@ button {
   line-height: 1.15;
 }
 
+/* Right Group: Coins, History, Settings, Guide (Balanced placement on the plaque) */
 .tez-header-actions {
   display: flex;
   align-items: center;
-  gap: clamp(5px, 0.7vw, 9px);
-  z-index: 2;
+  justify-content: flex-end;
+  gap: clamp(5px, 0.7vw, 10px);
+  margin-left: auto;
+  margin-right: clamp(36px, 6.2vw, 88px);
+  z-index: 5;
 }
 
 .tez-header-icon-btn {
@@ -5433,9 +5521,9 @@ button {
   background: linear-gradient(180deg, #78431e 0%, #4a230a 100%);
   border: 2px solid #bd7b43;
   color: #fff4dc;
-  font-size: clamp(12px, 1.4vw, 16px);
+  font-size: clamp(14px, 1.5vw, 18px);
   font-weight: 900;
-  padding: clamp(5px, 0.9vh, 9px) clamp(12px, 1.6vw, 22px);
+  padding: clamp(7px, 1.2vh, 12px) clamp(16px, 2vw, 28px);
   border-radius: 8px;
   cursor: pointer;
   letter-spacing: 0.05em;
@@ -5616,7 +5704,8 @@ button {
   }
 
   .tez-header-actions {
-    transform: translateY(8px);
+    margin-left: auto;
+    transform: translateY(4px);
   }
 
   .tez-header-icon-btn {
@@ -5629,12 +5718,22 @@ button {
   }
 
   .tez-counters-group {
-    gap: 16px;
+    gap: 10px;
+    margin-left: clamp(28px, 5.5vw, 75px);
+    transform: translateY(4px);
   }
 
   .tez-counter-box {
-    min-width: 96px;
-    padding: 4px 14px;
+    min-width: 80px;
+    padding: 3px 10px;
+  }
+
+  .tez-cbox-label {
+    font-size: 8.5px;
+  }
+
+  .tez-cbox-value {
+    font-size: 13px;
   }
 
   .tez-main-arena {
@@ -5719,6 +5818,8 @@ button {
     gap: clamp(8px, 1.2vw, 14px);
     padding: 6px 0;
     align-items: center;
+    margin-left: clamp(28px, 4vw, 65px);
+    transform: translateY(4px);
   }
 
   .tez-casino-chip {
@@ -5727,46 +5828,58 @@ button {
   }
 
   .tez-action-btn {
-    padding: 10px 24px;
-    font-size: 16px;
+    padding: clamp(10px, 1.4vh, 14px) clamp(22px, 2.2vw, 32px);
+    font-size: clamp(15px, 1.3vw, 18px);
+  }
+
+  .tez-timer-display {
+    padding: 3px 12px;
+    margin-right: clamp(28px, 4vw, 65px);
+    transform: translateY(4px);
   }
 
   .tez-timer-num {
-    font-size: clamp(38px, 4.8vw, 54px);
+    font-size: clamp(30px, 3.2vw, 40px);
   }
 
-  /* Desktop Horizontal Live Leaderboard - 12 Grid Fit with Grand Framed Boxes */
-  .race-bottom-live-leaderboard {
-    height: 150px;
-    padding: 0 14px;
+  .tez-timer-sub-sec {
+    font-size: 11.5px;
+  }
+
+  .tez-timer-sub-left {
+    font-size: 9.5px;
+  }
+
+  /* Desktop Horizontal Live Leaderboard Ribbon */
+  .race-live-leaderboard-bar {
+    height: 120px;
+    padding: 6px 14px;
     gap: 10px;
   }
 
-  .hlb-horse-pill {
-    height: 132px;
-    padding: 4px 6px;
-    border-radius: 6px;
+  .rlb-card {
+    height: 106px;
+    padding: 3px 4px 4px;
   }
 
-  .hlb-horse-name {
-    font-size: 10.5px;
+  .rlb-horse-name {
+    font-size: 11px;
   }
 
-  .hlb-rank {
+  .rlb-rank-pill {
     font-size: 10px;
   }
 
-  .hlb-horse-num {
-    width: 20px;
-    height: 18px;
-    font-size: 10px;
+  .rlb-num-tag {
+    font-size: 9.5px;
+    padding: 1.5px 4px;
   }
 }
 
 /* -------------------------------------------------------------------------
-   2. TABLETS & COMPACT LAPTOPS (769px to 1024px)
+   2. TABLETS & COMPACT LAPTOPS (769px to 1024px, height > 550px)
    ------------------------------------------------------------------------- */
-@media (min-width: 769px) and (max-width: 1024px) {
+@media (min-width: 769px) and (max-width: 1024px) and (min-height: 551px) {
   .tez-rafter-root {
     height: 100vh;
     overflow: hidden;
@@ -5791,6 +5904,10 @@ button {
 
   .tez-counters-group {
     gap: 8px;
+  }
+
+  .tez-header-actions {
+    margin-left: auto;
   }
 
   .tez-counter-box {
@@ -5863,8 +5980,8 @@ button {
   }
 
   .tez-action-btn {
-    padding: 5px 12px;
-    font-size: 12px;
+    padding: 7px 18px;
+    font-size: 14px;
   }
 
   .tez-timer-num {
@@ -5873,9 +5990,10 @@ button {
 }
 
 /* -------------------------------------------------------------------------
-   3. MOBILE LANDSCAPE (max-width: 768px and landscape)
+   3. MOBILE LANDSCAPE (Smartphones in landscape, height <= 550px or width <= 768px)
    ------------------------------------------------------------------------- */
-@media (max-width: 768px) and (orientation: landscape) {
+@media (max-width: 1024px) and (orientation: landscape) and (max-height: 550px),
+(max-width: 768px) and (orientation: landscape) {
   .tez-rafter-root {
     height: 100vh;
     overflow: hidden;
@@ -5893,6 +6011,9 @@ button {
   .tez-main-header-plank {
     height: 30px;
     padding: 0 4px;
+    width: calc(100% + clamp(40px, 8vw, 80px));
+    margin-left: calc(-0.5 * clamp(40px, 8vw, 80px));
+    margin-right: calc(-0.5 * clamp(40px, 8vw, 80px));
   }
 
   .tez-brand-logo {
@@ -5900,20 +6021,59 @@ button {
   }
 
   .tez-counters-group {
-    gap: 5px;
+    gap: 4px;
+    margin-left: clamp(38px, 7vw, 68px);
+    transform: translateY(-9px);
+  }
+
+  .tez-header-actions {
+    margin-left: auto;
+    margin-right: clamp(29px, 6vw, 54px);
+    transform: translateY(-9px);
+    gap: 4px;
+  }
+
+  .tez-points-pill {
+    padding: 1.5px 6px;
+    font-size: 9.5px;
+    border-radius: 3px;
+  }
+
+  .tez-pts-lbl {
+    font-size: 7.5px;
+  }
+
+  .tez-pts-add {
+    width: 12px;
+    height: 12px;
+    font-size: 8.5px;
+  }
+
+  .tez-header-icon-btn {
+    width: 24px;
+    height: 24px;
+  }
+
+  .tez-header-icon-btn svg {
+    width: 13px;
+    height: 13px;
   }
 
   .tez-counter-box {
-    min-width: 48px;
-    padding: 1px 4px;
+    min-width: 46px;
+    max-width: 58px;
+    padding: 1.5px 4px;
+    border-radius: 4px;
   }
 
   .tez-cbox-label {
     font-size: 7px;
+    line-height: 1.1;
   }
 
   .tez-cbox-value {
     font-size: 10.5px;
+    line-height: 1.1;
   }
 
   /* Center Arena strictly holds the background image within inner frame window */
@@ -5970,6 +6130,8 @@ button {
 
   .tez-chips-cluster {
     gap: 4px;
+    margin-left: clamp(24px, 5vw, 48px);
+    transform: translateY(3px);
   }
 
   .tez-casino-chip {
@@ -5978,8 +6140,14 @@ button {
   }
 
   .tez-action-btn {
-    padding: 2px 5px;
-    font-size: 9.5px;
+    padding: 5px 12px;
+    font-size: 12px;
+    border-radius: 6px;
+  }
+
+  .tez-timer-display {
+    margin-right: clamp(24px, 5vw, 48px);
+    transform: translateY(3px);
   }
 
   .tez-timer-num {
@@ -5988,10 +6156,11 @@ button {
 }
 
 /* -------------------------------------------------------------------------
-   4. MOBILE PORTRAIT (max-width: 600px OR portrait <= 768px)
+   4. MOBILE PORTRAIT (max-width: 600px OR portrait <= 768px OR mobile portrait)
    ------------------------------------------------------------------------- */
 @media (max-width: 600px),
-(max-width: 768px) and (orientation: portrait) {
+(max-width: 768px) and (orientation: portrait),
+(max-height: 550px) and (orientation: portrait) {
   .tez-rafter-root {
     overflow: hidden;
     height: 100vh;
@@ -6024,41 +6193,65 @@ button {
 
   .tez-counters-group {
     position: static;
-    transform: none;
+    transform: translate(24px, -9px);
     width: 100%;
     justify-content: space-around;
-    gap: 3px;
-    margin-top: 1px;
+    gap: 4px;
+    margin-top: 0;
+    margin-left: 0;
   }
 
   .tez-counter-box {
     min-width: 0;
     flex: 1;
+    max-width: 68px;
     padding: 1.5px 3px;
+    border-radius: 4px;
   }
 
   .tez-cbox-label {
-    font-size: 7.5px;
+    font-size: 7px;
+    line-height: 1.1;
   }
 
   .tez-cbox-value {
-    font-size: 11px;
+    font-size: 10.5px;
+    line-height: 1.1;
   }
 
   .tez-header-actions {
     position: absolute;
     top: clamp(20px, 3.5vh, 30px);
     right: clamp(20px, 5.5vw, 32px);
-    transform: translateY(-5px);
+    transform: translate(-13px, -9px);
+    gap: 4px;
   }
 
   .tez-points-pill {
-    min-height: 34px;
+    min-height: 26px;
+    padding: 1.5px 6px;
+    font-size: 9.5px;
+    border-radius: 3px;
+  }
+
+  .tez-pts-lbl {
+    font-size: 7.5px;
+  }
+
+  .tez-pts-add {
+    width: 12px;
+    height: 12px;
+    font-size: 8.5px;
   }
 
   .tez-header-icon-btn {
-    width: 36px;
-    height: 36px;
+    width: 26px;
+    height: 26px;
+  }
+
+  .tez-header-icon-btn svg {
+    width: 14px;
+    height: 14px;
   }
 
   /* Center Arena strictly confined between top header and bottom plank */
@@ -6151,6 +6344,7 @@ button {
     justify-content: center;
     gap: 4px;
     order: 1;
+    transform: translate(14px, 3px);
   }
 
   .tez-casino-chip {
@@ -6164,8 +6358,9 @@ button {
   }
 
   .tez-action-btn {
-    padding: 2.5px 7px;
-    font-size: 10px;
+    padding: 6px 16px;
+    font-size: 13px;
+    border-radius: 6px;
   }
 
   .tez-action-btn--clear,
@@ -6176,7 +6371,7 @@ button {
   .tez-timer-display {
     order: 3;
     padding: 2px 6px;
-    transform: translate(-6px, 3px);
+    transform: translate(-16px, 6px);
   }
 
   .tez-timer-num {
