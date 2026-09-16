@@ -53,9 +53,11 @@ export default function DerbyAssetLoader({ onComplete }) {
   const [isFadingOut, setIsFadingOut] = useState(false)
   const isFinishedRef = useRef(false)
   const mountedRef = useRef(true)
+  const startTimeRef = useRef(Date.now())
 
   useEffect(() => {
     mountedRef.current = true
+    startTimeRef.current = Date.now()
 
     // Background preload images & audio
     PRELOAD_ASSETS.forEach((src) => {
@@ -68,16 +70,10 @@ export default function DerbyAssetLoader({ onComplete }) {
       }
     })
 
-    // Fixed absolute start time so re-renders CAN NEVER restart the counter
-    if (!globalThis.__DERBY_LOADER_START_TIME__) {
-      globalThis.__DERBY_LOADER_START_TIME__ = Date.now()
-    }
-    const startTime = globalThis.__DERBY_LOADER_START_TIME__
-
     const timer = setInterval(() => {
       if (!mountedRef.current || isFinishedRef.current) return
 
-      const elapsed = Date.now() - startTime
+      const elapsed = Date.now() - startTimeRef.current
       const current = Math.min(100, Math.floor((elapsed / DURATION_MS) * 100))
 
       setProgress(current)
@@ -85,7 +81,6 @@ export default function DerbyAssetLoader({ onComplete }) {
       if (current >= 100) {
         isFinishedRef.current = true
         clearInterval(timer)
-        delete globalThis.__DERBY_LOADER_START_TIME__
         setIsFadingOut(true)
         setTimeout(() => {
           if (mountedRef.current && onComplete) {
