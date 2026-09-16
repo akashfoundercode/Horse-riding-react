@@ -124,7 +124,7 @@ export default function GameHistoryModal({ isOpen, onClose, history = [], onClea
                   color: '#ffd33d',
                 }}
               >
-                TEZ RAFTER — RACE & BET RECORDS
+                HORSE RACING — RACE & BET RECORDS
               </h2>
               <p style={{ margin: 0, fontSize: '11.5px', color: '#dfcbff', opacity: 0.85 }}>
                 Track your bets, match winners, and high-speed photo-finish snapshots

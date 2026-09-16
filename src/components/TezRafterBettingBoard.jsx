@@ -229,7 +229,6 @@ export default function TezRafterBettingBoard({
         {/* 1. TOP ORNATE HEADER SECTION (Placed over the top wooden frame plaque) */}
         <header className="tez-frame-header">
           <div className="tez-brand-logo">
-            <span className="tez-brand-title">Tez</span>
             <span
               className="tez-brand-horseshoe"
               onClick={onToggleCheat}
@@ -243,7 +242,6 @@ export default function TezRafterBettingBoard({
             >
               🧲
             </span>
-            <span className="tez-brand-title">Rafter</span>
           </div>
 
           <div className="tez-counters-group">
@@ -545,7 +543,7 @@ export default function TezRafterBettingBoard({
         <div className="tez-info-modal-backdrop" onClick={() => setShowInfoModal(false)}>
           <div className="tez-info-modal" onClick={(e) => e.stopPropagation()}>
             <div className="tez-info-modal-header">
-              <h3>🐴 Tez Rafter — Game Rules</h3>
+              <h3>🐴 Horse Racing — Game Rules</h3>
               <button className="tez-modal-close-btn" onClick={() => setShowInfoModal(false)}>
                 <X size={18} />
               </button>
