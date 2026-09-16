@@ -46,7 +46,7 @@ const PRELOAD_ASSETS = [
   '/SOUND/SCREESHOTCAPTURE.mp3',
 ]
 
-const DURATION_MS = 2800
+const DURATION_MS = 3200
 
 export default function DerbyAssetLoader({ onComplete }) {
   const [progress, setProgress] = useState(0)
@@ -91,7 +91,7 @@ export default function DerbyAssetLoader({ onComplete }) {
           if (mountedRef.current && onComplete) {
             onComplete()
           }
-        }, 120)
+        }, 150)
       }
     }, 20)
 
@@ -110,8 +110,9 @@ export default function DerbyAssetLoader({ onComplete }) {
       style={{
         position: 'fixed',
         inset: 0,
-        zIndex: 99999,
-        backgroundColor: '#000000',
+        zIndex: 999999,
+        backgroundColor: '#070b14',
+        backgroundImage: 'radial-gradient(ellipse at 50% 35%, #1e150a 0%, #080c16 80%)',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -119,7 +120,7 @@ export default function DerbyAssetLoader({ onComplete }) {
         paddingBottom: 'clamp(20px, 4vh, 40px)',
         fontFamily: "'Segoe UI', Roboto, sans-serif",
         color: '#ffffff',
-        transition: 'opacity 0.22s ease-out',
+        transition: 'opacity 0.25s ease-out',
         opacity: isFadingOut ? 0 : 1,
         pointerEvents: isFadingOut ? 'none' : 'all',
         userSelect: 'none',
@@ -130,6 +131,8 @@ export default function DerbyAssetLoader({ onComplete }) {
       <img
         src="/loader/laoder.png"
         alt="Derby Loader Background"
+        loading="eager"
+        fetchPriority="high"
         style={{
           position: 'absolute',
           inset: 0,
@@ -158,6 +161,8 @@ export default function DerbyAssetLoader({ onComplete }) {
         <img
           src="/sprites/mainlogo.png"
           alt="Horse Racing Main Logo"
+          loading="eager"
+          fetchPriority="high"
           style={{
             width: '100%',
             height: 'auto',
