@@ -32,8 +32,8 @@ export default function GrandGateLoader({ onComplete }) {
   useEffect(() => {
     // 1. Preload key loader assets
     const preloadList = [
-      '/loader/loader1.png',
-      '/loader/loader2.png',
+      '/loader/laoder.png',
+      '/loader/loaderline.png',
     ]
     preloadList.forEach((src) => {
       const img = new Image()
@@ -109,7 +109,7 @@ export default function GrandGateLoader({ onComplete }) {
         className={`gate-door gate-door--left ${isOpening ? 'gate-door--opening' : ''}`}
       >
         <img
-          src="/loader/loader1.png"
+          src="/loader/laoder.png"
           alt="Royal Gate Left"
           className="gate-door-image"
           draggable="false"
@@ -121,7 +121,7 @@ export default function GrandGateLoader({ onComplete }) {
       >
         {/* The same art is mirrored so both door panels are one matched set. */}
         <img
-          src="/loader/loader1.png"
+          src="/loader/laoder.png"
           alt="Royal Gate Right"
           className="gate-door-image"
           draggable="false"
