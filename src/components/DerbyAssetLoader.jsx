@@ -1,50 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { Sparkles, Trophy, Zap } from 'lucide-react'
-
-// All real website game assets preloaded before entering the game
-const PRELOAD_ASSETS = [
-  '/loader/laoder.png',
-  '/loader/loaderline.png',
-  '/sprites/mainlogo.png',
-  '/sprites/image.png',
-  '/sprites/horse races bg.png',
-  '/sprites/MAINFINSHLINE.png',
-  '/sprites/GATE.png',
-  '/HORSES/dust.gif',
-  '/HORSES/horse_no1_1mb.gif',
-  '/HORSES/horse_number_2_1MB.gif',
-  '/HORSES/horse_no3_1mb.gif',
-  '/HORSES/horse_4mb_hd.gif',
-  '/HORSES/horse5_1mb.gif',
-  '/HORSES/horse_jockey_6mb.gif',
-  '/HORSES/horse_no7_1mb.gif',
-  '/HORSES/horse_no8_1mb.gif',
-  '/HORSES/horse_no_9_1MB.gif',
-  '/HORSES/horse_number_10_1_1MB.gif',
-  '/HORSES/horse_number_11_1MB.gif',
-  '/HORSES/horse_number_12_1_1MB.gif',
-  '/Bet_horses/horses1.png',
-  '/Bet_horses/horses2.png',
-  '/Bet_horses/horses3.png.png',
-  '/Bet_horses/horses4.png.png',
-  '/Bet_horses/horses5.png',
-  '/Bet_horses/horses6.png',
-  '/Bet_horses/horses7.png',
-  '/Bet_horses/horses8.png',
-  '/Bet_horses/horses9.png',
-  '/Bet_horses/horses10.png',
-  '/Bet_horses/horses11.png',
-  '/Bet_horses/horses12.png',
-  '/bet_coins/betcoin2.png',
-  '/bet_coins/betcoin5.png',
-  '/bet_coins/betcoin10.png',
-  '/bet_coins/betcoin100.png',
-  '/bet_coins/betcoin500.png',
-  '/bet_coins/betcoin1000.png',
-  '/SOUND/dragon-studio-horse-neigh-390297.mp3',
-  '/SOUND/pwlpl-horses-galloping-sound-effect-359257.mp3',
-  '/SOUND/SCREESHOTCAPTURE.mp3',
-]
+import { assetCacheService, ALL_GAME_ASSETS } from '../services/assetCacheService.js'
 
 const DURATION_MS = 3200
 
@@ -59,16 +15,8 @@ export default function DerbyAssetLoader({ onComplete }) {
     mountedRef.current = true
     startTimeRef.current = Date.now()
 
-    // Background preload images & audio
-    PRELOAD_ASSETS.forEach((src) => {
-      if (src.endsWith('.mp3')) {
-        const audio = new Audio()
-        audio.src = src
-      } else {
-        const img = new Image()
-        img.src = src
-      }
-    })
+    // 1. Permanently cache all game assets into browser CacheStorage & memory
+    assetCacheService.cacheAllAssets().catch(() => { })
 
     const timer = setInterval(() => {
       if (!mountedRef.current || isFinishedRef.current) return
