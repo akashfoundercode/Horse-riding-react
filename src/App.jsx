@@ -1107,42 +1107,41 @@ export default function App() {
             </button>
           )}
 
-          {/* TEZ RAFTER CASINO BETTING BOARD (Active in IDLE phase before race starts) */}
-          {phase === 'idle' && (
-            <TezRafterBettingBoard
-              horses={HORSES}
-              balance={balance}
-              totalBet={totalBet}
-              lastWin={lastWin}
-              betsByHorse={betsByHorse}
-              selectedChip={selectedChip}
-              setSelectedChip={setSelectedChip}
-              onPlaceBet={handlePlaceBet}
-              onRemoveBet={handleRemoveBet}
-              onClearBets={handleClearBets}
-              onDoubleBets={handleDoubleBets}
-              onStartRace={startRaceNow}
-              betCoinsByHorse={betCoinsByHorse}
-              audioSettings={audioSettings}
-              onOpenSettings={() => setIsSettingsOpen(true)}
-              timerSeconds={timerSeconds}
-              isBettingLocked={isBettingLocked}
-              previousResults={previousResults}
-              onOpenHistory={() => setIsHistoryOpen(true)}
-              onOpenTutorial={() => setIsTutorialOpen(true)}
-              onOpenAddCoins={() => setIsAddCoinsOpen(true)}
-              isCheatEnabled={isCheatEnabled}
-              onToggleCheat={() => {
-                setIsCheatEnabled((prev) => {
-                  const next = !prev
-                  try {
-                    localStorage.setItem('tez_god_mode', String(next))
-                  } catch (_) { }
-                  return next
-                })
-              }}
-            />
-          )}
+          {/* TEZ RAFTER CASINO BETTING BOARD (Persistently mounted in DOM for instant 0ms display without reloading) */}
+          <TezRafterBettingBoard
+            isVisible={phase === 'idle'}
+            horses={HORSES}
+            balance={balance}
+            totalBet={totalBet}
+            lastWin={lastWin}
+            betsByHorse={betsByHorse}
+            selectedChip={selectedChip}
+            setSelectedChip={setSelectedChip}
+            onPlaceBet={handlePlaceBet}
+            onRemoveBet={handleRemoveBet}
+            onClearBets={handleClearBets}
+            onDoubleBets={handleDoubleBets}
+            onStartRace={startRaceNow}
+            betCoinsByHorse={betCoinsByHorse}
+            audioSettings={audioSettings}
+            onOpenSettings={() => setIsSettingsOpen(true)}
+            timerSeconds={timerSeconds}
+            isBettingLocked={isBettingLocked}
+            previousResults={previousResults}
+            onOpenHistory={() => setIsHistoryOpen(true)}
+            onOpenTutorial={() => setIsTutorialOpen(true)}
+            onOpenAddCoins={() => setIsAddCoinsOpen(true)}
+            isCheatEnabled={isCheatEnabled}
+            onToggleCheat={() => {
+              setIsCheatEnabled((prev) => {
+                const next = !prev
+                try {
+                  localStorage.setItem('tez_god_mode', String(next))
+                } catch (_) { }
+                return next
+              })
+            }}
+          />
 
           {/* Countdown Overlay */}
           {phase === 'countdown' && (

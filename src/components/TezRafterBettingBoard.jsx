@@ -51,6 +51,7 @@ export default function TezRafterBettingBoard({
   onOpenAddCoins,
   isCheatEnabled,
   onToggleCheat,
+  isVisible = true,
 }) {
   const [showInfoModal, setShowInfoModal] = useState(false)
   const prevTimerRef = useRef(timerSeconds)
@@ -182,6 +183,7 @@ export default function TezRafterBettingBoard({
 
   // Audio trigger on timer change
   useEffect(() => {
+    if (!isVisible) return
     if (prevTimerRef.current !== timerSeconds) {
       const gameVol = getEffectiveVolume('gameVoice')
       if (timerSeconds === 5) {
@@ -209,7 +211,7 @@ export default function TezRafterBettingBoard({
       }
       prevTimerRef.current = timerSeconds
     }
-  }, [timerSeconds, audioSettings])
+  }, [timerSeconds, audioSettings, isVisible])
 
   const handleCardClick = (horseNumber) => {
     if (isBettingLocked) return
@@ -223,7 +225,13 @@ export default function TezRafterBettingBoard({
   }
 
   return (
-    <div className="tez-rafter-root">
+    <div
+      className="tez-rafter-root"
+      style={{
+        display: isVisible ? 'flex' : 'none',
+        pointerEvents: isVisible ? 'auto' : 'none',
+      }}
+    >
       <div className="tez-frame-container">
         {/* 1. TOP ORNATE HEADER SECTION (Placed over the top wooden frame plaque) */}
         <header className="tez-frame-header">
