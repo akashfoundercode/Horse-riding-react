@@ -873,13 +873,13 @@ export default function App() {
 
   const maxPos = Math.max(...runners.map((r) => r.position || 0))
 
+  // STRICT LOADER GATE: The bet screen and game CANNOT mount or open at all until loader hits 100%
+  if (isAssetLoading) {
+    return <DerbyAssetLoader onComplete={() => setIsAssetLoading(false)} />
+  }
+
   return (
     <>
-      {/* 0. PREMIUM DERBY ASSET PRELOADER WITH RUNNING HORSE PROGRESS LINE */}
-      {isAssetLoading && (
-        <DerbyAssetLoader onComplete={() => setIsAssetLoading(false)} />
-      )}
-
       {/* 0. AUTHENTICATION & USER PROFILE MODALS */}
       <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
       <UserProfileModal isOpen={isProfileModalOpen} onClose={() => setIsProfileModalOpen(false)} />
