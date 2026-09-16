@@ -1,14 +1,14 @@
 /**
  * Enterprise Asset Cache & Preloading Service
- * Strictly preloads all game images, sprites, and audio via new Image() and new Audio().
- * Tracks each asset's onload / decode event so the loader only dismisses when
- * 100% of game images are fully downloaded and decoded in memory.
+ * - Preloads all game images & sprites in parallel via Promise.all and new Image().
+ * - Tracks every image's onload and decode events.
+ * - Non-blocking: Loader graphics appear instantly while all game assets download concurrently.
  */
 
-const CACHE_NAME = 'derby-asset-cache-v3'
+const CACHE_NAME = 'derby-asset-cache-v4'
 
 export const GAME_IMAGE_ASSETS = [
-  // 1. Loader Assets
+  // 1. Loader Graphics
   '/loader/laoder.png',
   '/loader/loaderline.png',
 
@@ -26,11 +26,11 @@ export const GAME_IMAGE_ASSETS = [
 
   // 3. 12 Race Running Horses (GIFs) & Animations
   '/HORSES/dust.gif',
+  '/HORSES/horse5_1mb.gif',
   '/HORSES/horse_no1_1mb.gif',
   '/HORSES/horse_number_2_1MB.gif',
   '/HORSES/horse_no3_1mb.gif',
   '/HORSES/horse_4mb_hd.gif',
-  '/HORSES/horse5_1mb.gif',
   '/HORSES/horse_jockey_6mb.gif',
   '/HORSES/horse_no7_1mb.gif',
   '/HORSES/horse_no8_1mb.gif',
@@ -76,152 +76,156 @@ class AssetCacheService {
   constructor() {
     this.hasCacheSupport = typeof window !== 'undefined' && 'caches' in window
     this.memoryCache = new Map()
-    this.loadedImages = new Set()
+    this.progressListeners = new Set()
+    this.totalAssets = ALL_GAME_ASSETS.length
+    this.loadedCount = 0
+    this.isCompleted = false
+    this.preloadingStarted = false
+    this.preloadPromise = null
   }
 
   /**
-   * Preload an individual image using new Image() and track onload & decode
+   * Starts preloading ALL game images & sounds concurrently in parallel (Promise.all)
    */
-  preloadImage(url) {
-    return new Promise((resolve) => {
-      if (this.memoryCache.has(url)) {
-        resolve({ url, success: true, fromCache: true })
-        return
-      }
+  startPreloading() {
+    if (this.preloadingStarted) return this.preloadPromise
+    this.preloadingStarted = true
 
-      const img = new Image()
-      let settled = false
+    this.preloadPromise = new Promise((resolve) => {
+      let settledCount = 0
+      const total = ALL_GAME_ASSETS.length
 
-      const onComplete = async (success) => {
-        if (settled) return
-        settled = true
-        if (success) {
+      const notify = () => {
+        this.loadedCount = settledCount
+        const pct = Math.floor((settledCount / total) * 100)
+        this.progressListeners.forEach((fn) => {
           try {
-            if ('decode' in img) {
-              await img.decode().catch(() => { })
-            }
+            fn(pct, settledCount, total)
           } catch (_) { }
-          this.memoryCache.set(url, img)
-          this.loadedImages.add(url)
-        }
-        resolve({ url, success, fromCache: false })
+        })
       }
 
-      img.onload = () => onComplete(true)
-      img.onerror = () => onComplete(false)
+      // 1. Fire ALL image preloads simultaneously in parallel via Promise.all
+      const imagePromises = GAME_IMAGE_ASSETS.map((url) => {
+        return new Promise((res) => {
+          const img = new Image()
+          let done = false
 
-      // Set source to start downloading immediately
-      img.src = url
+          const finish = async (ok) => {
+            if (done) return
+            done = true
+            if (ok) {
+              try {
+                if ('decode' in img) {
+                  await img.decode().catch(() => { })
+                }
+              } catch (_) { }
+              this.memoryCache.set(url, img)
+            }
+            settledCount++
+            notify()
+            res()
+          }
 
-      // If browser already had this image synchronously ready
-      if (img.complete && img.naturalWidth !== 0) {
-        onComplete(true)
-      }
+          img.onload = () => finish(true)
+          img.onerror = () => finish(false)
+
+          // Start network request immediately
+          img.src = url
+
+          if (img.complete && img.naturalWidth !== 0) {
+            finish(true)
+          }
+        })
+      })
+
+      // 2. Fire ALL audio preloads simultaneously in parallel
+      const audioPromises = GAME_AUDIO_ASSETS.map((url) => {
+        return new Promise((res) => {
+          const audio = new Audio()
+          let done = false
+
+          const finish = (ok) => {
+            if (done) return
+            done = true
+            if (ok) this.memoryCache.set(url, audio)
+            settledCount++
+            notify()
+            res()
+          }
+
+          audio.preload = 'auto'
+          audio.oncanplaythrough = () => finish(true)
+          audio.onloadeddata = () => finish(true)
+          audio.onerror = () => finish(false)
+          audio.src = url
+          audio.load()
+
+          // 3.5s safety fallback for network stalls
+          setTimeout(() => finish(true), 3500)
+        })
+      })
+
+      // Parallel execution: Resolves when 100% of assets have fired onload
+      Promise.all([...imagePromises, ...audioPromises]).then(() => {
+        this.isCompleted = true
+        settledCount = total
+        notify()
+        resolve(true)
+      })
     })
-  }
 
-  /**
-   * Preload an individual audio file using new Audio()
-   */
-  preloadAudio(url) {
-    return new Promise((resolve) => {
-      if (this.memoryCache.has(url)) {
-        resolve({ url, success: true, fromCache: true })
-        return
-      }
-
-      const audio = new Audio()
-      let settled = false
-
-      const onComplete = (success) => {
-        if (settled) return
-        settled = true
-        if (success) {
-          this.memoryCache.set(url, audio)
-        }
-        resolve({ url, success })
-      }
-
-      audio.preload = 'auto'
-      audio.oncanplaythrough = () => onComplete(true)
-      audio.onloadeddata = () => onComplete(true)
-      audio.onerror = () => onComplete(false)
-
-      audio.src = url
-      audio.load()
-
-      // Safety fallback timeout for audio on network stalls (never freeze loading)
-      setTimeout(() => onComplete(true), 3500)
-    })
-  }
-
-  /**
-   * Preload and permanently cache all game assets into browser CacheStorage & memory.
-   * Tracks onload for every image and guarantees promise only resolves when all are loaded.
-   */
-  async cacheAllAssets(onProgress) {
-    let loadedCount = 0
-    const total = ALL_GAME_ASSETS.length
-
-    // 1. Warm up browser CacheStorage in background if supported
-    let cache = null
+    // Background asynchronous CacheStorage caching (non-blocking)
     if (this.hasCacheSupport) {
-      try {
-        cache = await window.caches.open(CACHE_NAME)
-      } catch (err) {
-        console.warn('CacheStorage not accessible:', err)
-      }
+      window.caches
+        .open(CACHE_NAME)
+        .then((cache) => {
+          ALL_GAME_ASSETS.forEach((url) => {
+            cache.match(url).then((match) => {
+              if (!match) {
+                fetch(url, { cache: 'force-cache' })
+                  .then((r) => r.ok && cache.put(url, r))
+                  .catch(() => { })
+              }
+            }).catch(() => { })
+          })
+        })
+        .catch(() => { })
     }
 
-    const tasks = ALL_GAME_ASSETS.map(async (url) => {
-      try {
-        if (cache) {
-          const match = await cache.match(url).catch(() => null)
-          if (!match) {
-            fetch(url, { cache: 'force-cache' })
-              .then((resp) => {
-                if (resp && resp.ok) cache.put(url, resp.clone()).catch(() => { })
-              })
-              .catch(() => { })
-          }
-        }
-
-        // Actual memory preload & onload tracking
-        if (url.endsWith('.mp3')) {
-          await this.preloadAudio(url)
-        } else {
-          await this.preloadImage(url)
-        }
-      } catch (_) {
-        // Individual error handling
-      } finally {
-        loadedCount++
-        if (onProgress) {
-          const pct = Math.floor((loadedCount / total) * 100)
-          onProgress(pct, loadedCount, total)
-        }
-      }
-    })
-
-    // Wait until EVERY image and audio file onload/decode has settled
-    await Promise.all(tasks)
-
-    try {
-      localStorage.setItem('derby_assets_cached_v3', 'true')
-      localStorage.setItem('derby_assets_cached_at', String(Date.now()))
-    } catch (_) { }
-
-    return true
+    return this.preloadPromise
   }
 
-  isCachedLocally() {
-    try {
-      return localStorage.getItem('derby_assets_cached_v3') === 'true'
-    } catch (_) {
-      return false
+  /**
+   * Subscribe to live progress updates
+   */
+  cacheAllAssets(onProgress) {
+    if (onProgress) {
+      this.progressListeners.add(onProgress)
+      const currentPct = Math.floor((this.loadedCount / this.totalAssets) * 100)
+      onProgress(currentPct, this.loadedCount, this.totalAssets)
+    }
+
+    const promise = this.startPreloading()
+
+    if (this.isCompleted) {
+      return Promise.resolve(true)
+    }
+    return promise
+  }
+
+  removeProgressListener(onProgress) {
+    if (onProgress) {
+      this.progressListeners.delete(onProgress)
     }
   }
 }
 
 export const assetCacheService = new AssetCacheService()
+
+// Automatically trigger preloading immediately on module load for zero-delay start
+if (typeof window !== 'undefined') {
+  assetCacheService.startPreloading()
+}
+
 export default assetCacheService

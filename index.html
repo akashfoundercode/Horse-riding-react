@@ -3,16 +3,17 @@
 
 <head>
   <meta charset="UTF-8" />
+  <!-- 1. Critical Instant Loader Preloads (Browser starts fetching these before parsing scripts) -->
+  <link rel="preload" as="image" href="/loader/laoder.png" fetchpriority="high" />
+  <link rel="preload" as="image" href="/sprites/mainlogo.png" fetchpriority="high" />
+  <link rel="preload" as="image" href="/loader/loaderline.png" fetchpriority="high" />
+  <link rel="preload" as="image" href="/HORSES/horse5_1mb.gif" fetchpriority="high" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
   <meta name="theme-color" content="#0b1f14" />
   <link rel="icon" type="image/png" href="/favicon.png" />
   <link rel="shortcut icon" href="/favicon.ico" />
   <link rel="apple-touch-icon" href="/favicon.png" />
-  <!-- Ultra-fast Critical Loader Preloads (Loads before React executes) -->
-  <link rel="preload" as="image" href="/loader/laoder.png" fetchpriority="high" />
-  <link rel="preload" as="image" href="/sprites/mainlogo.png" fetchpriority="high" />
-  <link rel="preload" as="image" href="/loader/loaderline.png" fetchpriority="high" />
-  <link rel="preload" as="image" href="/HORSES/horse5_1mb.gif" fetchpriority="high" />
   <title>Horse Race Arena</title>
 </head>
 
