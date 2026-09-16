@@ -1,6 +1,6 @@
 /**
  * Enterprise Asset Cache & Preloading Service
- * - Preloads all game images & sprites in parallel via Promise.all and new Image().
+ * - Preloads all game images, sprites, and audio via Promise.all and new Image().
  * - Tracks every image's onload and decode events.
  * - Non-blocking: Loader graphics appear instantly while all game assets download concurrently.
  */
@@ -19,6 +19,8 @@ export const GAME_IMAGE_ASSETS = [
   '/sprites/mainframe.png',
   '/sprites/GATE.png',
   '/sprites/MAINFINSHLINE.png',
+  '/sprites/leaderboard.png',
+  '/sprites/tree2.png',
   '/top/fullimage.png',
   '/top/MAINFINSHLINE.png',
   '/top/top123.png',
@@ -167,7 +169,13 @@ class AssetCacheService {
       })
 
       // Parallel execution: Resolves when 100% of assets have fired onload
-      Promise.all([...imagePromises, ...audioPromises]).then(() => {
+      Promise.all([...imagePromises, ...audioPromises]).then(async () => {
+        // Also wait for document fonts to be ready
+        if (typeof document !== 'undefined' && document.fonts && document.fonts.ready) {
+          try {
+            await document.fonts.ready
+          } catch (_) { }
+        }
         this.isCompleted = true
         settledCount = total
         notify()
