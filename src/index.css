@@ -1543,6 +1543,7 @@ button {
   transform: translate3d(0, 0, 0);
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
+  contain: layout style;
   transition: none;
 }
 
@@ -1598,16 +1599,10 @@ button {
 @keyframes horse-start-run {
   from {
     transform: translate3d(-14vw, 0, 0);
-    opacity: 0;
-  }
-
-  18% {
-    opacity: 1;
   }
 
   to {
     transform: translate3d(0, 0, 0);
-    opacity: 1;
   }
 }
 
@@ -1616,26 +1611,47 @@ button {
   display: flex;
   flex-direction: column;
   align-items: center;
-  overflow: visible;
-  padding-bottom: 6px;
+  justify-content: flex-end;
+  contain: layout style;
 }
 
-/* Ground shadow under hooves */
-.horse-ground-shadow {
+.horse-viewport {
   position: relative;
-  width: 84%;
-  height: 6px;
-  margin: -2px auto 0;
-  background: radial-gradient(ellipse at 50% 50%, rgba(0, 0, 0, 0.92) 0%, rgba(0, 0, 0, 0.60) 45%, transparent 75%);
-  border-radius: 50%;
-  filter: blur(4px);
-  pointer-events: none;
-  animation: shadow-pulse 0.28s ease-in-out infinite alternate;
+  width: 14.5vw;
+  max-width: 185px;
+  min-width: 90px;
+  aspect-ratio: 92 / 68;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
 }
 
-@keyframes shadow-pulse {
+.horse-gif-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  user-select: none;
+  -webkit-user-drag: none;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.65));
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+.horse-ground-shadow {
+  width: 70%;
+  height: 6px;
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0) 70%);
+  border-radius: 50%;
+  margin-top: -3px;
+  animation: horse-shadow-squish 0.5s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+
+@keyframes horse-shadow-squish {
   0% {
-    transform: scaleX(1.0) scaleY(1.0);
+    transform: scaleX(1.1) scaleY(1.2);
     opacity: 0.85;
   }
 
@@ -1654,12 +1670,15 @@ button {
   height: 22px;
   pointer-events: none;
   z-index: 0;
+  contain: layout style paint;
 }
 
 .dust-particle {
   position: absolute;
   border-radius: 50%;
   pointer-events: none;
+  will-change: transform, opacity;
+  contain: layout style paint;
   animation: dust-kick-motion var(--dur, 0.5s) ease-out var(--delay, 0s) infinite;
 }
 
