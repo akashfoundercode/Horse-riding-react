@@ -47,15 +47,7 @@ function Horse({
         >
           <span className="dust-particle dp-b1" />
           <span className="dust-particle dp-b2" />
-          <span className="dust-particle dp-b3" />
-          <span className="dust-particle dp-b4" />
-          <span className="dust-particle dp-b5" />
           <span className="dust-particle dp-f1" />
-          <span className="dust-particle dp-f2" />
-          <span className="dust-particle dp-f3" />
-          <span className="dust-particle dp-s1" />
-          <span className="dust-particle dp-s2" />
-          <span className="dust-particle dp-s3" />
         </div>
       )}
 
