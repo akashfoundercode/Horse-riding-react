@@ -1,6 +1,7 @@
 /**
  * Universal Fullscreen and Screen Lock Helper
  * Supports standard Fullscreen API + WebKit (Safari/iOS/Android) + Moz + MS
+ * With automatic fallbacks and address-bar collapse triggers
  */
 
 export function isFullscreenActive() {
@@ -8,8 +9,21 @@ export function isFullscreenActive() {
   return !!(
     document.fullscreenElement ||
     document.webkitFullscreenElement ||
+    document.webkitCurrentFullScreenElement ||
     document.mozFullScreenElement ||
     document.msFullscreenElement
+  )
+}
+
+export function isFullscreenSupported() {
+  if (typeof document === 'undefined') return false
+  const doc = document.documentElement || document.body
+  return !!(
+    doc.requestFullscreen ||
+    doc.webkitRequestFullscreen ||
+    doc.webkitRequestFullScreen ||
+    doc.mozRequestFullScreen ||
+    doc.msRequestFullscreen
   )
 }
 
@@ -18,38 +32,56 @@ export async function toggleFullscreen(targetElement = document.documentElement)
 
   try {
     if (isFullscreenActive()) {
-      if (document.exitFullscreen) {
-        await document.exitFullscreen()
-      } else if (document.webkitExitFullscreen) {
-        await document.webkitExitFullscreen()
-      } else if (document.mozCancelFullScreen) {
-        await document.mozCancelFullScreen()
-      } else if (document.msExitFullscreen) {
-        await document.msExitFullscreen()
+      const exitFn =
+        document.exitFullscreen ||
+        document.webkitExitFullscreen ||
+        document.webkitCancelFullScreen ||
+        document.mozCancelFullScreen ||
+        document.msExitFullscreen
+      if (exitFn) {
+        await exitFn.call(document)
       }
       return false
     } else {
-      if (targetElement.requestFullscreen) {
-        await targetElement.requestFullscreen({ navigationUI: 'hide' }).catch(() => targetElement.requestFullscreen())
-      } else if (targetElement.webkitRequestFullscreen) {
-        await targetElement.webkitRequestFullscreen()
-      } else if (targetElement.mozRequestFullScreen) {
-        await targetElement.mozRequestFullScreen()
-      } else if (targetElement.msRequestFullscreen) {
-        await targetElement.msRequestFullscreen()
+      const elem = targetElement || document.documentElement || document.body || document.getElementById('root')
+      const requestFn =
+        elem.requestFullscreen ||
+        elem.webkitRequestFullscreen ||
+        elem.webkitRequestFullScreen ||
+        elem.mozRequestFullScreen ||
+        elem.msRequestFullscreen
+
+      if (requestFn) {
+        try {
+          await requestFn.call(elem)
+        } catch (e) {
+          // If first attempt failed, try on document.body or document.documentElement
+          try {
+            if (document.documentElement && document.documentElement.requestFullscreen) {
+              await document.documentElement.requestFullscreen()
+            } else if (document.body && document.body.requestFullscreen) {
+              await document.body.requestFullscreen()
+            }
+          } catch (_) { }
+        }
       }
 
-      // Try locking orientation to landscape on mobile devices if supported
-      if (screen && screen.orientation && typeof screen.orientation.lock === 'function') {
-        try {
-          await screen.orientation.lock('landscape').catch(() => { })
-        } catch (_) { }
-      }
+      // Try orientation locking to landscape for mobile gaming if supported
+      try {
+        if (screen && screen.orientation && typeof screen.orientation.lock === 'function') {
+          screen.orientation.lock('landscape').catch(() => { })
+        }
+      } catch (_) { }
+
+      // Scroll minimal 1px to prompt browser address bar hide on mobile
+      try {
+        window.scrollTo(0, 1)
+      } catch (_) { }
 
       return true
     }
   } catch (err) {
-    console.warn('[Fullscreen] Action failed or blocked by browser:', err)
+    console.warn('[Fullscreen] Action error:', err)
     return isFullscreenActive()
   }
 }
@@ -73,4 +105,3 @@ export function subscribeFullscreenChange(callback) {
     document.removeEventListener('MSFullscreenChange', handler)
   }
 }
-
