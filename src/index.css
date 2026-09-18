@@ -5547,7 +5547,7 @@ button {
    SIDEBAR: DEDICATED LIVE BETS BOARD
    ========================================================= */
 .tez-sidebar-board {
-  width: clamp(110px, 11vw, 150px);
+  width: clamp(135px, 14vw, 190px);
   background:
     linear-gradient(180deg, rgba(255, 200, 100, 0.1) 0%, transparent 35%),
     linear-gradient(180deg, #42220d 0%, #251206 100%);
@@ -5560,7 +5560,6 @@ button {
   flex-shrink: 0;
   min-height: 0;
   height: 100%;
-  max-height: clamp(140px, 34vh, 230px);
   max-height: clamp(170px, 42vh, 310px);
   margin: auto 0;
   position: relative;
@@ -6203,7 +6202,7 @@ button {
   }
 
   .tez-sidebar-board {
-    width: clamp(140px, 12vw, 185px);
+    width: clamp(170px, 15vw, 225px);
     height: 100%;
     max-height: clamp(180px, 42vh, 320px);
     margin: auto 0;
@@ -6407,7 +6406,7 @@ screen and (min-width: 1900px) {
   }
 
   .tez-grid-section {
-    max-width: 1260px;
+    max-width: 1160px;
     width: 100%;
     margin: 0 auto;
     justify-content: flex-start;
@@ -6424,7 +6423,7 @@ screen and (min-width: 1900px) {
     grid-template-rows: repeat(2, minmax(0, 1fr));
     gap: 8px 10px;
     max-height: 380px;
-    max-width: 1260px;
+    max-width: 1160px;
     width: 100%;
     margin: 0 auto;
   }
@@ -6485,7 +6484,7 @@ screen and (min-width: 1900px) {
 
   /* Balanced width of Previous Game Results Sidebar */
   .tez-sidebar-board {
-    width: clamp(160px, 10.5vw, 205px);
+    width: clamp(210px, 13.5vw, 265px);
     max-height: 380px;
   }
 
