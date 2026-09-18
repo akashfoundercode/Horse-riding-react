@@ -27,6 +27,47 @@ export function isFullscreenSupported() {
   )
 }
 
+export async function enterFullscreen(targetElement = document.documentElement) {
+  if (typeof document === 'undefined') return false
+  if (isFullscreenActive()) return true
+
+  try {
+    const elem = targetElement || document.documentElement || document.body || document.getElementById('root')
+    const requestFn =
+      elem.requestFullscreen ||
+      elem.webkitRequestFullscreen ||
+      elem.webkitRequestFullScreen ||
+      elem.mozRequestFullScreen ||
+      elem.msRequestFullscreen
+
+    if (requestFn) {
+      try {
+        await requestFn.call(elem)
+      } catch (e) {
+        if (document.documentElement && document.documentElement.requestFullscreen) {
+          await document.documentElement.requestFullscreen()
+        } else if (document.body && document.body.requestFullscreen) {
+          await document.body.requestFullscreen()
+        }
+      }
+    }
+
+    try {
+      if (screen && screen.orientation && typeof screen.orientation.lock === 'function') {
+        screen.orientation.lock('landscape').catch(() => { })
+      }
+    } catch (_) { }
+
+    try {
+      window.scrollTo(0, 1)
+    } catch (_) { }
+
+    return true
+  } catch (err) {
+    return false
+  }
+}
+
 export async function toggleFullscreen(targetElement = document.documentElement) {
   if (typeof document === 'undefined') return false
 

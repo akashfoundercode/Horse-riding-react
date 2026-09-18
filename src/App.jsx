@@ -30,6 +30,7 @@ import { DEFAULT_AUDIO_SETTINGS } from './config/audioConstants.js'
 import { useAuth } from './context/AuthContext.jsx'
 import { useWallet } from './context/WalletContext.jsx'
 import { getSafeAudioContext } from './utils/audioContextHelper.js'
+import { enterFullscreen } from './utils/fullscreenHelper.js'
 
 // Code-split auxiliary modals to shrink initial JS payload
 const BettingTutorial = React.lazy(() => import('./components/BettingTutorial.jsx'))
@@ -240,6 +241,29 @@ export default function App() {
         window.visualViewport.removeEventListener('resize', updateViewportMetrics)
         window.visualViewport.removeEventListener('scroll', updateViewportMetrics)
       }
+    }
+  }, [])
+
+  // Automatic full-screen on first user interaction / tap without requiring any button
+  useEffect(() => {
+    let triggered = false
+    const handleFirstInteraction = () => {
+      if (triggered) return
+      triggered = true
+      enterFullscreen().catch(() => { })
+      window.removeEventListener('click', handleFirstInteraction)
+      window.removeEventListener('touchstart', handleFirstInteraction)
+      window.removeEventListener('pointerdown', handleFirstInteraction)
+    }
+
+    window.addEventListener('click', handleFirstInteraction, { passive: true })
+    window.addEventListener('touchstart', handleFirstInteraction, { passive: true })
+    window.addEventListener('pointerdown', handleFirstInteraction, { passive: true })
+
+    return () => {
+      window.removeEventListener('click', handleFirstInteraction)
+      window.removeEventListener('touchstart', handleFirstInteraction)
+      window.removeEventListener('pointerdown', handleFirstInteraction)
     }
   }, [])
 
