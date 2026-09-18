@@ -5710,12 +5710,15 @@ button {
   gap: clamp(6px, 1vw, 14px);
 }
 
-/* Bottom Game ID Badge in Bottom Plank */
+/* Bottom Game ID Badge placed right beside the Bet Coins */
 .tez-bottom-game-id-badge {
-  background: linear-gradient(180deg, #1c0e06 0%, #0c0502 100%);
+  background: linear-gradient(180deg, #241106 0%, #0d0502 100%);
   border: 1.5px solid #d49755;
-  border-radius: 7px;
-  padding: 3px clamp(6px, 0.8vw, 10px);
+  border-radius: 8px;
+  padding: 2px clamp(6px, 0.7vw, 10px);
+  height: clamp(32px, 4.8vh, 44px);
+  min-width: clamp(48px, 5.2vw, 64px);
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -5726,10 +5729,11 @@ button {
     0 2px 6px rgba(0, 0, 0, 0.8),
     0 0 8px rgba(212, 151, 85, 0.25);
   user-select: none;
+  margin-left: clamp(3px, 0.6vw, 10px);
 }
 
 .tez-bgid-tag {
-  font-size: clamp(7.5px, 0.75vw, 9px);
+  font-size: clamp(7px, 0.72vw, 8.5px);
   font-weight: 900;
   color: #67e8f9;
   letter-spacing: 0.08em;
@@ -5739,7 +5743,7 @@ button {
 }
 
 .tez-bgid-number {
-  font-size: clamp(11px, 1.2vw, 14px);
+  font-size: clamp(10.5px, 1.15vw, 13.5px);
   font-weight: 900;
   color: #38bdf8;
   font-family: 'Courier New', monospace, sans-serif;
