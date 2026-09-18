@@ -5762,7 +5762,6 @@ button {
   .tez-main-arena {
     padding: 4px clamp(8px, 1.2vw, 18px);
     max-height: calc(100vh - 180px);
-    max-height: calc(100vh - 160px);
     gap: 16px;
     align-items: center;
   }
@@ -5773,26 +5772,23 @@ button {
   }
 
   .tez-horses-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    grid-template-rows: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    grid-template-rows: repeat(2, minmax(0, 1fr));
     gap: 6px 8px;
     height: 100%;
-    max-height: clamp(180px, 44vh, 310px);
-    max-height: clamp(230px, 52vh, 380px);
+    max-height: clamp(180px, 42vh, 320px);
     margin: auto 0;
   }
 
   .tez-horse-card {
     height: 100%;
-    max-height: clamp(82px, 20vh, 145px);
-    max-height: clamp(106px, 26vh, 180px);
+    max-height: clamp(82px, 20vh, 150px);
   }
 
   .tez-sidebar-board {
     width: clamp(120px, 11vw, 155px);
     height: 100%;
-    max-height: clamp(180px, 44vh, 310px);
-    max-height: clamp(210px, 48vh, 340px);
+    max-height: clamp(180px, 42vh, 320px);
     margin: auto 0;
   }
 
@@ -5903,8 +5899,8 @@ button {
    EXCLUSIVE 1920x1080 & LARGE PC DESKTOP SCREENS
    (Shifted UP for perfect center felt alignment + Enlarged Bet Coins / Chips)
    ========================================================================= */
-@media screen and (min-width: 1600px),
-screen and (min-width: 1441px) and (min-height: 780px) {
+@media screen and (min-width: 1800px) and (min-height: 800px),
+screen and (min-width: 1900px) {
   .tez-frame-container {
     padding: 14px clamp(52px, 4.5vw, 92px) 44px;
     box-sizing: border-box;
