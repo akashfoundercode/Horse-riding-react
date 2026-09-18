@@ -470,14 +470,8 @@ function TezRafterBettingBoard({
 
         {/* 4. BOTTOM CONTROLS WOODEN PLANK */}
         <footer className="tez-bottom-plank">
-          {/* Casino Chips Selector with Game ID right beside coins */}
+          {/* Casino Chips Selector with Game ID on the right side of coins */}
           <div className="tez-chips-cluster">
-            {/* Game ID Badge placed right beside the Bet Coins */}
-            <div className="tez-bottom-game-id-badge" title={`Current Game Round ID #${gameSerialNumber}`}>
-              <span className="tez-bgid-tag">GAME ID</span>
-              <span className="tez-bgid-number">#{gameSerialNumber}</span>
-            </div>
-
             {CHIP_OPTIONS.map((chip) => {
               const isActive = selectedChip === chip.value
               return (
@@ -514,6 +508,12 @@ function TezRafterBettingBoard({
                 </div>
               )
             })}
+
+            {/* Game ID Badge placed on the RIGHT side of Bet Coins */}
+            <div className="tez-bottom-game-id-badge" title={`Current Game Round ID #${gameSerialNumber}`}>
+              <span className="tez-bgid-tag">GAME ID</span>
+              <span className="tez-bgid-number">#{gameSerialNumber}</span>
+            </div>
           </div>
 
           {/* Right Controls: Clear, Double & Timer grouped together on all devices */}
