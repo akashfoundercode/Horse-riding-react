@@ -212,9 +212,22 @@ const LiveWaveIcon = () => (
   </svg>
 )
 
-export default function LiveLeaderboard({ runners = [], betsByHorse = {} }) {
+function LiveLeaderboard({ runners = [], betsByHorse = {} }) {
+  const [displayRunners, setDisplayRunners] = React.useState(runners)
+  const lastUpdateRef = React.useRef(0)
+
+  React.useEffect(() => {
+    const now = performance.now()
+    if (now - lastUpdateRef.current > 120) {
+      lastUpdateRef.current = now
+      setDisplayRunners(runners)
+    }
+  }, [runners])
+
   // Sort runners by real-time position (descending: highest position = 1st place)
-  const sortedRunners = [...runners].sort((a, b) => (b.position || 0) - (a.position || 0))
+  const sortedRunners = React.useMemo(() => {
+    return [...displayRunners].sort((a, b) => (b.position || 0) - (a.position || 0))
+  }, [displayRunners])
 
   return (
     <aside className="race-live-leaderboard-bar">
@@ -317,12 +330,12 @@ export default function LiveLeaderboard({ runners = [], betsByHorse = {} }) {
               <div className="rlb-card-header">
                 <div
                   className={`rlb-rank-pill ${isFirst
-                      ? 'rlb-rank-pill--gold'
-                      : isSecond
-                        ? 'rlb-rank-pill--silver'
-                        : isThird
-                          ? 'rlb-rank-pill--bronze'
-                          : 'rlb-rank-pill--normal'
+                    ? 'rlb-rank-pill--gold'
+                    : isSecond
+                      ? 'rlb-rank-pill--silver'
+                      : isThird
+                        ? 'rlb-rank-pill--bronze'
+                        : 'rlb-rank-pill--normal'
                     }`}
                 >
                   {rankSuffix}
@@ -365,14 +378,14 @@ export default function LiveLeaderboard({ runners = [], betsByHorse = {} }) {
                     <span
                       key={segIdx}
                       className={`rlb-stamina-bar ${isLit
-                          ? isFirst
-                            ? 'rlb-stamina-bar--gold'
-                            : isSecond
-                              ? 'rlb-stamina-bar--blue'
-                              : isThird
-                                ? 'rlb-stamina-bar--bronze'
-                                : 'rlb-stamina-bar--lit'
-                          : 'rlb-stamina-bar--dim'
+                        ? isFirst
+                          ? 'rlb-stamina-bar--gold'
+                          : isSecond
+                            ? 'rlb-stamina-bar--blue'
+                            : isThird
+                              ? 'rlb-stamina-bar--bronze'
+                              : 'rlb-stamina-bar--lit'
+                        : 'rlb-stamina-bar--dim'
                         }`}
                     />
                   )
@@ -392,4 +405,6 @@ export default function LiveLeaderboard({ runners = [], betsByHorse = {} }) {
     </aside>
   )
 }
+
+export default React.memo(LiveLeaderboard)
 

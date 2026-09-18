@@ -27,7 +27,7 @@ export const CHIP_OPTIONS = [
   { value: 1000, label: '1000', img: '/bet_coins/betcoin1000.png' },
 ]
 
-export default function TezRafterBettingBoard({
+function TezRafterBettingBoard({
   horses,
   balance,
   totalBet,
@@ -557,4 +557,6 @@ export default function TezRafterBettingBoard({
     </div>
   )
 }
+
+export default React.memo(TezRafterBettingBoard)
 
