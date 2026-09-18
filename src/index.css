@@ -6670,9 +6670,8 @@ screen and (min-width: 1900px) {
   }
 
   .tez-sidebar-board {
-    width: clamp(100px, 12vw, 130px);
+    width: clamp(120px, 14.5vw, 160px);
     height: 100%;
-    max-height: clamp(160px, 38vh, 230px);
     max-height: clamp(180px, 45vh, 290px);
     margin: auto 0;
     position: relative;
@@ -6828,7 +6827,7 @@ screen and (min-width: 1900px) {
   }
 
   .tez-sidebar-board {
-    width: clamp(75px, 11vw, 95px);
+    width: clamp(95px, 13vw, 120px);
     height: 100%;
     max-height: clamp(155px, 48vh, 220px);
     min-width: 0;
