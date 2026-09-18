@@ -211,6 +211,36 @@ export default function App() {
   const [betCoinsByHorse, setBetCoinsByHorse] = useState({})
   const [selectedChip, setSelectedChip] = useState(10)
   const [timerSeconds, setTimerSeconds] = useState(40)
+
+  // Dynamic Viewport sync for mobile/tablet browsers to eliminate address bar overlap
+  useEffect(() => {
+    const updateViewportMetrics = () => {
+      if (typeof window === 'undefined') return
+      const visualH = window.visualViewport ? window.visualViewport.height : window.innerHeight
+      const visualW = window.visualViewport ? window.visualViewport.width : window.innerWidth
+      document.documentElement.style.setProperty('--app-height', `${visualH}px`)
+      document.documentElement.style.setProperty('--app-width', `${visualW}px`)
+      document.documentElement.style.setProperty('--vh', `${visualH * 0.01}px`)
+    }
+
+    updateViewportMetrics()
+    window.addEventListener('resize', updateViewportMetrics)
+    window.addEventListener('orientationchange', updateViewportMetrics)
+
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', updateViewportMetrics)
+      window.visualViewport.addEventListener('scroll', updateViewportMetrics)
+    }
+
+    return () => {
+      window.removeEventListener('resize', updateViewportMetrics)
+      window.removeEventListener('orientationchange', updateViewportMetrics)
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener('resize', updateViewportMetrics)
+        window.visualViewport.removeEventListener('scroll', updateViewportMetrics)
+      }
+    }
+  }, [])
   const [previousResults, setPreviousResults] = useState([
     { number: 4, name: 'ROYAL', multiplier: 1 },
     { number: 5, name: 'TARZAN', multiplier: 2 },
