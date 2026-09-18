@@ -1245,7 +1245,7 @@ export default function App() {
 
         {/* AUTHENTIC TOP LIVE SCOREBOARD / LEADERBOARD (DITTO REFERENCE MOCKUP) */}
         {(phase === 'racing' || phase === 'photofinish' || phase === 'result' || phase === 'resultOpen' || phase === 'countdown') && (
-          <LiveLeaderboard runners={runners} betsByHorse={betsByHorse} />
+          <LiveLeaderboard runners={runners} runnersRef={runnersRef} betsByHorse={betsByHorse} phase={phase} />
         )}
 
         {/* SINGLE HILL CLIMB VICTORY & RESULT SCREEN (PURE TEXT & UNCROPPED POLAROID) */}
