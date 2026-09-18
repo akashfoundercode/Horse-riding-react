@@ -9,25 +9,20 @@ const CACHE_NAME = 'derby-asset-cache-v4'
 
 export const GAME_IMAGE_ASSETS = [
   // 1. Loader Graphics
+  '/loader/loader.png',
   '/loader/laoder.png',
   '/loader/loaderline.png',
 
   // 2. Main Game UI, Frames & Background Sprites
   '/sprites/mainlogo.png',
   '/sprites/image.png',
-  '/sprites/image2.png',
-  '/sprites/mainframe.png',
   '/sprites/GATE.png',
   '/sprites/MAINFINSHLINE.png',
-  '/sprites/leaderboard.png',
-  '/sprites/tree2.png',
   '/top/fullimage.png',
   '/top/MAINFINSHLINE.png',
   '/top/top123.png',
-  '/bottom/bottom.png',
 
   // 3. 12 Race Running Horses (GIFs) & Animations
-  '/HORSES/dust.gif',
   '/HORSES/horse5_1mb.gif',
   '/HORSES/horse_no1_1mb.gif',
   '/HORSES/horse_number_2_1MB.gif',
