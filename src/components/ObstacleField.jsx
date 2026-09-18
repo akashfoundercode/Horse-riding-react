@@ -1,6 +1,6 @@
 import React from 'react'
 
-export default function ObstacleField({ running = false }) {
+function ObstacleField({ running = false }) {
     return (
         <div className={`obstacle-field ${running ? 'obstacle-field--running' : ''}`} aria-hidden="true">
             {/* Seamless Repeating Panorama Banner of top123.png */}
@@ -18,3 +18,5 @@ export default function ObstacleField({ running = false }) {
         </div>
     )
 }
+
+export default React.memo(ObstacleField)

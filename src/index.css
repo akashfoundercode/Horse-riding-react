@@ -1441,11 +1441,11 @@ button {
 
 @keyframes top123-scroll {
   0% {
-    transform: translateX(0);
+    transform: translate3d(0, 0, 0);
   }
 
   100% {
-    transform: translateX(-33.33333%);
+    transform: translate3d(-33.33333%, 0, 0);
   }
 }
 

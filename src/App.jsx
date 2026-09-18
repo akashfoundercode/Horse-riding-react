@@ -1073,7 +1073,7 @@ export default function App() {
                   style={{
                     bottom: `${startY}%`,
                     zIndex: zIndex,
-                    transform: `translate3d(${startX + r.position * 0.74}vw, 0, 0) scale(${depthScale})`,
+                    transform: `translate3d(${(startX + r.position * 0.74).toFixed(3)}vw, 0, 0) scale(${depthScale})`,
                     transformOrigin: 'center bottom',
                     opacity: showHorse ? 1 : 0,
                     visibility: showHorse ? 'visible' : 'hidden',
