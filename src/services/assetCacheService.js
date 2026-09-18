@@ -18,6 +18,7 @@ export const GAME_IMAGE_ASSETS = [
   '/sprites/image.png',
   '/sprites/GATE.png',
   '/top/fullimage.png',
+  '/top/fullimage.jpg',
   '/top/MAINFINSHLINE.png',
   '/top/top123.png',
 

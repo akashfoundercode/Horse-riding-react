@@ -26,7 +26,7 @@ export default function DerbyAssetLoader({ onComplete }) {
         const h = imgEl.naturalHeight || imgEl.clientHeight || 200
         if (canvas.width !== w) canvas.width = w
         if (canvas.height !== h) canvas.height = h
-        const ctx = canvas.getContext('2d')
+        const ctx = canvas.getContext('2d', { willReadFrequently: true })
         if (ctx) {
           ctx.clearRect(0, 0, w, h)
           ctx.drawImage(imgEl, 0, 0, w, h)
