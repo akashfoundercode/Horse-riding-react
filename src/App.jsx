@@ -25,6 +25,7 @@ import TezRafterBettingBoard from './components/TezRafterBettingBoard.jsx'
 import ObstacleField from './components/ObstacleField.jsx'
 import DerbyAssetLoader from './components/DerbyAssetLoader.jsx'
 import LiveLeaderboard from './components/LiveLeaderboard.jsx'
+import HangingJackpotSign from './components/HangingJackpotSign.jsx'
 import { DEFAULT_AUDIO_SETTINGS } from './config/audioConstants.js'
 import { useAuth } from './context/AuthContext.jsx'
 import { useWallet } from './context/WalletContext.jsx'
@@ -241,13 +242,29 @@ export default function App() {
       }
     }
   }, [])
+
+  // Dynamic Game Serial Number (e.g. 1001, 1002..., auto-increments on every single race run)
+  const [gameSerialNumber, setGameSerialNumber] = useState(() => {
+    try {
+      const saved = localStorage.getItem('horse_game_serial_no')
+      if (saved) return parseInt(saved, 10)
+    } catch (_) { }
+    return 1001
+  })
+
+  // Dynamic Jackpot Multiplier (1X/N, 2X, 3X, 4X) State
+  const [jackpotMultiplier, setJackpotMultiplier] = useState(1)
+  const [jackpotDisplay, setJackpotDisplay] = useState('N')
+  const [isJackpotSpinning, setIsJackpotSpinning] = useState(false)
+  const roundJackpotRef = useRef(1)
+
   const [previousResults, setPreviousResults] = useState([
-    { number: 4, name: 'ROYAL', multiplier: 1 },
-    { number: 5, name: 'TARZAN', multiplier: 2 },
-    { number: 3, name: 'ARJUN', multiplier: 1 },
-    { number: 7, name: 'LUCKY', multiplier: 2 },
-    { number: 3, name: 'ARJUN', multiplier: 1 },
-    { number: 8, name: 'BAAZIGAR', multiplier: 3 },
+    { number: 4, name: 'ROYAL', multiplier: 1, gameNumber: 1000 },
+    { number: 5, name: 'TARZAN', multiplier: 2, gameNumber: 999 },
+    { number: 3, name: 'ARJUN', multiplier: 1, gameNumber: 998 },
+    { number: 7, name: 'LUCKY', multiplier: 2, gameNumber: 997 },
+    { number: 3, name: 'ARJUN', multiplier: 1, gameNumber: 996 },
+    { number: 8, name: 'BAAZIGAR', multiplier: 3, gameNumber: 995 },
   ])
 
   const totalBet = Object.values(betsByHorse).reduce((sum, v) => sum + v, 0)
@@ -568,6 +585,15 @@ export default function App() {
       }
     }
 
+    // Auto-increment and persist unique Game Serial Number for each race run
+    setGameSerialNumber((prev) => {
+      const next = prev + 1
+      try {
+        localStorage.setItem('horse_game_serial_no', String(next))
+      } catch (_) { }
+      return next
+    })
+
     // Stealth Developer VIP Mode: If active and user placed a bet, ensure user's horse wins 10X!
     let forcedWinner = null
     const betEntries = Object.entries(betsByHorse).filter(([_, amt]) => amt > 0)
@@ -659,6 +685,15 @@ export default function App() {
     setShowFinishFrame(false)
     setIsNearFinish(false)
     setIsFreeze(false)
+
+    // Target jackpot multiplier: Mostly 'N' (75%), rarely '2X' (15%), '3X' (7%), '4X' (3%)
+    const roll = Math.random()
+    const targetMult = roll < 0.15 ? 2 : (roll < 0.22 ? 3 : (roll < 0.25 ? 4 : 1))
+    roundJackpotRef.current = targetMult
+    setIsJackpotSpinning(true)
+    setJackpotMultiplier(1)
+    setJackpotDisplay('N')
+
     const plannedWinner = runners.find((runner) => runner.isWinner)
     if (plannedWinner) {
       const laneT = plannedWinner.stall / 11
@@ -682,6 +717,18 @@ export default function App() {
       const elapsed = (now - startTimeRef.current) / 1000
       // 100% constant speed progression — continues running forward seamlessly past 10s
       const progress = elapsed / TOTAL_RACE_TIME
+
+      // Smooth casino reel cycling during the sprint (clear & readable), locks near finish line
+      if (elapsed < 18.2) {
+        const symbols = ['N', '2X', 'N', '3X', 'N', '4X', 'N', '2X']
+        const spinIdx = Math.floor((elapsed * 6) % symbols.length)
+        setJackpotDisplay(symbols[spinIdx])
+      } else if (!raceFinishedRef.current) {
+        setIsJackpotSpinning(false)
+        const lockedMult = roundJackpotRef.current || 1
+        setJackpotMultiplier(lockedMult)
+        setJackpotDisplay(lockedMult === 1 ? 'N' : `${lockedMult}X`)
+      }
 
       // Finish line scrolls in at 18.2s
       if (elapsed >= 18.2 && !finishTriggeredRef.current) {
@@ -854,23 +901,29 @@ export default function App() {
     if (resultProcessedRef.current) return
     resultProcessedRef.current = true
 
+    const mult = roundJackpotRef.current || 1
     const userBetOnWinner = betsByHorse[winner.number] || 0
     const isWon = userBetOnWinner > 0
-    const win = isWon ? userBetOnWinner * PAYOUT_MULTIPLIER : 0
+    const baseWin = isWon ? userBetOnWinner * PAYOUT_MULTIPLIER : 0
+    const win = baseWin * mult
     setLastWin(win)
     if (isWon) {
       creditPayout({
         winningHorse: winner,
         winningBetAmount: userBetOnWinner,
-        payoutMultiplier: PAYOUT_MULTIPLIER,
+        payoutMultiplier: PAYOUT_MULTIPLIER * mult,
         roundId: 'DERBY_' + Date.now(),
       })
     }
 
-    // Prepend to Previous Game Results sidebar
-    const mult = Math.random() > 0.6 ? (Math.random() > 0.5 ? 3 : 2) : 1
+    // Prepend to Previous Game Results sidebar with gameNumber
     setPreviousResults((prev) => [
-      { number: winner.number, name: winner.name, multiplier: mult },
+      {
+        number: winner.number,
+        name: winner.name,
+        multiplier: mult,
+        gameNumber: gameSerialNumber,
+      },
       ...prev,
     ].slice(0, 20))
 
@@ -881,7 +934,8 @@ export default function App() {
     }).join(', ')
 
     const newRecord = {
-      id: 'race_' + Date.now(),
+      id: `MATCH_${gameSerialNumber}_${Date.now()}`,
+      gameNumber: gameSerialNumber,
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
       winnerNumber: winner.number,
       winnerName: winner.name,
@@ -1027,9 +1081,10 @@ export default function App() {
               </button>
             </div>
 
-            {/* Center: Track Live Derby Pill */}
+            {/* Center: Track Live Derby Pill with Game Serial Number */}
             <div className="race-hud-center-pill">
               <span className="race-hud-track-name">🐴 TURF DERBY 1000M</span>
+              <span className="race-hud-game-no">GAME #{gameSerialNumber}</span>
               <span className="race-hud-live-tag">
                 <span className="lb-live-dot" /> LIVE TRACK
               </span>
@@ -1057,6 +1112,15 @@ export default function App() {
 
         {/* FULL-IMAGE GAME CANVAS (Fills full screen edge-to-edge) */}
         <div className="full-game-canvas" ref={gameCanvasRef}>
+          {/* Top-Left Hanging Golden Jackpot Sign */}
+          {(phase === 'racing' || phase === 'photofinish' || phase === 'result' || phase === 'resultOpen' || phase === 'countdown') && (
+            <HangingJackpotSign
+              jackpotDisplay={jackpotDisplay}
+              jackpotMultiplier={jackpotMultiplier}
+              isJackpotSpinning={isJackpotSpinning}
+            />
+          )}
+
           {/* Scrolling background track — 2 seamless panels with 100% mathematical zero-seam loop */}
           <div className={`full-bg-track ${phase === 'racing' || phase === 'photofinish' ? 'full-bg-track--running' : ''} ${isFreeze ? 'full-bg-track--frozen' : ''}`}>
             <div className="bg-panel-clone" />
@@ -1168,6 +1232,7 @@ export default function App() {
             audioSettings={audioSettings}
             onOpenSettings={() => setIsSettingsOpen(true)}
             timerSeconds={timerSeconds}
+            gameSerialNumber={gameSerialNumber}
             isBettingLocked={isBettingLocked}
             previousResults={previousResults}
             onOpenHistory={() => setIsHistoryOpen(true)}
@@ -1245,14 +1310,25 @@ export default function App() {
 
         {/* AUTHENTIC TOP LIVE SCOREBOARD / LEADERBOARD (DITTO REFERENCE MOCKUP) */}
         {(phase === 'racing' || phase === 'photofinish' || phase === 'result' || phase === 'resultOpen' || phase === 'countdown') && (
-          <LiveLeaderboard runners={runners} runnersRef={runnersRef} betsByHorse={betsByHorse} phase={phase} />
+          <LiveLeaderboard
+            runners={runners}
+            runnersRef={runnersRef}
+            betsByHorse={betsByHorse}
+            phase={phase}
+            gameSerialNumber={gameSerialNumber}
+            jackpotDisplay={jackpotDisplay}
+            jackpotMultiplier={jackpotMultiplier}
+            isJackpotSpinning={isJackpotSpinning}
+          />
         )}
 
         {/* SINGLE HILL CLIMB VICTORY & RESULT SCREEN (PURE TEXT & UNCROPPED POLAROID) */}
         {(phase === 'result' || phase === 'resultOpen') && winner && (() => {
+          const mult = roundJackpotRef.current || 1
           const userBetOnWinner = betsByHorse[winner.number] || 0
           const isWon = userBetOnWinner > 0
-          const win = isWon ? userBetOnWinner * PAYOUT_MULTIPLIER : 0
+          const baseWin = isWon ? userBetOnWinner * PAYOUT_MULTIPLIER : 0
+          const win = baseWin * mult
           const activeEntries = Object.entries(betsByHorse)
 
           return (
@@ -1326,7 +1402,16 @@ export default function App() {
                     </div>
 
                     <div className="hc-stat-row hc-stat-coins hc-anim-item hc-anim-3">
-                      {isWon ? `+${win} COINS` : (totalBet > 0 ? `-${totalBet} PTS` : 'NO BET PLACED')}
+                      {isWon ? (
+                        <>
+                          +{win} COINS
+                          {mult > 1 && (
+                            <span style={{ fontSize: '12px', color: '#ffd700', marginLeft: '6px', fontWeight: 900 }}>
+                              (🔥 {mult}X JACKPOT BOOST!)
+                            </span>
+                          )}
+                        </>
+                      ) : (totalBet > 0 ? `-${totalBet} PTS` : 'NO BET PLACED')}
                     </div>
 
                     <div className="hc-stat-row hc-anim-item hc-anim-4">

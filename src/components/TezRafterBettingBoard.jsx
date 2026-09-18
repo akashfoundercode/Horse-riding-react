@@ -47,6 +47,7 @@ function TezRafterBettingBoard({
   audioSettings,
   onOpenSettings,
   timerSeconds,
+  gameSerialNumber = 1001,
   isBettingLocked,
   previousResults,
   onOpenHistory,
@@ -437,7 +438,9 @@ function TezRafterBettingBoard({
                     const horseImg = horseInfo?.portraitImg || horseInfo?.img || `/Bet_horses/horses${res.number}.png`
                     return (
                       <div key={idx} className="tez-res-row">
-                        <span className="tez-res-serial">#{idx + 1}</span>
+                        <span className="tez-res-game-tag" title={`Game #${res.gameNumber || (gameSerialNumber - idx - 1)}`}>
+                          #{res.gameNumber || (gameSerialNumber - idx - 1)}
+                        </span>
                         <div className="tez-res-badge">{res.number}</div>
                         <div className="tez-res-photo-wrap">
                           <img
@@ -448,6 +451,12 @@ function TezRafterBettingBoard({
                           />
                         </div>
                         <div className="tez-res-name">{res.name}</div>
+                        <span
+                          className={`tez-res-mult ${res.multiplier > 1 ? 'tez-res-mult--boost' : 'tez-res-mult--normal'}`}
+                          title={`Jackpot Multiplier: ${res.multiplier > 1 ? `${res.multiplier}X Boost` : '1X (N)'}`}
+                        >
+                          {res.multiplier > 1 ? `${res.multiplier}X` : 'N'}
+                        </span>
                       </div>
                     )
                   })
@@ -461,8 +470,14 @@ function TezRafterBettingBoard({
 
         {/* 4. BOTTOM CONTROLS WOODEN PLANK */}
         <footer className="tez-bottom-plank">
-          {/* Casino Chips Selector */}
+          {/* Casino Chips Selector with Game ID right beside coins */}
           <div className="tez-chips-cluster">
+            {/* Game ID Badge placed right beside the Bet Coins */}
+            <div className="tez-bottom-game-id-badge" title={`Current Game Round ID #${gameSerialNumber}`}>
+              <span className="tez-bgid-tag">GAME ID</span>
+              <span className="tez-bgid-number">#{gameSerialNumber}</span>
+            </div>
+
             {CHIP_OPTIONS.map((chip) => {
               const isActive = selectedChip === chip.value
               return (

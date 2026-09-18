@@ -212,7 +212,16 @@ const LiveWaveIcon = () => (
   </svg>
 )
 
-function LiveLeaderboard({ runners = [], runnersRef = null, betsByHorse = {}, phase = 'racing' }) {
+function LiveLeaderboard({
+  runners = [],
+  runnersRef = null,
+  betsByHorse = {},
+  phase = 'racing',
+  gameSerialNumber = 1001,
+  jackpotDisplay = 'N',
+  jackpotMultiplier = 1,
+  isJackpotSpinning = false,
+}) {
   const [rankedRunners, setRankedRunners] = React.useState(runners)
   const lastSortTimeRef = React.useRef(0)
 
@@ -251,24 +260,33 @@ function LiveLeaderboard({ runners = [], runnersRef = null, betsByHorse = {}, ph
 
   return (
     <aside className="race-live-leaderboard-bar">
-      {/* 1. Left Controls Area: LIVE 1000M & TURF DERBY */}
+      {/* 1. Left Controls Area: LIVE 1000M & JACKPOT MULTIPLIER */}
       <div className="rlb-left-panel">
-        {/* Top LIVE + 1000M Card */}
-        <div className="rlb-live-card">
+        {/* Top LIVE + Game ID Card */}
+        <div className="rlb-live-card" title={`Live Match Round #${gameSerialNumber}`}>
           <div className="rlb-live-top-row">
             <LiveWaveIcon />
             <span className="rlb-live-title">LIVE</span>
           </div>
           <div className="rlb-live-divider" />
-          <span className="rlb-live-dist">1000M</span>
+          <span className="rlb-live-dist">#{gameSerialNumber}</span>
         </div>
 
-        {/* Bottom TURF DERBY Card */}
-        <div className="rlb-turf-card">
-          <CheckeredFlagsIcon />
-          <div className="rlb-turf-text">
-            <span>TURF</span>
-            <span>DERBY</span>
+        {/* Bottom JACKPOT Multiplier Reel Card */}
+        <div
+          className={`rlb-jackpot-card ${isJackpotSpinning ? 'rlb-jackpot--spinning' : ''} ${jackpotMultiplier > 1 ? 'rlb-jackpot--boost' : ''}`}
+          title="Dynamic Jackpot Multiplier (1X, 2X, 3X Payout Boost)"
+        >
+          <div className="rlb-jackpot-header">
+            <span className="rlb-jackpot-badge">JACKPOT</span>
+          </div>
+          <div className="rlb-jackpot-value-wrap">
+            <span className={`rlb-jackpot-val ${isJackpotSpinning ? 'rlb-jackpot-val--blur' : ''} ${jackpotMultiplier > 1 ? 'rlb-jackpot-val--gold' : ''}`}>
+              {jackpotDisplay || (jackpotMultiplier > 1 ? `${jackpotMultiplier}X` : 'N')}
+            </span>
+            {jackpotMultiplier > 1 && !isJackpotSpinning && (
+              <span className="rlb-jackpot-flame">🔥</span>
+            )}
           </div>
         </div>
       </div>
