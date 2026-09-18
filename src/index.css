@@ -4883,6 +4883,12 @@ button {
   border-color: #ffd285;
 }
 
+.tez-header-icon-btn--active {
+  background: radial-gradient(circle at 40% 35%, #9c6028 0%, #4a230a 85%);
+  border-color: #ffe082;
+  box-shadow: 0 0 10px rgba(255, 224, 130, 0.6);
+}
+
 .tez-header-icon-btn--close {
   background: radial-gradient(circle at 40% 35%, #9c3a27 0%, #54170c 80%);
   border-color: #d96954;
@@ -5323,6 +5329,16 @@ button {
   border-color: #a8622c;
 }
 
+.tez-res-serial {
+  font-size: 8.5px;
+  font-weight: 900;
+  color: #e5b376;
+  min-width: 14px;
+  flex-shrink: 0;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+  font-family: monospace, sans-serif;
+}
+
 .tez-res-badge {
   background: radial-gradient(circle at 35% 35%, #9c6028 0%, #522d10 90%);
   border: 1.5px solid #d49755;
@@ -5337,6 +5353,27 @@ button {
   justify-content: center;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
   flex-shrink: 0;
+}
+
+.tez-res-photo-wrap {
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: radial-gradient(circle, #2a1408 0%, #150903 100%);
+  border: 1px solid #9c5c24;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.8), 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.tez-res-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .tez-res-name {
@@ -5786,7 +5823,7 @@ button {
   }
 
   .tez-sidebar-board {
-    width: clamp(120px, 11vw, 155px);
+    width: clamp(140px, 12vw, 185px);
     height: 100%;
     max-height: clamp(180px, 42vh, 320px);
     margin: auto 0;
@@ -5809,13 +5846,23 @@ button {
   .tez-res-row {
     padding: 2.5px 6px;
     min-height: 28px;
-    gap: 6px;
+    gap: 5px;
+  }
+
+  .tez-res-serial {
+    font-size: 8.5px;
+    min-width: 14px;
   }
 
   .tez-res-badge {
     width: 19px;
     height: 19px;
     font-size: 10px;
+  }
+
+  .tez-res-photo-wrap {
+    width: 22px;
+    height: 22px;
   }
 
   .tez-res-name {
@@ -6051,7 +6098,7 @@ screen and (min-width: 1900px) {
 
   /* Balanced width of Previous Game Results Sidebar */
   .tez-sidebar-board {
-    width: clamp(140px, 9vw, 175px);
+    width: clamp(160px, 10.5vw, 205px);
     max-height: 380px;
   }
 
@@ -6062,12 +6109,24 @@ screen and (min-width: 1900px) {
   .tez-res-row {
     min-height: 32px;
     padding: 3px 8px;
+    gap: 6px;
+  }
+
+  .tez-res-serial {
+    font-size: 10px;
+    min-width: 17px;
   }
 
   .tez-res-badge {
     width: 22px;
     height: 22px;
     font-size: 11px;
+  }
+
+  .tez-res-photo-wrap {
+    width: 26px;
+    height: 26px;
+    border-radius: 5px;
   }
 
   .tez-res-name {
@@ -6406,10 +6465,21 @@ screen and (min-width: 1900px) {
     gap: 3px;
   }
 
+  .tez-res-serial {
+    font-size: 7px;
+    min-width: 10px;
+  }
+
   .tez-res-badge {
     width: 14px;
     height: 14px;
     font-size: 7.5px;
+  }
+
+  .tez-res-photo-wrap {
+    width: 16px;
+    height: 16px;
+    border-radius: 3px;
   }
 
   .tez-res-name {

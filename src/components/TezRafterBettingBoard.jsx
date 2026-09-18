@@ -14,9 +14,12 @@ import {
   Play,
   Settings,
   History,
+  Maximize,
+  Minimize,
 } from 'lucide-react'
 
 import { getSafeAudioContext } from '../utils/audioContextHelper.js'
+import { isFullscreenActive, toggleFullscreen, subscribeFullscreenChange } from '../utils/fullscreenHelper.js'
 
 export const CHIP_OPTIONS = [
   { value: 2, label: '2', img: '/bet_coins/betcoin2.png' },
@@ -54,8 +57,15 @@ function TezRafterBettingBoard({
   isVisible = true,
 }) {
   const [showInfoModal, setShowInfoModal] = useState(false)
+  const [isFullscreen, setIsFullscreen] = useState(() => isFullscreenActive())
   const prevTimerRef = useRef(timerSeconds)
   const end5SecAudioRef = useRef(null)
+
+  useEffect(() => {
+    return subscribeFullscreenChange((active) => {
+      setIsFullscreen(active)
+    })
+  }, [])
 
   const getEffectiveVolume = (category) => {
     if (!audioSettings || audioSettings.masterMute) return 0
@@ -291,6 +301,15 @@ function TezRafterBettingBoard({
                 <Settings size={18} />
               </button>
             )}
+            {/* Fullscreen Mode Toggle (पूर्ण स्क्रीन) */}
+            <button
+              className={`tez-header-icon-btn ${isFullscreen ? 'tez-header-icon-btn--active' : ''}`}
+              onClick={() => toggleFullscreen()}
+              title={isFullscreen ? 'Exit Full Screen (स्क्रीन सामान्य करें)' : 'Enter Full Screen (पूर्ण स्क्रीन करें)'}
+            >
+              {isFullscreen ? <Minimize size={18} /> : <Maximize size={18} />}
+            </button>
+
             <button
               className="tez-header-icon-btn"
               onClick={() => setShowInfoModal(true)}
@@ -413,15 +432,25 @@ function TezRafterBettingBoard({
 
               <div className="tez-results-list">
                 {previousResults && previousResults.length > 0 ? (
-                  previousResults.slice(0, 10).map((res, idx) => (
-                    <div key={idx} className="tez-res-row">
-                      <div className="tez-res-badge">{res.number}</div>
-                      <div className="tez-res-name">{res.name}</div>
-                      {res.multiplier && res.multiplier > 1 && (
-                        <div className="tez-res-mult">{res.multiplier}X</div>
-                      )}
-                    </div>
-                  ))
+                  previousResults.slice(0, 10).map((res, idx) => {
+                    const horseInfo = horses?.find((h) => h.number === Number(res.number))
+                    const horseImg = horseInfo?.portraitImg || horseInfo?.img || `/Bet_horses/horses${res.number}.png`
+                    return (
+                      <div key={idx} className="tez-res-row">
+                        <span className="tez-res-serial">#{idx + 1}</span>
+                        <div className="tez-res-badge">{res.number}</div>
+                        <div className="tez-res-photo-wrap">
+                          <img
+                            src={horseImg}
+                            alt={res.name}
+                            className="tez-res-photo"
+                            draggable="false"
+                          />
+                        </div>
+                        <div className="tez-res-name">{res.name}</div>
+                      </div>
+                    )
+                  })
                 ) : (
                   <div className="tez-results-empty">No race history yet</div>
                 )}
