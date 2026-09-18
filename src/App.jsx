@@ -750,16 +750,10 @@ export default function App() {
                   } catch (e) {
                     console.error('DataURL export error:', e)
                   }
-                  // Pause for 350ms, then resume smoothly, then show result
+                  // Hold the clean frozen finish snapshot for 550ms with shutter sound, then open result screen
                   setTimeout(() => {
-                    startTimeRef.current = performance.now() - frozenElapsedRef.current * 1000
-                    isFrozenRef.current = false
-                    setIsFreeze(false)
-
-                    setTimeout(() => {
-                      setPhase('result')
-                    }, 400)
-                  }, 350)
+                    setPhase('result')
+                  }, 550)
                 })
                 .catch((err) => {
                   console.error('html2canvas error:', err)
@@ -780,14 +774,8 @@ export default function App() {
                     }
                   } catch (_) { }
                   setTimeout(() => {
-                    startTimeRef.current = performance.now() - frozenElapsedRef.current * 1000
-                    isFrozenRef.current = false
-                    setIsFreeze(false)
-
-                    setTimeout(() => {
-                      setPhase('result')
-                    }, 400)
-                  }, 350)
+                    setPhase('result')
+                  }, 550)
                 })
             }
           }
