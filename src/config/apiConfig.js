@@ -7,7 +7,7 @@ const API_CONFIG = {
   // Base URL for backend REST API (Overridable via .env)
   BASE_URL: import.meta.env.VITE_API_BASE_URL || 'https://api.derbyarena.game/v1',
 
-  // WebSocket Server URL for live multiplayer / round events
+  // WebSocket Server URL for live multiplayer / round events TESTING
   WS_URL: import.meta.env.VITE_WS_URL || 'wss://api.derbyarena.game/ws',
 
   // Flag to enable client-side mock adapter if backend is not reachable or in standalone demo mode
