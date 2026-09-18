@@ -212,22 +212,42 @@ const LiveWaveIcon = () => (
   </svg>
 )
 
-function LiveLeaderboard({ runners = [], betsByHorse = {} }) {
-  const [displayRunners, setDisplayRunners] = React.useState(runners)
-  const lastUpdateRef = React.useRef(0)
+function LiveLeaderboard({ runners = [], runnersRef = null, betsByHorse = {}, phase = 'racing' }) {
+  const [rankedRunners, setRankedRunners] = React.useState(runners)
+  const lastSortTimeRef = React.useRef(0)
 
   React.useEffect(() => {
-    const now = performance.now()
-    if (now - lastUpdateRef.current > 120) {
-      lastUpdateRef.current = now
-      setDisplayRunners(runners)
+    if (phase !== 'racing') {
+      const source = runnersRef?.current && runnersRef.current.length > 0 ? runnersRef.current : runners
+      if (source && source.length > 0) {
+        const sorted = [...source].sort((a, b) => (b.position || 0) - (a.position || 0))
+        setRankedRunners(sorted)
+      }
+      return
     }
-  }, [runners])
 
-  // Sort runners by real-time position (descending: highest position = 1st place)
-  const sortedRunners = React.useMemo(() => {
-    return [...displayRunners].sort((a, b) => (b.position || 0) - (a.position || 0))
-  }, [displayRunners])
+    let animId
+    const tick = (now) => {
+      // 100ms throttle (10 updates per second) for smooth real-time leaderboard rank changes with 0 lag
+      if (now - lastSortTimeRef.current >= 100) {
+        lastSortTimeRef.current = now
+        const source = runnersRef?.current && runnersRef.current.length > 0 ? runnersRef.current : runners
+        if (source && source.length > 0) {
+          const sorted = [...source].sort((a, b) => (b.position || 0) - (a.position || 0))
+          setRankedRunners(sorted)
+        }
+      }
+      animId = requestAnimationFrame(tick)
+    }
+
+    animId = requestAnimationFrame(tick)
+    return () => {
+      if (animId) cancelAnimationFrame(animId)
+    }
+  }, [phase, runnersRef, runners])
+
+  // Real-time sorted runners by horse track position
+  const sortedRunners = rankedRunners && rankedRunners.length > 0 ? rankedRunners : runners
 
   return (
     <aside className="race-live-leaderboard-bar">
