@@ -1649,7 +1649,7 @@ button {
   display: block;
   user-select: none;
   -webkit-user-drag: none;
-  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.65));
+  filter: url(#horse-green-despill) drop-shadow(0 4px 6px rgba(0, 0, 0, 0.65));
   will-change: transform;
   transform: translateZ(0);
 }
@@ -1849,6 +1849,7 @@ button {
   pointer-events: none;
   user-select: none;
   -webkit-user-drag: none;
+  filter: url(#horse-green-despill);
 }
 
 /* Bottom Green Strip & Fence */
