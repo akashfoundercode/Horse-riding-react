@@ -5923,7 +5923,7 @@ screen and (min-width: 1441px) and (min-height: 780px) {
   .tez-counters-group {
     margin-left: clamp(28px, 3.5vw, 65px);
     gap: 12px;
-    transform: translate(36px, -2px);
+    transform: translate(36px, 32px);
   }
 
   .tez-counter-box {
