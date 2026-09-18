@@ -165,6 +165,13 @@ export default function App() {
 
   const [phase, setPhase] = useState('idle') // 40-second automated betting & race cycle
   const [runners, setRunners] = useState(makeRunners)
+  const runnersRef = useRef(runners)
+  const runnerDomMapRef = useRef({})
+
+  useEffect(() => {
+    runnersRef.current = runners
+  }, [runners])
+
   const [selectedHorseId, setSelectedHorseId] = useState(1)
   const [betAmount, setBetAmount] = useState(10)
   const [isWalletOpen, setIsWalletOpen] = useState(false)
@@ -667,124 +674,132 @@ export default function App() {
         }
       }
 
-      setRunners((prev) => {
-        let firstCrossed = null
+      const curRunners = runnersRef.current
+      let firstCrossed = null
 
-        const next = prev.map((r) => {
-          // 100% Pure Linear Velocity - continuous forward running
-          const gallopWave = Math.sin(elapsed * r.gallopFreq + r.phaseOffset) * r.gallopAmp
+      for (let idx = 0; idx < curRunners.length; idx++) {
+        const r = curRunners[idx]
+        const laneT = idx / 11
+        const startX = 4.2 + laneT * 7.5
+        const depthScale = 1.10 - laneT * 0.25
 
-          // Mid-race pack excitement: horses jockey together until ~68% of the race.
-          // In the home stretch (progress > 0.68), overtake waves smoothly taper down:
-          const sprintFactor = Math.max(0, 1 - Math.max(0, (progress - 0.68) / 0.22))
-          const overtakeWave = Math.sin(progress * Math.PI * r.shiftSpeed + r.shiftOffset) * r.shiftPower * sprintFactor
+        // 100% Pure Linear Velocity - continuous forward running
+        const gallopWave = Math.sin(elapsed * r.gallopFreq + r.phaseOffset) * r.gallopAmp
 
-          // Winner smoothly surges into a decisive clean breakaway in front of all horses:
-          const winnerSurge = r.isWinner ? Math.max(0, (progress - 0.68) / 0.32) * 5.5 : 0
+        // Mid-race pack excitement: horses jockey together until ~68% of the race.
+        // In the home stretch (progress > 0.68), overtake waves smoothly taper down:
+        const sprintFactor = Math.max(0, 1 - Math.max(0, (progress - 0.68) / 0.22))
+        const overtakeWave = Math.sin(progress * Math.PI * r.shiftSpeed + r.shiftOffset) * r.shiftPower * sprintFactor
 
-          // Continuous linear full sprint forward from start to finish
-          let curPos = Math.max(0, progress * r.targetEndPosition + gallopWave + overtakeWave + winnerSurge)
+        // Winner smoothly surges into a decisive clean breakaway in front of all horses:
+        const winnerSurge = r.isWinner ? Math.max(0, (progress - 0.68) / 0.32) * 5.5 : 0
 
-          const isDone = Boolean(
-            r.isWinner &&
-            (isWinnerCrossingFinish || elapsed >= 20.3)
-          )
-          if (isDone && !firstCrossed) {
-            firstCrossed = r
-            if (!screenshotTakenRef.current && gameCanvasRef.current) {
-              screenshotTakenRef.current = true
-              frozenElapsedRef.current = elapsed
-              isFrozenRef.current = true
-              setIsFreeze(true)
-              playCameraShutterSound()
-              setWinner(r)
+        // Continuous linear full sprint forward from start to finish
+        const curPos = Math.max(0, progress * r.targetEndPosition + gallopWave + overtakeWave + winnerSurge)
+        r.position = curPos
 
-              const targetEl = gameCanvasRef.current
-              const trackEl = targetEl?.querySelector('.full-bg-track')
-              const finishBgEl = targetEl?.querySelector('.single-pass-finish-bg')
-              const sensorEl = targetEl?.querySelector('.finish-sensor-line')
+        // DIRECT DOM TRANSFORM: 60/120 FPS butter-smooth movement with zero dropped frames or React overhead
+        const domEl = runnerDomMapRef.current[r.number]
+        if (domEl) {
+          domEl.style.transform = `translate3d(${(startX + curPos * 0.74).toFixed(3)}vw, 0, 0) scale(${depthScale})`
+        }
 
-              const trackTransform = trackEl ? window.getComputedStyle(trackEl).transform : ''
-              const finishBgTransform = finishBgEl ? window.getComputedStyle(finishBgEl).transform : ''
-              const sensorTransform = sensorEl ? window.getComputedStyle(sensorEl).transform : ''
+        const isDone = Boolean(
+          r.isWinner &&
+          (isWinnerCrossingFinish || elapsed >= 20.3)
+        )
+        if (isDone && !firstCrossed) {
+          firstCrossed = r
+          if (!screenshotTakenRef.current && gameCanvasRef.current) {
+            screenshotTakenRef.current = true
+            frozenElapsedRef.current = elapsed
+            isFrozenRef.current = true
+            setIsFreeze(true)
+            playCameraShutterSound()
+            setWinner(r)
+            setRunners([...curRunners])
 
-              html2canvas(targetEl, {
-                useCORS: true,
-                allowTaint: false,
-                scale: 1.0,
-                backgroundColor: '#0a0a0a',
-                logging: false,
-                onclone: (clonedDoc) => {
-                  const cloneTrack = clonedDoc.querySelector('.full-bg-track')
-                  if (cloneTrack && trackTransform) {
-                    cloneTrack.style.transform = trackTransform
-                    cloneTrack.style.animation = 'none'
-                  }
-                  const cloneFinishBg = clonedDoc.querySelector('.single-pass-finish-bg')
-                  if (cloneFinishBg && finishBgTransform) {
-                    cloneFinishBg.style.transform = finishBgTransform
-                    cloneFinishBg.style.animation = 'none'
-                    cloneFinishBg.style.display = 'block'
-                  }
-                  const cloneSensor = clonedDoc.querySelector('.finish-sensor-line')
-                  if (cloneSensor && sensorTransform) {
-                    cloneSensor.style.transform = sensorTransform
-                    cloneSensor.style.animation = 'none'
-                    cloneSensor.style.display = 'none'
-                  }
-                },
-                ignoreElements: (el) => {
-                  return (
-                    el.classList &&
-                    (el.classList.contains('lb-panel') ||
-                      el.classList.contains('countdown-container') ||
-                      el.classList.contains('hc-photofinish-screen') ||
-                      el.classList.contains('canvas-result-btn'))
-                  )
-                },
+            const targetEl = gameCanvasRef.current
+            const trackEl = targetEl?.querySelector('.full-bg-track')
+            const finishBgEl = targetEl?.querySelector('.single-pass-finish-bg')
+            const sensorEl = targetEl?.querySelector('.finish-sensor-line')
+
+            const trackTransform = trackEl ? window.getComputedStyle(trackEl).transform : ''
+            const finishBgTransform = finishBgEl ? window.getComputedStyle(finishBgEl).transform : ''
+            const sensorTransform = sensorEl ? window.getComputedStyle(sensorEl).transform : ''
+
+            html2canvas(targetEl, {
+              useCORS: true,
+              allowTaint: false,
+              scale: 1.0,
+              backgroundColor: '#0a0a0a',
+              logging: false,
+              onclone: (clonedDoc) => {
+                const cloneTrack = clonedDoc.querySelector('.full-bg-track')
+                if (cloneTrack && trackTransform) {
+                  cloneTrack.style.transform = trackTransform
+                  cloneTrack.style.animation = 'none'
+                }
+                const cloneFinishBg = clonedDoc.querySelector('.single-pass-finish-bg')
+                if (cloneFinishBg && finishBgTransform) {
+                  cloneFinishBg.style.transform = finishBgTransform
+                  cloneFinishBg.style.animation = 'none'
+                  cloneFinishBg.style.display = 'block'
+                }
+                const cloneSensor = clonedDoc.querySelector('.finish-sensor-line')
+                if (cloneSensor && sensorTransform) {
+                  cloneSensor.style.transform = sensorTransform
+                  cloneSensor.style.animation = 'none'
+                  cloneSensor.style.display = 'none'
+                }
+              },
+              ignoreElements: (el) => {
+                return (
+                  el.classList &&
+                  (el.classList.contains('lb-panel') ||
+                    el.classList.contains('countdown-container') ||
+                    el.classList.contains('hc-photofinish-screen') ||
+                    el.classList.contains('canvas-result-btn'))
+                )
+              },
+            })
+              .then((canvas) => {
+                try {
+                  const dataUrl = canvas.toDataURL('image/jpeg', 0.9)
+                  setFinishScreenshot(dataUrl)
+                } catch (e) {
+                  console.error('DataURL export error:', e)
+                }
+                // Hold the clean frozen finish snapshot for 550ms with shutter sound, then open result screen
+                setTimeout(() => {
+                  setPhase('result')
+                }, 550)
               })
-                .then((canvas) => {
-                  try {
-                    const dataUrl = canvas.toDataURL('image/jpeg', 0.9)
-                    setFinishScreenshot(dataUrl)
-                  } catch (e) {
-                    console.error('DataURL export error:', e)
+              .catch((err) => {
+                console.error('html2canvas error:', err)
+                try {
+                  const fallbackCanvas = document.createElement('canvas')
+                  fallbackCanvas.width = 960
+                  fallbackCanvas.height = 540
+                  const ctx = fallbackCanvas.getContext('2d', { willReadFrequently: true })
+                  if (ctx) {
+                    ctx.fillStyle = '#180a29'
+                    ctx.fillRect(0, 0, 960, 540)
+                    ctx.fillStyle = '#ff003b'
+                    ctx.fillRect(720, 0, 6, 540)
+                    ctx.fillStyle = '#ffffff'
+                    ctx.font = 'bold 24px sans-serif'
+                    ctx.fillText(`PHOTO FINISH — #${r.number} ${r.name}`, 40, 60)
+                    setFinishScreenshot(fallbackCanvas.toDataURL('image/jpeg', 0.9))
                   }
-                  // Hold the clean frozen finish snapshot for 550ms with shutter sound, then open result screen
-                  setTimeout(() => {
-                    setPhase('result')
-                  }, 550)
-                })
-                .catch((err) => {
-                  console.error('html2canvas error:', err)
-                  try {
-                    const fallbackCanvas = document.createElement('canvas')
-                    fallbackCanvas.width = 960
-                    fallbackCanvas.height = 540
-                    const ctx = fallbackCanvas.getContext('2d', { willReadFrequently: true })
-                    if (ctx) {
-                      ctx.fillStyle = '#180a29'
-                      ctx.fillRect(0, 0, 960, 540)
-                      ctx.fillStyle = '#ff003b'
-                      ctx.fillRect(720, 0, 6, 540)
-                      ctx.fillStyle = '#ffffff'
-                      ctx.font = 'bold 24px sans-serif'
-                      ctx.fillText(`PHOTO FINISH — #${r.number} ${r.name}`, 40, 60)
-                      setFinishScreenshot(fallbackCanvas.toDataURL('image/jpeg', 0.9))
-                    }
-                  } catch (_) { }
-                  setTimeout(() => {
-                    setPhase('result')
-                  }, 550)
-                })
-            }
+                } catch (_) { }
+                setTimeout(() => {
+                  setPhase('result')
+                }, 550)
+              })
           }
-
-          return { ...r, position: curPos }
-        })
-
-        return next
-      })
+        }
+      }
 
       if (phase === 'result' || phase === 'resultOpen') {
         if (rafRef.current) {
@@ -1012,11 +1027,8 @@ export default function App() {
 
         {/* FULL-IMAGE GAME CANVAS (Fills full screen edge-to-edge) */}
         <div className="full-game-canvas" ref={gameCanvasRef}>
-          {/* Scrolling background track — 4 seamless panels with MAINFINSHLINE.png at finish */}
+          {/* Scrolling background track — 2 seamless panels with 100% mathematical zero-seam loop */}
           <div className={`full-bg-track ${phase === 'racing' || phase === 'photofinish' ? 'full-bg-track--running' : ''} ${isFreeze ? 'full-bg-track--frozen' : ''}`}>
-            <div className="bg-panel-clone" />
-            <div className={`bg-panel-clone ${showFinishFrame ? 'bg-panel-finish' : ''}`} />
-            <div className="bg-panel-clone" />
             <div className="bg-panel-clone" />
             <div className="bg-panel-clone" />
           </div>
@@ -1064,6 +1076,10 @@ export default function App() {
               return (
                 <div
                   key={r.number}
+                  ref={(el) => {
+                    if (el) runnerDomMapRef.current[r.number] = el
+                    else delete runnerDomMapRef.current[r.number]
+                  }}
                   data-runner={r.number}
                   className={`race-runner ${!showHorse ? 'race-runner--hidden' : 'race-runner--emerge'} ${isFreeze ? 'race-runner--frozen' : ''}`}
                   style={{
