@@ -5172,7 +5172,7 @@ button {
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   overflow: hidden;
   position: relative;
   min-height: 0;
@@ -5181,28 +5181,30 @@ button {
   min-width: 0;
   box-sizing: border-box;
   z-index: 1;
+  padding-top: clamp(2px, 0.4vh, 6px);
 }
 
 .tez-grid-top-bar {
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  margin-bottom: 3px;
-  padding-left: 2px;
+  margin-top: clamp(6px, 1.5vh, 16px);
+  margin-bottom: clamp(3px, 0.6vh, 6px);
+  padding-left: clamp(4px, 0.5vw, 10px);
+  flex-shrink: 0;
+  z-index: 5;
 }
 
 .tez-grid-game-id-badge {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  background: linear-gradient(180deg, rgba(28, 14, 6, 0.95) 0%, rgba(10, 4, 1, 0.98) 100%);
-  border: 1.2px solid #d49755;
+  gap: 6px;
+  background: rgba(14, 7, 3, 0.94);
+  border: 1.5px solid #d49755;
   border-radius: 6px;
-  padding: 1px 8px;
-  box-shadow:
-    inset 0 1px 2px rgba(0, 0, 0, 0.8),
-    0 2px 4px rgba(0, 0, 0, 0.6),
-    0 0 6px rgba(212, 151, 85, 0.25);
+  padding: 2px 10px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.85), inset 0 1px 0 rgba(255, 215, 0, 0.3);
+  backdrop-filter: blur(4px);
   user-select: none;
 }
 
@@ -5216,12 +5218,12 @@ button {
 }
 
 .tez-ggid-num {
-  font-size: clamp(10px, 1.05vw, 12.5px);
+  font-size: clamp(10.5px, 1.1vw, 13px);
   font-weight: 900;
   color: #38bdf8;
   font-family: 'Courier New', monospace, sans-serif;
   letter-spacing: 0.04em;
-  text-shadow: 0 0 6px rgba(56, 189, 248, 0.7);
+  text-shadow: 0 0 8px rgba(56, 189, 248, 0.7);
 }
 
 .tez-lock-banner {
@@ -6176,8 +6178,14 @@ button {
   }
 
   .tez-grid-section {
-    justify-content: center;
+    justify-content: flex-start;
+    padding-top: 8px;
     flex: 1;
+  }
+
+  .tez-grid-top-bar {
+    margin-top: 10px;
+    margin-bottom: 6px;
   }
 
   .tez-horses-grid {
@@ -6402,6 +6410,13 @@ screen and (min-width: 1900px) {
     max-width: 1260px;
     width: 100%;
     margin: 0 auto;
+    justify-content: flex-start;
+    padding-top: 14px;
+  }
+
+  .tez-grid-top-bar {
+    margin-top: 14px;
+    margin-bottom: 8px;
   }
 
   .tez-horses-grid {
