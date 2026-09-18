@@ -6682,8 +6682,7 @@ screen and (min-width: 1900px) {
 
   .tez-horse-card {
     height: 100%;
-    max-height: clamp(75px, 18vh, 110px);
-    max-height: clamp(94px, 24vh, 155px);
+    max-height: clamp(80px, 20vh, 135px);
   }
 
   .tez-grid-top-bar {
@@ -6706,7 +6705,7 @@ screen and (min-width: 1900px) {
   }
 
   .tez-sidebar-board {
-    width: clamp(120px, 14.5vw, 160px);
+    width: clamp(150px, 18vw, 200px);
     height: 100%;
     max-height: clamp(180px, 45vh, 290px);
     margin: auto 0;
@@ -6716,8 +6715,8 @@ screen and (min-width: 1900px) {
 
   .tez-res-row {
     min-height: 26px;
-    padding: 2px 4px;
-    gap: 4px;
+    padding: 2px 5px;
+    gap: 5px;
   }
 
   .tez-res-game-tag {
@@ -6738,7 +6737,12 @@ screen and (min-width: 1900px) {
   }
 
   .tez-res-name {
-    font-size: 8.5px;
+    font-size: 9px;
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .tez-res-mult {
@@ -6907,7 +6911,7 @@ screen and (min-width: 1900px) {
 
   .tez-horse-card {
     height: 100%;
-    max-height: clamp(72px, 23vh, 105px);
+    max-height: clamp(56px, 18vh, 84px);
     width: 100%;
     min-width: 0;
     box-sizing: border-box;
@@ -6915,7 +6919,7 @@ screen and (min-width: 1900px) {
   }
 
   .tez-sidebar-board {
-    width: clamp(95px, 13vw, 120px);
+    width: clamp(135px, 19vw, 175px);
     height: 100%;
     max-height: clamp(155px, 48vh, 220px);
     min-width: 0;
@@ -6929,7 +6933,7 @@ screen and (min-width: 1900px) {
   }
 
   .tez-sb-title {
-    font-size: 7px;
+    font-size: 7.5px;
   }
 
   .tez-results-list {
@@ -6938,9 +6942,9 @@ screen and (min-width: 1900px) {
   }
 
   .tez-res-row {
-    padding: 1px 3px;
+    padding: 1px 4px;
     min-height: 20px;
-    gap: 2.5px;
+    gap: 3.5px;
     border-radius: 3px;
   }
 
@@ -6968,7 +6972,12 @@ screen and (min-width: 1900px) {
   }
 
   .tez-res-name {
-    font-size: 7px;
+    font-size: 7.5px;
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .tez-res-mult {
@@ -7208,33 +7217,45 @@ screen and (min-width: 1900px) {
   }
 
   .tez-horse-card {
-    height: 82px;
-    min-height: 76px;
-    max-height: 88px;
+    height: 66px;
+    min-height: 60px;
+    max-height: 72px;
     width: 100%;
     min-width: 0;
     box-sizing: border-box;
     overflow: hidden;
   }
 
+  .tez-card-header {
+    padding: 1px 2px;
+  }
+
   .tez-card-name {
-    font-size: 8px;
+    font-size: 7.5px;
     padding: 0 1px;
   }
 
+  .tez-card-horse-img {
+    max-height: 34px;
+  }
+
+  .tez-bet-slot {
+    height: 17px;
+  }
+
   .tez-slot-tap-text {
-    font-size: 7.5px;
+    font-size: 7px;
   }
 
   .tez-slot-bet-val {
-    font-size: 9.5px;
+    font-size: 8.5px;
   }
 
   .tez-sidebar-board {
     width: 100%;
     height: auto;
-    min-height: 60px;
-    max-height: 110px;
+    min-height: 72px;
+    max-height: 130px;
     margin: 0;
     box-sizing: border-box;
     position: relative;
@@ -7242,49 +7263,55 @@ screen and (min-width: 1900px) {
   }
 
   .tez-sb-header {
-    padding: 2px 4px;
+    padding: 3px 6px;
   }
 
   .tez-sb-title {
-    font-size: 8px;
+    font-size: 8.5px;
   }
 
   .tez-results-list {
-    padding: 2px 3px;
-    gap: 2px;
+    padding: 2px 4px;
+    gap: 3px;
   }
 
   .tez-res-row {
-    padding: 1.5px 4px;
-    min-height: 22px;
-    gap: 4px;
+    padding: 2px 6px;
+    min-height: 24px;
+    gap: 5px;
   }
 
   .tez-res-game-tag {
-    font-size: 7px;
+    font-size: 7.5px;
     padding: 0.5px 3px;
-    min-width: 16px;
+    min-width: 18px;
   }
 
   .tez-res-badge {
-    width: 14px;
-    height: 14px;
-    font-size: 7.5px;
+    width: 15px;
+    height: 15px;
+    font-size: 8px;
   }
 
   .tez-res-photo-wrap {
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
     border-radius: 3px;
   }
 
   .tez-res-name {
-    font-size: 8px;
+    font-size: 9px;
+    font-weight: 800;
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .tez-res-mult {
-    font-size: 7.5px;
-    padding: 0.5px 3px;
+    font-size: 8px;
+    padding: 1px 4px;
   }
 
   /* Bottom Plank strictly at frame bottom */
