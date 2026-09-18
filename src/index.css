@@ -5893,6 +5893,18 @@ button {
     font-size: 9.5px;
     padding: 1.5px 4px;
   }
+
+  /* Running Horse GIFs slightly enlarged exclusively for Laptops */
+  .horse-viewport {
+    width: 16vw;
+    max-width: 215px;
+    min-width: 105px;
+  }
+
+  .horse-scale-wrap {
+    transform: scale(1.10);
+    transform-origin: center bottom;
+  }
 }
 
 /* =========================================================================
