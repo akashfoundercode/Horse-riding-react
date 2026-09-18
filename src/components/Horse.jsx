@@ -4,7 +4,6 @@ import React, { useLayoutEffect, useRef } from 'react'
  * Single large crisp running horse component with ground shadow and kicking dust puffs.
  * Supports instant, layout-shift-free GIF frame freezing on finish line snapshot without leg animation continuing.
  */
-export default function Horse({
 function Horse({
   img = '/HORSES/horse_jockey_6mb.gif',
   hue = 0,
