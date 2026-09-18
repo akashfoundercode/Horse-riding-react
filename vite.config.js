@@ -7,4 +7,19 @@ export default defineConfig({
     host: true,
     port: 5173,
   },
+  build: {
+    target: 'esnext',
+    minify: 'esbuild',
+    cssCodeSplit: true,
+    chunkSizeWarningLimit: 1000,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom'],
+          'vendor-icons': ['lucide-react'],
+          'vendor-canvas': ['html2canvas'],
+        },
+      },
+    },
+  },
 })

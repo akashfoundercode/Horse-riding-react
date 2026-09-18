@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { Sparkles, Trophy, Zap } from 'lucide-react'
-import { assetCacheService, ALL_GAME_ASSETS, GAME_IMAGE_ASSETS } from '../services/assetCacheService.js'
+import { assetCacheService } from '../services/assetCacheService.js'
 
 export default function DerbyAssetLoader({ onComplete }) {
   const [progress, setProgress] = useState(0)

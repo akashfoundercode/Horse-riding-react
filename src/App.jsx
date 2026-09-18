@@ -23,18 +23,21 @@ import {
 import Horse from './components/Horse.jsx'
 import TezRafterBettingBoard from './components/TezRafterBettingBoard.jsx'
 import ObstacleField from './components/ObstacleField.jsx'
-import BettingTutorial from './components/BettingTutorial.jsx'
-import AddCoinsModal from './components/AddCoinsModal.jsx'
-import GameHistoryModal from './components/GameHistoryModal.jsx'
-import AudioSettingsModal, { DEFAULT_AUDIO_SETTINGS } from './components/AudioSettingsModal.jsx'
-import WalletModal from './components/WalletModal.jsx'
-import AuthModal from './components/auth/AuthModal.jsx'
-import UserProfileModal from './components/auth/UserProfileModal.jsx'
 import DerbyAssetLoader from './components/DerbyAssetLoader.jsx'
 import LiveLeaderboard from './components/LiveLeaderboard.jsx'
+import { DEFAULT_AUDIO_SETTINGS } from './config/audioConstants.js'
 import { useAuth } from './context/AuthContext.jsx'
 import { useWallet } from './context/WalletContext.jsx'
 import { getSafeAudioContext } from './utils/audioContextHelper.js'
+
+// Code-split auxiliary modals to shrink initial JS payload
+const BettingTutorial = React.lazy(() => import('./components/BettingTutorial.jsx'))
+const AddCoinsModal = React.lazy(() => import('./components/AddCoinsModal.jsx'))
+const GameHistoryModal = React.lazy(() => import('./components/GameHistoryModal.jsx'))
+const AudioSettingsModal = React.lazy(() => import('./components/AudioSettingsModal.jsx'))
+const WalletModal = React.lazy(() => import('./components/WalletModal.jsx'))
+const AuthModal = React.lazy(() => import('./components/auth/AuthModal.jsx'))
+const UserProfileModal = React.lazy(() => import('./components/auth/UserProfileModal.jsx'))
 
 const HORSES = [
   { number: 1, name: 'TOOFAN', img: '/HORSES/horse_no1_1mb.gif', portraitImg: '/Bet_horses/horses1.png', hue: 0, saturate: 1.0, brightness: 1.0, speedRating: '9.8' },
@@ -888,56 +891,66 @@ export default function App() {
         <DerbyAssetLoader onComplete={() => setIsAssetLoading(false)} />
       )}
 
-      {/* 0. AUTHENTICATION & USER PROFILE MODALS */}
-      <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
-      <UserProfileModal isOpen={isProfileModalOpen} onClose={() => setIsProfileModalOpen(false)} />
+      {/* 0. AUTHENTICATION & USER PROFILE MODALS (Suspense Code-Split) */}
+      <React.Suspense fallback={null}>
+        {isAuthModalOpen && <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />}
+        {isProfileModalOpen && <UserProfileModal isOpen={isProfileModalOpen} onClose={() => setIsProfileModalOpen(false)} />}
 
-      {/* 1. STEP-BY-STEP ONBOARDING TUTORIAL */}
-      {isTutorialOpen && (
-        <BettingTutorial
-          isOpen={true}
-          onComplete={() => {
-            setHasSeenTutorial(true)
-            setIsTutorialOpen(false)
-          }}
-        />
-      )}
+        {/* 1. STEP-BY-STEP ONBOARDING TUTORIAL */}
+        {isTutorialOpen && (
+          <BettingTutorial
+            isOpen={true}
+            onComplete={() => {
+              setHasSeenTutorial(true)
+              setIsTutorialOpen(false)
+            }}
+          />
+        )}
 
-      {/* 2. WALLET RECHARGE / ADD COINS MODAL */}
-      <AddCoinsModal
-        isOpen={isAddCoinsOpen}
-        onClose={() => setIsAddCoinsOpen(false)}
-        onAddCoins={(amt) => postWalletTransaction('deposit', amt, 'Demo coin recharge')}
-      />
+        {/* 2. WALLET RECHARGE / ADD COINS MODAL */}
+        {isAddCoinsOpen && (
+          <AddCoinsModal
+            isOpen={isAddCoinsOpen}
+            onClose={() => setIsAddCoinsOpen(false)}
+            onAddCoins={(amt) => postWalletTransaction('deposit', amt, 'Demo coin recharge')}
+          />
+        )}
 
-      <WalletModal
-        isOpen={isWalletOpen}
-        onClose={() => setIsWalletOpen(false)}
-        wallet={wallet}
-        onRecharge={(amount) => postWalletTransaction('deposit', amount, 'Demo coin recharge')}
-      />
+        {isWalletOpen && (
+          <WalletModal
+            isOpen={isWalletOpen}
+            onClose={() => setIsWalletOpen(false)}
+            wallet={wallet}
+            onRecharge={(amount) => postWalletTransaction('deposit', amount, 'Demo coin recharge')}
+          />
+        )}
 
-      {/* 3. GAME BETTING HISTORY MODAL */}
-      <GameHistoryModal
-        isOpen={isHistoryOpen}
-        onClose={() => setIsHistoryOpen(false)}
-        history={raceHistory}
-        onClearHistory={() => {
-          setRaceHistory([])
-          try {
-            localStorage.removeItem('horse_race_history')
-          } catch (_) { }
-        }}
-      />
+        {/* 3. GAME BETTING HISTORY MODAL */}
+        {isHistoryOpen && (
+          <GameHistoryModal
+            isOpen={isHistoryOpen}
+            onClose={() => setIsHistoryOpen(false)}
+            history={raceHistory}
+            onClearHistory={() => {
+              setRaceHistory([])
+              try {
+                localStorage.removeItem('horse_race_history')
+              } catch (_) { }
+            }}
+          />
+        )}
 
-      {/* 4. AUDIO & SOUND SETTINGS MODAL */}
-      <AudioSettingsModal
-        isOpen={isSettingsOpen}
-        onClose={() => setIsSettingsOpen(false)}
-        audioSettings={audioSettings}
-        setAudioSettings={setAudioSettings}
-        onTestSound={handleTestSound}
-      />
+        {/* 4. AUDIO & SOUND SETTINGS MODAL */}
+        {isSettingsOpen && (
+          <AudioSettingsModal
+            isOpen={isSettingsOpen}
+            onClose={() => setIsSettingsOpen(false)}
+            audioSettings={audioSettings}
+            setAudioSettings={setAudioSettings}
+            onTestSound={handleTestSound}
+          />
+        )}
+      </React.Suspense>
 
       {/* 5. MAIN HORSE DERBY RACETRACK & BETTING GAME */}
       <div className={`stage stage--${phase}`}>
