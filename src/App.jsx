@@ -892,11 +892,6 @@ export default function App() {
       <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
       <UserProfileModal isOpen={isProfileModalOpen} onClose={() => setIsProfileModalOpen(false)} />
 
-      {/* 0. ROYAL GRAND SLIDING GATE ENTRANCE LOADER (COMMENTED OUT)
-      {showGateLoader && (
-        <GrandGateLoader onComplete={() => setShowGateLoader(false)} />
-      )} */}
-
       {/* 1. STEP-BY-STEP ONBOARDING TUTORIAL */}
       {isTutorialOpen && (
         <BettingTutorial

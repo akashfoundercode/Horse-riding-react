@@ -17,7 +17,6 @@ export const GAME_IMAGE_ASSETS = [
   '/sprites/mainlogo.png',
   '/sprites/image.png',
   '/sprites/GATE.png',
-  '/sprites/MAINFINSHLINE.png',
   '/top/fullimage.png',
   '/top/MAINFINSHLINE.png',
   '/top/top123.png',
@@ -35,7 +34,6 @@ export const GAME_IMAGE_ASSETS = [
   '/HORSES/horse_number_10_1_1MB.gif',
   '/HORSES/horse_number_11_1MB.gif',
   '/HORSES/horse_number_12_1_1MB.gif',
-  '/top/horse_jockey_1mb.gif',
 
   // 4. 12 Betting Cards Horses Portraits
   '/Bet_horses/horses1.png',
