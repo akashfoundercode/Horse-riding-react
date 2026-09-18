@@ -118,6 +118,18 @@ button {
   letter-spacing: 0.05em;
 }
 
+.race-hud-game-no {
+  font-size: clamp(9px, 0.95vw, 11px);
+  font-weight: 900;
+  color: #38bdf8;
+  background: rgba(14, 116, 144, 0.35);
+  border: 1px solid rgba(56, 189, 248, 0.5);
+  padding: 1px 7px;
+  border-radius: 10px;
+  letter-spacing: 0.04em;
+  text-shadow: 0 0 6px rgba(56, 189, 248, 0.5);
+}
+
 .race-hud-live-tag {
   display: flex;
   align-items: center;
@@ -222,19 +234,231 @@ button {
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
 }
 
-.rlb-turf-card {
+.rlb-turf-card,
+.rlb-jackpot-card {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(180deg, #2b1f0f 0%, #140d06 100%);
-  border: 1.2px solid #a67c2e;
+  background: linear-gradient(180deg, #3d1b06 0%, #170801 100%);
+  border: 1.2px solid #d49755;
   border-radius: 5px;
-  box-shadow: inset 0 1px 0 rgba(255, 220, 127, 0.25), 0 2px 6px rgba(0, 0, 0, 0.6);
+  box-shadow: inset 0 1px 0 rgba(255, 220, 127, 0.25), 0 2px 6px rgba(0, 0, 0, 0.7);
   flex: 1;
-  padding: 2px 3px;
+  padding: 1px 3px;
   min-height: 0;
   gap: 1px;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.rlb-jackpot--spinning {
+  border-color: #ffd700;
+  box-shadow: 0 0 10px rgba(255, 215, 0, 0.6), inset 0 0 6px rgba(255, 140, 0, 0.4);
+}
+
+.rlb-jackpot--boost {
+  background: linear-gradient(180deg, #78350f 0%, #351402 100%);
+  border-color: #ffb703;
+  box-shadow: 0 0 12px rgba(255, 183, 3, 0.8), inset 0 0 6px rgba(255, 235, 59, 0.5);
+}
+
+.rlb-jackpot-header {
+  line-height: 1;
+}
+
+.rlb-jackpot-badge {
+  font-size: clamp(6.5px, 0.68vw, 8px);
+  font-weight: 900;
+  color: #ffd88a;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
+}
+
+.rlb-jackpot-value-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  line-height: 1;
+}
+
+.rlb-jackpot-val {
+  font-size: clamp(9px, 0.95vw, 12.5px);
+  font-weight: 900;
+  color: #ffffff;
+  font-family: 'Arial Black', Impact, sans-serif;
+  letter-spacing: 0.04em;
+  text-shadow: 0 0 6px #ffb300, 0 1px 2px rgba(0, 0, 0, 0.9);
+}
+
+.rlb-jackpot-val--gold {
+  color: #ffd700;
+  text-shadow: 0 0 10px #ff9100, 0 1px 3px rgba(0, 0, 0, 0.95);
+}
+
+.rlb-jackpot-val--blur {
+  animation: jackpot-reel-blur 0.08s linear infinite;
+}
+
+@keyframes jackpot-reel-blur {
+  0% {
+    transform: translateY(-0.5px);
+    opacity: 0.9;
+  }
+
+  50% {
+    transform: translateY(0.5px);
+    opacity: 0.7;
+  }
+
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.rlb-jackpot-flame {
+  font-size: 9px;
+  animation: flame-bounce 0.35s infinite alternate;
+}
+
+@keyframes flame-bounce {
+  from {
+    transform: scale(0.9);
+  }
+
+  to {
+    transform: scale(1.15);
+  }
+}
+
+/* =========================================================
+   TOP-LEFT HANGING GOLDEN JACKPOT SIGN (AUTHENTIC USER ASSET)
+   ========================================================= */
+.race-hanging-jackpot {
+  position: absolute;
+  top: -2px;
+  left: clamp(8px, 1.4vw, 24px);
+  width: clamp(105px, 11vw, 155px);
+  aspect-ratio: 1024 / 1080;
+  z-index: 45;
+  pointer-events: none;
+  user-select: none;
+  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.85));
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  animation: jackpot-sign-sway 4s ease-in-out infinite alternate;
+  transform-origin: top center;
+}
+
+@keyframes jackpot-sign-sway {
+  0% {
+    transform: rotate(-0.5deg);
+  }
+
+  100% {
+    transform: rotate(0.5deg);
+  }
+}
+
+.race-hanging-jackpot--spinning {
+  filter: drop-shadow(0 0 12px rgba(255, 215, 0, 0.7)) drop-shadow(0 6px 14px rgba(0, 0, 0, 0.85));
+}
+
+.race-hanging-jackpot--boost {
+  filter: drop-shadow(0 0 18px rgba(255, 183, 3, 0.9)) drop-shadow(0 8px 18px rgba(0, 0, 0, 0.9));
+  animation: jackpot-sign-boost-pulse 1s ease-in-out infinite alternate;
+}
+
+@keyframes jackpot-sign-boost-pulse {
+  0% {
+    transform: scale(1);
+  }
+
+  100% {
+    transform: scale(1.04);
+  }
+}
+
+.hanging-jackpot-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+/* Screen cutout positioned accurately inside the bottom empty frame of jackpot (2).png */
+.hanging-jackpot-screen {
+  position: absolute;
+  top: 63.8%;
+  left: 21.8%;
+  width: 56.4%;
+  height: 15%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 4px;
+  background: radial-gradient(ellipse at center, rgba(35, 20, 5, 0.95) 0%, rgba(5, 5, 5, 0.98) 100%);
+  box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.95), inset 0 0 3px rgba(255, 215, 0, 0.3);
+}
+
+.hanging-jackpot-number {
+  font-family: 'Arial Black', Impact, 'Montserrat', sans-serif;
+  font-size: clamp(14px, 1.55vw, 22px);
+  font-weight: 900;
+  color: #ffffff;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  text-align: center;
+  text-shadow: 0 0 6px #ffb300, 0 1px 3px rgba(0, 0, 0, 0.95);
+  transition: all 0.15s ease;
+}
+
+.hanging-jackpot-number--spin {
+  color: #ffd700;
+  text-shadow: 0 0 8px #ff9800, 0 1px 2px rgba(0, 0, 0, 0.9);
+}
+
+.hanging-jackpot-number--gold {
+  color: #fffbdf;
+  text-shadow:
+    0 0 10px #ffd700,
+    0 0 20px #ff9100,
+    0 0 30px #ff3d00,
+    0 2px 4px rgba(0, 0, 0, 0.95);
+  animation: jackpot-gold-flash 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes jackpot-gold-flash {
+  0% {
+    transform: scale(0.96);
+    filter: brightness(1);
+  }
+
+  100% {
+    transform: scale(1.08);
+    filter: brightness(1.3);
+  }
+}
+
+.hanging-jackpot-win-glow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, rgba(255, 215, 0, 0.35) 0%, transparent 70%);
+  pointer-events: none;
+  animation: jackpot-glow-pulse 0.8s ease-in-out infinite alternate;
+}
+
+@keyframes jackpot-glow-pulse {
+  0% {
+    opacity: 0.4;
+  }
+
+  100% {
+    opacity: 1;
+  }
 }
 
 .rlb-turf-flags-svg {
@@ -4556,6 +4780,7 @@ button {
   gap: 5px;
   flex-shrink: 0;
   pointer-events: auto;
+  margin-left: clamp(110px, 12vw, 165px);
 }
 
 .game-home-btn {
@@ -4853,6 +5078,15 @@ button {
 
 .tez-counter-box--win .tez-cbox-label {
   color: #86efac;
+}
+
+.tez-counter-box--serial .tez-cbox-label {
+  color: #67e8f9;
+}
+
+.tez-counter-box--serial .tez-cbox-value {
+  color: #38bdf8;
+  text-shadow: 0 0 8px rgba(56, 189, 248, 0.6);
 }
 
 .tez-cbox-label {
@@ -5350,6 +5584,22 @@ button {
   border-color: #a8622c;
 }
 
+.tez-res-game-tag {
+  font-size: 8px;
+  font-weight: 900;
+  color: #38bdf8;
+  background: rgba(14, 116, 144, 0.25);
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  padding: 1px 3px;
+  border-radius: 3px;
+  min-width: 22px;
+  text-align: center;
+  flex-shrink: 0;
+  letter-spacing: 0.02em;
+  font-family: 'Courier New', monospace, sans-serif;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
+}
+
 .tez-res-serial {
   font-size: 8.5px;
   font-weight: 900;
@@ -5410,14 +5660,31 @@ button {
 }
 
 .tez-res-mult {
-  background: #00aa33;
-  color: #ffffff;
   font-size: 9px;
   font-weight: 900;
-  padding: 1px 3px;
-  border-radius: 3px;
-  border: 1px solid #66ff88;
-  box-shadow: 0 0 6px rgba(0, 255, 0, 0.4);
+  padding: 1.5px 5px;
+  border-radius: 4px;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tez-res-mult--boost {
+  background: linear-gradient(180deg, #d97706 0%, #92400e 100%);
+  color: #fffbdf;
+  border: 1px solid #fbbf24;
+  box-shadow: 0 0 8px rgba(251, 191, 36, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
+}
+
+.tez-res-mult--normal {
+  background: linear-gradient(180deg, #2a180b 0%, #170d05 100%);
+  color: #bfa287;
+  border: 1px solid #5a3517;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
 }
 
 .tez-results-empty {
@@ -5440,6 +5707,45 @@ button {
   padding: 0 clamp(6px, 1vw, 16px);
   flex-shrink: 0;
   z-index: 20;
+  gap: clamp(6px, 1vw, 14px);
+}
+
+/* Bottom Game ID Badge in Bottom Plank */
+.tez-bottom-game-id-badge {
+  background: linear-gradient(180deg, #1c0e06 0%, #0c0502 100%);
+  border: 1.5px solid #d49755;
+  border-radius: 7px;
+  padding: 3px clamp(6px, 0.8vw, 10px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow:
+    inset 0 1px 3px rgba(0, 0, 0, 0.95),
+    0 2px 6px rgba(0, 0, 0, 0.8),
+    0 0 8px rgba(212, 151, 85, 0.25);
+  user-select: none;
+}
+
+.tez-bgid-tag {
+  font-size: clamp(7.5px, 0.75vw, 9px);
+  font-weight: 900;
+  color: #67e8f9;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  text-transform: uppercase;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
+}
+
+.tez-bgid-number {
+  font-size: clamp(11px, 1.2vw, 14px);
+  font-weight: 900;
+  color: #38bdf8;
+  font-family: 'Courier New', monospace, sans-serif;
+  letter-spacing: 0.04em;
+  line-height: 1.1;
+  text-shadow: 0 0 8px rgba(56, 189, 248, 0.7), 0 1px 2px rgba(0, 0, 0, 0.95);
 }
 
 /* Enlarged Casino Chips Cluster */
