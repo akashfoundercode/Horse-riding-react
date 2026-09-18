@@ -5526,6 +5526,13 @@ button {
   }
 }
 
+/* Right Cluster: Clear, Double Buttons & Timer grouped together on all devices */
+.tez-bottom-right-cluster {
+  display: flex;
+  align-items: center;
+  gap: clamp(8px, 1.2vw, 18px);
+}
+
 /* Large Bold Action Buttons (Clear, Double) */
 .tez-actions-cluster {
   display: flex;
@@ -5892,6 +5899,246 @@ button {
   }
 }
 
+/* =========================================================================
+   EXCLUSIVE 1920x1080 & LARGE PC DESKTOP SCREENS
+   (Shifted UP for perfect center felt alignment + Enlarged Bet Coins / Chips)
+   ========================================================================= */
+@media screen and (min-width: 1600px),
+screen and (min-width: 1441px) and (min-height: 780px) {
+  .tez-frame-container {
+    padding: 14px clamp(52px, 4.5vw, 92px) 44px;
+    box-sizing: border-box;
+  }
+
+  .tez-frame-header,
+  .tez-main-header-plank {
+    width: 100%;
+    margin-left: 0;
+    margin-right: 0;
+    padding: 0 12px;
+    height: 48px;
+    transform: translateY(-3px);
+  }
+
+  .tez-counters-group {
+    margin-left: clamp(28px, 3.5vw, 65px);
+    gap: 12px;
+    transform: translate(36px, -2px);
+  }
+
+  .tez-counter-box {
+    min-width: 95px;
+    padding: 4px 14px;
+  }
+
+  .tez-cbox-label {
+    font-size: 9.5px;
+  }
+
+  .tez-cbox-value {
+    font-size: 15px;
+  }
+
+  .tez-brand-logo {
+    font-size: 26px;
+  }
+
+  .tez-header-actions {
+    margin-right: clamp(32px, 3.8vw, 75px);
+    gap: 12px;
+    transform: translate(-36px, 28px);
+  }
+
+  .tez-points-pill {
+    min-height: 40px;
+  }
+
+  .tez-header-icon-btn {
+    width: 40px;
+    height: 40px;
+  }
+
+  /* Main Horse Grid & Sidebar shifted UPWARDS & centered with balanced width */
+  .tez-main-arena {
+    padding: 2px 10px;
+    gap: 16px;
+    max-height: calc(100vh - 200px);
+    max-width: 1540px;
+    width: 100%;
+    margin: 0 auto;
+    align-items: center;
+    justify-content: center;
+    transform: translateY(-16px);
+  }
+
+  .tez-grid-section {
+    max-width: 1260px;
+    width: 100%;
+    margin: 0 auto;
+  }
+
+  .tez-horses-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+    gap: 8px 10px;
+    max-height: 380px;
+    max-width: 1260px;
+    width: 100%;
+    margin: 0 auto;
+  }
+
+  .tez-horse-card {
+    max-height: 180px;
+  }
+
+  .tez-card-num-badge {
+    width: 26px;
+    height: 26px;
+    font-size: 13px;
+  }
+
+  .tez-card-name {
+    font-size: 12.5px;
+  }
+
+  .tez-card-odds-badge {
+    font-size: 11px;
+    padding: 2px 6px;
+  }
+
+  .tez-card-coin-stamp {
+    padding: 2px 6px 2px 3px;
+  }
+
+  .tez-card-coin-img {
+    width: 24px;
+    height: 24px;
+  }
+
+  .tez-card-coin-badge-val {
+    font-size: 12px;
+  }
+
+  .tez-bet-slot {
+    height: 30px;
+  }
+
+  .tez-stepper-btn {
+    width: 24px;
+    height: 24px;
+  }
+
+  .tez-stepper-coin-img {
+    width: 20px;
+    height: 20px;
+  }
+
+  .tez-slot-bet-val {
+    font-size: 13.5px;
+  }
+
+  .tez-slot-tap-text {
+    font-size: 11px;
+  }
+
+  /* Balanced width of Previous Game Results Sidebar */
+  .tez-sidebar-board {
+    width: clamp(140px, 9vw, 175px);
+    max-height: 380px;
+  }
+
+  .tez-sb-title {
+    font-size: 11.5px;
+  }
+
+  .tez-res-row {
+    min-height: 32px;
+    padding: 3px 8px;
+  }
+
+  .tez-res-badge {
+    width: 22px;
+    height: 22px;
+    font-size: 11px;
+  }
+
+  .tez-res-name {
+    font-size: 11px;
+  }
+
+  .tez-res-mult {
+    font-size: 10.5px;
+  }
+
+  /* Bottom Plank & Enlarged Bet Coins shifted into wooden bar */
+  .tez-bottom-plank {
+    height: clamp(86px, 10.5vh, 108px);
+    min-height: 84px;
+    padding: 0 16px;
+    transform: translateY(-14px);
+  }
+
+  .tez-chips-cluster {
+    gap: 16px;
+    margin-left: clamp(28px, 3.5vw, 65px);
+    transform: translate(36px, 4px);
+  }
+
+  .tez-chip-wrapper {
+    padding: 3px;
+  }
+
+  .tez-casino-chip {
+    width: 68px;
+    height: 68px;
+  }
+
+  .tez-bottom-right-cluster {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-right: clamp(48px, 5.5vw, 105px);
+    transform: translate(-45px, 4px);
+  }
+
+  .tez-actions-cluster {
+    gap: 12px;
+  }
+
+  .tez-action-btn {
+    padding: 13px 32px;
+    font-size: 17px;
+    border-radius: 8px;
+  }
+
+  .tez-timer-display {
+    padding: 6px 18px;
+    margin-right: 0;
+    transform: none;
+  }
+
+  .tez-timer-num {
+    font-size: 44px;
+  }
+
+  /* Enlarged Running Horse GIFs & Card Horses exclusively on 1920x1080 Screens */
+  .horse-viewport {
+    width: 17.5vw;
+    max-width: 260px;
+    min-width: 120px;
+  }
+
+  .horse-scale-wrap {
+    transform: scale(1.22);
+    transform-origin: center bottom;
+  }
+
+  .tez-card-horse-img {
+    transform: scale(1.16);
+    transform-origin: center center;
+  }
+}
+
 /* -------------------------------------------------------------------------
    2. TABLETS & COMPACT LAPTOPS (769px to 1024px, height > 550px)
    ------------------------------------------------------------------------- */
@@ -6184,6 +6431,14 @@ button {
     height: 30px;
   }
 
+  .tez-bottom-right-cluster {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-right: clamp(24px, 5vw, 48px);
+    transform: translateY(3px);
+  }
+
   .tez-action-btn {
     padding: 5px 12px;
     font-size: 12px;
@@ -6191,8 +6446,8 @@ button {
   }
 
   .tez-timer-display {
-    margin-right: clamp(24px, 5vw, 48px);
-    transform: translateY(3px);
+    margin-right: 0;
+    transform: none;
   }
 
   .tez-timer-num {
@@ -6428,26 +6683,34 @@ button {
     height: clamp(32px, 9.5vw, 40px);
   }
 
-  .tez-actions-cluster {
+  .tez-bottom-right-cluster {
     order: 2;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transform: translate(-4px, 4px);
+  }
+
+  .tez-actions-cluster {
     gap: 4px;
   }
 
   .tez-action-btn {
-    padding: 6px 16px;
+    padding: 6px 14px;
     font-size: 13px;
     border-radius: 6px;
   }
 
   .tez-action-btn--clear,
   .tez-action-btn--double {
-    transform: translateY(6px);
+    transform: none;
   }
 
   .tez-timer-display {
-    order: 3;
     padding: 2px 6px;
-    transform: translate(-16px, 6px);
+    transform: none;
   }
 
   .tez-timer-num {

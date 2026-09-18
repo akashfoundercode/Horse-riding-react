@@ -472,56 +472,59 @@ function TezRafterBettingBoard({
             })}
           </div>
 
-          {/* Action Buttons: Clear, Double & Hidden/Invisible Instant Trigger */}
-          <div className="tez-actions-cluster" style={{ position: 'relative' }}>
-            <button
-              type="button"
-              className="tez-action-btn tez-action-btn--clear"
-              onClick={onClearBets}
-              disabled={isBettingLocked || totalBet === 0}
-              title="Clear all bets for this round"
-            >
-              Clear
-            </button>
-            <button
-              type="button"
-              className="tez-action-btn tez-action-btn--double"
-              onClick={onDoubleBets}
-              disabled={isBettingLocked || totalBet === 0 || balance < totalBet}
-              title="Double all current bets"
-            >
-              Double
-            </button>
-            {onStartRace && (
+          {/* Right Controls: Clear, Double & Timer grouped together on all devices */}
+          <div className="tez-bottom-right-cluster">
+            {/* Action Buttons: Clear, Double & Hidden/Invisible Instant Trigger */}
+            <div className="tez-actions-cluster" style={{ position: 'relative' }}>
               <button
                 type="button"
-                onClick={onStartRace}
-                style={{
-                  opacity: 0,
-                  width: '36px',
-                  height: '32px',
-                  background: 'transparent',
-                  border: 'none',
-                  outline: 'none',
-                  cursor: 'pointer',
-                  padding: 0,
-                  margin: 0,
-                }}
-                title="Instant start race"
-                aria-label="Instant start race"
-                tabIndex={-1}
-              />
-            )}
-          </div>
+                className="tez-action-btn tez-action-btn--clear"
+                onClick={onClearBets}
+                disabled={isBettingLocked || totalBet === 0}
+                title="Clear all bets for this round"
+              >
+                Clear
+              </button>
+              <button
+                type="button"
+                className="tez-action-btn tez-action-btn--double"
+                onClick={onDoubleBets}
+                disabled={isBettingLocked || totalBet === 0 || balance < totalBet}
+                title="Double all current bets"
+              >
+                Double
+              </button>
+              {onStartRace && (
+                <button
+                  type="button"
+                  onClick={onStartRace}
+                  style={{
+                    opacity: 0,
+                    width: '36px',
+                    height: '32px',
+                    background: 'transparent',
+                    border: 'none',
+                    outline: 'none',
+                    cursor: 'pointer',
+                    padding: 0,
+                    margin: 0,
+                  }}
+                  title="Instant start race"
+                  aria-label="Instant start race"
+                  tabIndex={-1}
+                />
+              )}
+            </div>
 
-          {/* Giant 3D Countdown Timer */}
-          <div className={`tez-timer-display ${timerSeconds <= 5 ? 'tez-timer-display--urgent' : ''}`}>
-            <span key={timerSeconds} className="tez-timer-num tez-flip-digit">
-              {timerSeconds}
-            </span>
-            <div className="tez-timer-labels">
-              <span className="tez-timer-sub-sec">SEC</span>
-              <span className="tez-timer-sub-left">LEFT</span>
+            {/* Giant 3D Countdown Timer */}
+            <div className={`tez-timer-display ${timerSeconds <= 5 ? 'tez-timer-display--urgent' : ''}`}>
+              <span key={timerSeconds} className="tez-timer-num tez-flip-digit">
+                {timerSeconds}
+              </span>
+              <div className="tez-timer-labels">
+                <span className="tez-timer-sub-sec">SEC</span>
+                <span className="tez-timer-sub-left">LEFT</span>
+              </div>
             </div>
           </div>
         </footer>
