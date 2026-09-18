@@ -309,6 +309,14 @@ function TezRafterBettingBoard({
 
           {/* Betting Grid Area */}
           <div className="tez-grid-section">
+            {/* Top row above horses with Game ID on the left side */}
+            <div className="tez-grid-top-bar">
+              <div className="tez-grid-game-id-badge" title={`Current Game Round ID #${gameSerialNumber}`}>
+                <span className="tez-ggid-tag">GAME ID:</span>
+                <span className="tez-ggid-num">#{gameSerialNumber}</span>
+              </div>
+            </div>
+
             {isBettingLocked && (
               <div className="tez-lock-banner">
                 <span className="tez-lock-text">⚠️ BETS CLOSED — RACE STARTING IN {timerSeconds}s ⚠️</span>
@@ -489,12 +497,6 @@ function TezRafterBettingBoard({
                 </div>
               )
             })}
-
-            {/* Game ID Badge placed on the RIGHT side of Bet Coins */}
-            <div className="tez-bottom-game-id-badge" title={`Current Game Round ID #${gameSerialNumber}`}>
-              <span className="tez-bgid-tag">GAME ID</span>
-              <span className="tez-bgid-number">#{gameSerialNumber}</span>
-            </div>
           </div>
 
           {/* Right Controls: Clear, Double & Timer grouped together on all devices */}
