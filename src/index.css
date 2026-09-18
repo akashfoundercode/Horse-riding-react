@@ -6682,7 +6682,7 @@ screen and (min-width: 1900px) {
 
   .tez-horse-card {
     height: 100%;
-    max-height: clamp(80px, 20vh, 135px);
+    max-height: clamp(88px, 22vh, 145px);
   }
 
   .tez-grid-top-bar {
@@ -6705,7 +6705,7 @@ screen and (min-width: 1900px) {
   }
 
   .tez-sidebar-board {
-    width: clamp(150px, 18vw, 200px);
+    width: clamp(135px, 16vw, 175px);
     height: 100%;
     max-height: clamp(180px, 45vh, 290px);
     margin: auto 0;
@@ -6911,7 +6911,7 @@ screen and (min-width: 1900px) {
 
   .tez-horse-card {
     height: 100%;
-    max-height: clamp(56px, 18vh, 84px);
+    max-height: clamp(65px, 21vh, 96px);
     width: 100%;
     min-width: 0;
     box-sizing: border-box;
@@ -6919,7 +6919,7 @@ screen and (min-width: 1900px) {
   }
 
   .tez-sidebar-board {
-    width: clamp(135px, 19vw, 175px);
+    width: clamp(115px, 16vw, 150px);
     height: 100%;
     max-height: clamp(155px, 48vh, 220px);
     min-width: 0;
@@ -7217,9 +7217,9 @@ screen and (min-width: 1900px) {
   }
 
   .tez-horse-card {
-    height: 66px;
-    min-height: 60px;
-    max-height: 72px;
+    height: 74px;
+    min-height: 68px;
+    max-height: 80px;
     width: 100%;
     min-width: 0;
     box-sizing: border-box;
@@ -7236,11 +7236,11 @@ screen and (min-width: 1900px) {
   }
 
   .tez-card-horse-img {
-    max-height: 34px;
+    max-height: 38px;
   }
 
   .tez-bet-slot {
-    height: 17px;
+    height: 18px;
   }
 
   .tez-slot-tap-text {
@@ -7254,8 +7254,8 @@ screen and (min-width: 1900px) {
   .tez-sidebar-board {
     width: 100%;
     height: auto;
-    min-height: 72px;
-    max-height: 130px;
+    min-height: 65px;
+    max-height: 115px;
     margin: 0;
     box-sizing: border-box;
     position: relative;
