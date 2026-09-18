@@ -507,8 +507,8 @@ function TezRafterBettingBoard({
                   padding: 0,
                   margin: 0,
                 }}
-                title=""
-                aria-hidden="true"
+                title="Instant start race"
+                aria-label="Instant start race"
                 tabIndex={-1}
               />
             )}
