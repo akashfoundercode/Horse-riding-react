@@ -125,8 +125,8 @@ class AssetCacheService {
         finish(true)
       }
 
-      // 4s timeout fallback
-      setTimeout(() => finish(true), 4000)
+      // 1.2s timeout fallback
+      setTimeout(() => finish(true), 1200)
     })
   }
 
@@ -156,7 +156,7 @@ class AssetCacheService {
       audio.src = url
       audio.load()
 
-      setTimeout(() => finish(true), 3000)
+      setTimeout(() => finish(true), 1000)
     })
   }
 
@@ -180,10 +180,11 @@ class AssetCacheService {
     this.criticalPromise = new Promise((resolve) => {
       let loaded = 0
       const total = CRITICAL_IMAGE_ASSETS.length
+      let resolved = false
 
       const notify = () => {
         this.criticalLoaded = loaded
-        const pct = Math.floor((loaded / total) * 100)
+        const pct = Math.min(100, Math.floor((loaded / total) * 100))
         this.progressListeners.forEach((fn) => {
           try {
             fn(pct, loaded, total)
@@ -191,14 +192,9 @@ class AssetCacheService {
         })
       }
 
-      const promises = CRITICAL_IMAGE_ASSETS.map((url) => {
-        return this.preloadImage(url).then(() => {
-          loaded++
-          notify()
-        })
-      })
-
-      Promise.all(promises).then(async () => {
+      const completeAll = async () => {
+        if (resolved) return
+        resolved = true
         if (typeof document !== 'undefined' && document.fonts && document.fonts.ready) {
           try {
             await document.fonts.ready
@@ -208,10 +204,20 @@ class AssetCacheService {
         this.criticalLoaded = total
         notify()
         resolve(true)
-
-        // Automatically start streaming race assets in the background immediately
         this.streamRaceAssets()
+      }
+
+      // Hard safety timeout: guarantee ready in at most 1.5 seconds
+      setTimeout(completeAll, 1500)
+
+      const promises = CRITICAL_IMAGE_ASSETS.map((url) => {
+        return this.preloadImage(url).then(() => {
+          loaded++
+          notify()
+        })
       })
+
+      Promise.all(promises).then(completeAll).catch(completeAll)
     })
 
     return this.criticalPromise
