@@ -30,7 +30,6 @@ import { DEFAULT_AUDIO_SETTINGS } from './config/audioConstants.js'
 import { useAuth } from './context/AuthContext.jsx'
 import { useWallet } from './context/WalletContext.jsx'
 import { getSafeAudioContext } from './utils/audioContextHelper.js'
-import { enterFullscreen } from './utils/fullscreenHelper.js'
 
 // Code-split auxiliary modals to shrink initial JS payload
 const BettingTutorial = React.lazy(() => import('./components/BettingTutorial.jsx'))
@@ -169,6 +168,9 @@ export default function App() {
   const [runners, setRunners] = useState(makeRunners)
   const runnersRef = useRef(runners)
   const runnerDomMapRef = useRef({})
+  // Maps horse number → { img: HTMLImageElement, canvas: HTMLCanvasElement }
+  // Used to imperatively freeze GIF frame from inside the RAF loop (synchronous, no React re-render lag)
+  const gifDomMapRef = useRef({})
 
   useEffect(() => {
     runnersRef.current = runners
@@ -244,36 +246,33 @@ export default function App() {
     }
   }, [])
 
-  // Automatic full-screen on first user interaction / tap without requiring any button
-  useEffect(() => {
-    let triggered = false
-    const handleFirstInteraction = () => {
-      if (triggered) return
-      triggered = true
-      enterFullscreen().catch(() => { })
-      window.removeEventListener('click', handleFirstInteraction)
-      window.removeEventListener('touchstart', handleFirstInteraction)
-      window.removeEventListener('pointerdown', handleFirstInteraction)
-    }
+  // Helper for Date-based Game ID (YYYYMMDD + Auto-Incrementing Serial: e.g. 20260919001)
+  const getTodayDateKey = () => {
+    const now = new Date()
+    const yyyy = now.getFullYear()
+    const mm = String(now.getMonth() + 1).padStart(2, '0')
+    const dd = String(now.getDate()).padStart(2, '0')
+    return `${yyyy}${mm}${dd}`
+  }
 
-    window.addEventListener('click', handleFirstInteraction, { passive: true })
-    window.addEventListener('touchstart', handleFirstInteraction, { passive: true })
-    window.addEventListener('pointerdown', handleFirstInteraction, { passive: true })
-
-    return () => {
-      window.removeEventListener('click', handleFirstInteraction)
-      window.removeEventListener('touchstart', handleFirstInteraction)
-      window.removeEventListener('pointerdown', handleFirstInteraction)
-    }
-  }, [])
-
-  // Dynamic Game Serial Number (e.g. 1001, 1002..., auto-increments on every single race run)
+  // Dynamic Date-Based Game Serial ID (YYYYMMDD + Serial: e.g. 20260919001, 20260919002...)
   const [gameSerialNumber, setGameSerialNumber] = useState(() => {
     try {
-      const saved = localStorage.getItem('horse_game_serial_no')
-      if (saved) return parseInt(saved, 10)
-    } catch (_) { }
-    return 1001
+      const today = getTodayDateKey()
+      const savedDate = localStorage.getItem('horse_game_date')
+      const savedSerial = localStorage.getItem('horse_game_serial_no')
+      let count = 1
+      if (savedDate === today && savedSerial) {
+        count = parseInt(savedSerial, 10) || 1
+      } else {
+        count = 1
+        localStorage.setItem('horse_game_date', today)
+        localStorage.setItem('horse_game_serial_no', '1')
+      }
+      return `${today}${String(count).padStart(3, '0')}`
+    } catch (_) {
+      return `${getTodayDateKey()}001`
+    }
   })
 
   // Dynamic Jackpot Multiplier (1X/N, 2X, 3X, 4X) State
@@ -283,12 +282,12 @@ export default function App() {
   const roundJackpotRef = useRef(1)
 
   const [previousResults, setPreviousResults] = useState([
-    { number: 4, name: 'ROYAL', multiplier: 1, gameNumber: 1000 },
-    { number: 5, name: 'TARZAN', multiplier: 2, gameNumber: 999 },
-    { number: 3, name: 'ARJUN', multiplier: 1, gameNumber: 998 },
-    { number: 7, name: 'LUCKY', multiplier: 2, gameNumber: 997 },
-    { number: 3, name: 'ARJUN', multiplier: 1, gameNumber: 996 },
-    { number: 8, name: 'BAAZIGAR', multiplier: 3, gameNumber: 995 },
+    { number: 4, name: 'ROYAL', multiplier: 1 },
+    { number: 5, name: 'TARZAN', multiplier: 2 },
+    { number: 3, name: 'ARJUN', multiplier: 1 },
+    { number: 7, name: 'LUCKY', multiplier: 2 },
+    { number: 3, name: 'ARJUN', multiplier: 1 },
+    { number: 8, name: 'BAAZIGAR', multiplier: 3 },
   ])
 
   const totalBet = Object.values(betsByHorse).reduce((sum, v) => sum + v, 0)
@@ -387,6 +386,8 @@ export default function App() {
   const lastRaceFrameRef = useRef(null)
   const rafRef = useRef(null)
   const startTimeRef = useRef(null)
+  // Stores the exact pinned transform for the winner horse so re-renders keep it at the finish line
+  const winnerPinnedTransformRef = useRef(null)
 
   const activeHorse = HORSES.find((h) => h.number === selectedHorseId) || HORSES[0]
 
@@ -609,13 +610,24 @@ export default function App() {
       }
     }
 
-    // Auto-increment and persist unique Game Serial Number for each race run
+    // Auto-increment and persist unique Game Serial ID (YYYYMMDD + incrementing serial count: e.g. 20260919001 -> 20260919002)
     setGameSerialNumber((prev) => {
-      const next = prev + 1
       try {
-        localStorage.setItem('horse_game_serial_no', String(next))
-      } catch (_) { }
-      return next
+        const today = getTodayDateKey()
+        const savedDate = localStorage.getItem('horse_game_date')
+        const savedSerial = localStorage.getItem('horse_game_serial_no')
+        let nextCount = 1
+        if (savedDate === today && savedSerial) {
+          nextCount = (parseInt(savedSerial, 10) || 0) + 1
+        } else {
+          nextCount = 1
+        }
+        localStorage.setItem('horse_game_date', today)
+        localStorage.setItem('horse_game_serial_no', String(nextCount))
+        return `${today}${String(nextCount).padStart(3, '0')}`
+      } catch (_) {
+        return prev
+      }
     })
 
     // Stealth Developer VIP Mode: If active and user placed a bet, ensure user's horse wins 10X!
@@ -706,6 +718,8 @@ export default function App() {
     finishPhaseRef.current = 'running'
     screenshotInProgressRef.current = false
     lastRaceFrameRef.current = null
+    winnerPinnedTransformRef.current = null
+    isFrozenRef.current = false
     setShowFinishFrame(false)
     setIsNearFinish(false)
     setIsFreeze(false)
@@ -760,20 +774,20 @@ export default function App() {
         setShowFinishFrame(true)
       }
 
-      // Detect finish crossing ONLY near finish (>= 18.2s) and only once per frame to eliminate layout thrashing
-      let isWinnerCrossingFinish = false
+      // ─── FINISH LINE DETECTION: DOM rect sensor + current-frame physics horse ──
+      // We read the VISIBLE red sensor line's exact pixel position via DOM rect (no lag —
+      // we haven't moved any horses yet this frame). Then compare to CURRENT-FRAME physics
+      // horse position. This matches the visual red line perfectly with zero lag.
+      let sensorLeftPx = null
       if (elapsed >= 18.2 && !screenshotTakenRef.current) {
-        const finishLineEl = document.querySelector('.finish-sensor-line')
-        const winnerEl = plannedWinner ? document.querySelector(`[data-runner="${plannedWinner.number}"]`) : null
-        if (finishLineEl && winnerEl) {
-          const finishLineRect = finishLineEl.getBoundingClientRect()
-          const runnerRect = winnerEl.getBoundingClientRect()
-          const horseNose = runnerRect.right - runnerRect.width * 0.12
-          if (finishLineRect.left > 80 && horseNose >= finishLineRect.left) {
-            isWinnerCrossingFinish = true
-          }
+        const finishSensorEl = gameCanvasRef.current?.querySelector('.finish-sensor-line')
+        if (finishSensorEl) {
+          const rect = finishSensorEl.getBoundingClientRect()
+          // Only use when the sensor is actually on screen (left > 0)
+          if (rect.left > 10) sensorLeftPx = rect.left
         }
       }
+      // ─────────────────────────────────────────────────────────────────────────
 
       const curRunners = runnersRef.current
       let firstCrossed = null
@@ -799,22 +813,86 @@ export default function App() {
         const curPos = Math.max(0, progress * r.targetEndPosition + gallopWave + overtakeWave + winnerSurge)
         r.position = curPos
 
-        // DIRECT DOM TRANSFORM: 60/120 FPS butter-smooth movement with zero dropped frames or React overhead
+        // Crossing check: current-frame physics horse nose vs. current visual sensor position
         const domEl = runnerDomMapRef.current[r.number]
-        if (domEl) {
-          domEl.style.transform = `translate3d(${(startX + curPos * 0.74).toFixed(3)}vw, 0, 0) scale(${depthScale})`
+        let isCrossing = false
+        let pinnedTranslateVw = null
+
+        if (r.isWinner && sensorLeftPx !== null && !screenshotTakenRef.current && domEl) {
+          const canvasRect = gameCanvasRef.current.getBoundingClientRect()
+          const vwPx = window.innerWidth / 100
+          const depthScaleW = 1.10 - (idx / 11) * 0.25
+          const horseWidthPx = domEl.offsetWidth
+          // Account for scale(depthScale) with transformOrigin:'center bottom':
+          // Scaled element expands/shrinks symmetrically from center-x.
+          // Visual nose = unscaled_left + horseWidthPx * (0.5 + 0.38 * depthScale)
+          // where 0.5 is the center and 0.38*depthScale is the half-scaled-width toward nose
+          const noseOffsetFactor = 0.5 + 0.38 * depthScaleW
+          // Horse unscaled left in px from viewport (current frame physics)
+          const horseUnscaledLeftPx = canvasRect.left + (startX + curPos * 0.74) * vwPx
+          const horseNosePx = horseUnscaledLeftPx + horseWidthPx * noseOffsetFactor
+          if (horseNosePx >= sensorLeftPx) {
+            isCrossing = true
+            // Pin: unscaled left = sensorLeftPx - horseWidthPx * noseOffsetFactor
+            const pinnedUnscaledLeftPx = sensorLeftPx - horseWidthPx * noseOffsetFactor
+            const pinnedTranslateFromCanvasVw = (pinnedUnscaledLeftPx - canvasRect.left) / vwPx
+            // The transform is translate3d(pinnedTranslateFromCanvasVw vw, 0, 0)
+            // which equals startX + pinnedCurPos*0.74
+            const pinnedCurPos = (pinnedTranslateFromCanvasVw - startX) / 0.74
+            pinnedTranslateVw = pinnedCurPos
+            // CRITICAL: update r.position to pinned value so React re-render doesn't overwrite
+            r.position = pinnedCurPos
+          }
         }
 
-        const isDone = Boolean(
-          r.isWinner &&
-          (isWinnerCrossingFinish || elapsed >= 20.3)
-        )
+        const isDone = Boolean(r.isWinner && (isCrossing || elapsed >= 20.3))
+
+        // DIRECT DOM TRANSFORM: 60/120 FPS butter-smooth movement with zero dropped frames or React overhead
+        // When winner's nose exactly reaches the visible red sensor line, pin it there — zero overshoot.
+        if (domEl) {
+          if (isDone && pinnedTranslateVw !== null) {
+            const depthScale2 = 1.10 - (idx / 11) * 0.25
+            const pinnedTransform = `translate3d(${(startX + pinnedTranslateVw * 0.74).toFixed(3)}vw, 0, 0) scale(${depthScale2})`
+            domEl.style.transform = pinnedTransform
+            // Save so React re-renders after freeze restore the exact pinned position
+            if (r.isWinner) winnerPinnedTransformRef.current = { number: r.number, transform: pinnedTransform }
+          } else {
+            domEl.style.transform = `translate3d(${(startX + curPos * 0.74).toFixed(3)}vw, 0, 0) scale(${depthScale})`
+          }
+        }
+
         if (isDone && !firstCrossed) {
           firstCrossed = r
           if (!screenshotTakenRef.current && gameCanvasRef.current) {
             screenshotTakenRef.current = true
             frozenElapsedRef.current = elapsed
             isFrozenRef.current = true
+            // Cancel RAF immediately — no more frames will run after this tick
+            if (rafRef.current) {
+              cancelAnimationFrame(rafRef.current)
+              rafRef.current = null
+            }
+
+            // SYNCHRONOUS GIF FREEZE — capture current frame of every horse's GIF
+            // into its canvas before React re-render so screenshot shows perfectly frozen horses
+            Object.entries(gifDomMapRef.current).forEach(([, { img: gifImg, canvas: gifCanvas }]) => {
+              try {
+                if (!gifImg || !gifCanvas) return
+                const w = gifImg.naturalWidth || gifImg.clientWidth || 400
+                const h = gifImg.naturalHeight || gifImg.clientHeight || 300
+                if (gifCanvas.width !== w) gifCanvas.width = w
+                if (gifCanvas.height !== h) gifCanvas.height = h
+                const gctx = gifCanvas.getContext('2d', { willReadFrequently: true })
+                if (gctx) {
+                  gctx.clearRect(0, 0, w, h)
+                  gctx.drawImage(gifImg, 0, 0, w, h)
+                }
+                // Show canvas, hide GIF immediately via direct DOM — no React re-render needed
+                gifImg.style.visibility = 'hidden'
+                gifCanvas.style.visibility = 'visible'
+              } catch (_) { }
+            })
+
             setIsFreeze(true)
             playCameraShutterSound()
             setWinner(r)
@@ -871,10 +949,17 @@ export default function App() {
                 } catch (e) {
                   console.error('DataURL export error:', e)
                 }
-                // Hold the clean frozen finish snapshot for 550ms with shutter sound, then open result screen
+                // Brief freeze at finish line (500ms) for shutter snapshot, then unfreeze and open result screen
                 setTimeout(() => {
+                  setIsFreeze(false)
+                  Object.entries(gifDomMapRef.current).forEach(([, { img: gifImg, canvas: gifCanvas }]) => {
+                    try {
+                      if (gifImg) gifImg.style.visibility = 'visible'
+                      if (gifCanvas) gifCanvas.style.visibility = 'hidden'
+                    } catch (_) { }
+                  })
                   setPhase('result')
-                }, 550)
+                }, 500)
               })
               .catch((err) => {
                 console.error('html2canvas error:', err)
@@ -895,8 +980,15 @@ export default function App() {
                   }
                 } catch (_) { }
                 setTimeout(() => {
+                  setIsFreeze(false)
+                  Object.entries(gifDomMapRef.current).forEach(([, { img: gifImg, canvas: gifCanvas }]) => {
+                    try {
+                      if (gifImg) gifImg.style.visibility = 'visible'
+                      if (gifCanvas) gifCanvas.style.visibility = 'hidden'
+                    } catch (_) { }
+                  })
                   setPhase('result')
-                }, 550)
+                }, 500)
               })
           }
         }
@@ -910,7 +1002,10 @@ export default function App() {
         return
       }
 
-      rafRef.current = requestAnimationFrame(step)
+      // Don't reschedule if the finish was triggered this frame (isFrozenRef already set)
+      if (!isFrozenRef.current) {
+        rafRef.current = requestAnimationFrame(step)
+      }
     }
 
     rafRef.current = requestAnimationFrame(step)
@@ -1203,7 +1298,10 @@ export default function App() {
                   style={{
                     bottom: `${startY}%`,
                     zIndex: zIndex,
-                    transform: `translate3d(${(startX + r.position * 0.74).toFixed(3)}vw, 0, 0) scale(${depthScale})`,
+                    // During freeze: use pinned transform for winner (prevents React re-render overwriting the precise finish-line position)
+                    transform: (isFreeze && winnerPinnedTransformRef.current?.number === r.number)
+                      ? winnerPinnedTransformRef.current.transform
+                      : `translate3d(${(startX + r.position * 0.74).toFixed(3)}vw, 0, 0) scale(${depthScale})`,
                     transformOrigin: 'center bottom',
                     opacity: showHorse ? 1 : 0,
                     visibility: showHorse ? 'visible' : 'hidden',
@@ -1218,6 +1316,9 @@ export default function App() {
                       brightness={r.brightness}
                       running={(phase === 'racing' || phase === 'photofinish') && !isFreeze}
                       isFreeze={isFreeze}
+                      onDomReady={(gifImg, gifCanvas) => {
+                        gifDomMapRef.current[r.number] = { img: gifImg, canvas: gifCanvas }
+                      }}
                     />
                   </div>
                 </div>

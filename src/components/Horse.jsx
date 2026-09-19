@@ -3,6 +3,8 @@ import React, { useLayoutEffect, useRef } from 'react'
 /**
  * Single large crisp running horse component with ground shadow and kicking dust puffs.
  * Supports instant, layout-shift-free GIF frame freezing on finish line snapshot without leg animation continuing.
+ *
+ * onDomReady(img, canvas) — called once elements mount, used by parent to imperatively freeze GIF from RAF loop
  */
 function Horse({
   img = '/HORSES/horse_jockey_6mb.gif',
@@ -11,10 +13,19 @@ function Horse({
   brightness = 1,
   running = true,
   isFreeze = false,
+  onDomReady = null,
 }) {
   const imgRef = useRef(null)
   const canvasRef = useRef(null)
 
+  // Expose img + canvas elements to parent as soon as they mount
+  useLayoutEffect(() => {
+    if (onDomReady && imgRef.current && canvasRef.current) {
+      onDomReady(imgRef.current, canvasRef.current)
+    }
+  }, [onDomReady])
+
+  // React-driven freeze (fallback path — imperative freeze from RAF is preferred)
   useLayoutEffect(() => {
     if (isFreeze && imgRef.current && canvasRef.current) {
       try {

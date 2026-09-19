@@ -14,6 +14,7 @@ import {
   Play,
   Settings,
   History,
+  HelpCircle,
 } from 'lucide-react'
 
 import { getSafeAudioContext } from '../utils/audioContextHelper.js'
@@ -251,28 +252,21 @@ function TezRafterBettingBoard({
               </span>
             </div>
 
-            {/* Points Display */}
+            {/* Coins (Balance) Display with Plus Button */}
             <div
-              className="tez-counter-box tez-counter-box--points"
+              className="tez-counter-box tez-counter-box--coins"
               onClick={onOpenAddCoins}
-              title="Click to Recharge Coins"
+              title="Click to Add/Recharge Coins (+)"
             >
-              <span className="tez-cbox-label">Points</span>
+              <div className="tez-cbox-header-row">
+                <span className="tez-cbox-label">Coins</span>
+                <span className="tez-cbox-plus-btn">+</span>
+              </div>
               <span className="tez-cbox-value">{balance.toFixed(2)}</span>
             </div>
           </div>
 
           <div className="tez-header-actions">
-            <div
-              className="tez-points-pill"
-              onClick={onOpenAddCoins}
-              title="Click to Add Coins"
-            >
-              <span className="tez-pts-lbl">COINS:</span>
-              <span className="tez-pts-val">{balance.toFixed(0)}</span>
-              <span className="tez-pts-add">+</span>
-            </div>
-
             {onOpenHistory && (
               <button
                 className="tez-header-icon-btn"
@@ -294,10 +288,10 @@ function TezRafterBettingBoard({
             )}
             <button
               className="tez-header-icon-btn"
-              onClick={() => setShowInfoModal(true)}
-              title="Game Info & Rules"
+              onClick={onOpenTutorial || (() => setShowInfoModal(true))}
+              title="Official Game Guide & Rules (गेम गाइड और नियम)"
             >
-              <Info size={18} />
+              <HelpCircle size={18} />
             </button>
           </div>
         </header>
@@ -427,9 +421,6 @@ function TezRafterBettingBoard({
                     const horseImg = horseInfo?.portraitImg || horseInfo?.img || `/Bet_horses/horses${res.number}.png`
                     return (
                       <div key={idx} className="tez-res-row">
-                        <span className="tez-res-game-tag" title={`Game #${res.gameNumber || (gameSerialNumber - idx - 1)}`}>
-                          #{res.gameNumber || (gameSerialNumber - idx - 1)}
-                        </span>
                         <div className="tez-res-badge">{res.number}</div>
                         <div className="tez-res-photo-wrap">
                           <img

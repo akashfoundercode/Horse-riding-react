@@ -262,14 +262,14 @@ function LiveLeaderboard({
     <aside className="race-live-leaderboard-bar">
       {/* 1. Left Controls Area: LIVE 1000M & JACKPOT MULTIPLIER */}
       <div className="rlb-left-panel">
-        {/* Top LIVE + Game ID Card */}
-        <div className="rlb-live-card" title={`Live Match Round #${gameSerialNumber}`}>
+        {/* Top LIVE 1000M Card */}
+        <div className="rlb-live-card" title="Live 1000M Turf Race">
           <div className="rlb-live-top-row">
             <LiveWaveIcon />
             <span className="rlb-live-title">LIVE</span>
           </div>
           <div className="rlb-live-divider" />
-          <span className="rlb-live-dist">#{gameSerialNumber}</span>
+          <span className="rlb-live-dist">1000M</span>
         </div>
 
         {/* Bottom JACKPOT Multiplier Reel Card */}
