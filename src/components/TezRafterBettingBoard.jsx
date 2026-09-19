@@ -15,6 +15,7 @@ import {
   Settings,
   History,
   HelpCircle,
+  Lock,
 } from 'lucide-react'
 
 import { getSafeAudioContext } from '../utils/audioContextHelper.js'
@@ -314,6 +315,22 @@ function TezRafterBettingBoard({
             {isBettingLocked && (
               <div className="tez-lock-banner">
                 <span className="tez-lock-text">⚠️ BETS CLOSED — RACE STARTING IN {timerSeconds}s ⚠️</span>
+                <div className="tez-lock-banner-inner">
+                  <div className="tez-lock-badge-icon">
+                    <Lock size={12} className="tez-lock-svg" />
+                  </div>
+                  <div className="tez-lock-text-group">
+                    <span className="tez-lock-title">BETS CLOSED</span>
+                    <span className="tez-lock-divider">•</span>
+                    <span className="tez-lock-countdown">
+                      RACE STARTS IN <strong className="tez-lock-timer-glow">{timerSeconds}s</strong>
+                    </span>
+                  </div>
+                  <div className="tez-lock-badge-icon">
+                    <Lock size={12} className="tez-lock-svg" />
+                  </div>
+                </div>
+                <div className="tez-lock-shimmer-sweep" />
               </div>
             )}
 

@@ -44,9 +44,24 @@ export default function DerbyAssetLoader({ onComplete }) {
     lastMoveTimeRef.current = Date.now()
     isMovingRef.current = true
 
+    const finishLoader = () => {
+      if (isFinishedRef.current) return
+      isFinishedRef.current = true
+      setProgress(100)
+      captureFreezeFrame()
+      isMovingRef.current = false
+      setIsMoving(false)
+      setIsFadingOut(true)
+      setTimeout(() => {
+        if (mountedRef.current && onComplete) {
+          onComplete()
+        }
+      }, 200)
+    }
+
     const handleProgress = (pct) => {
       if (!mountedRef.current) return
-      realProgressRef.current = pct
+      realProgressRef.current = Math.max(realProgressRef.current, pct)
     }
 
     // 1. Actively preload and decode all game images in parallel
@@ -64,20 +79,27 @@ export default function DerbyAssetLoader({ onComplete }) {
         realProgressRef.current = 100
       })
 
-    // 2. Smoothly animate percentage bar towards the actual downloaded assets progress
+    // 2. Smoothly animate percentage bar towards 100%
+    const startTime = Date.now()
     const timer = setInterval(() => {
       if (!mountedRef.current || isFinishedRef.current) return
 
-      const target = isAssetsReadyRef.current ? 100 : Math.min(98, realProgressRef.current)
+      const elapsed = Date.now() - startTime
+      // Natural progress based on elapsed time (reaches 100% by ~1.5s)
+      const timeBasedProgress = Math.min(100, Math.floor((elapsed / 1500) * 100))
+
+      const target = isAssetsReadyRef.current
+        ? 100
+        : Math.max(timeBasedProgress, realProgressRef.current)
 
       // Smooth step towards target
       if (displayedProgressRef.current < target) {
-        const step = Math.max(1, Math.ceil((target - displayedProgressRef.current) * 0.15))
-        displayedProgressRef.current = Math.min(target, displayedProgressRef.current + step)
+        const step = Math.max(1, Math.ceil((target - displayedProgressRef.current) * 0.2))
+        displayedProgressRef.current = Math.min(100, displayedProgressRef.current + step)
         setProgress(displayedProgressRef.current)
       }
 
-      // Check if horse is actively moving forward or paused
+      // Check if horse is actively moving forward
       if (displayedProgressRef.current > prevProgressRef.current) {
         prevProgressRef.current = displayedProgressRef.current
         lastMoveTimeRef.current = Date.now()
@@ -85,34 +107,26 @@ export default function DerbyAssetLoader({ onComplete }) {
           isMovingRef.current = true
           setIsMoving(true)
         }
-      } else if (Date.now() - lastMoveTimeRef.current > 180) {
-        // Horse has stopped moving forward -> Freeze legs on canvas!
-        if (isMovingRef.current) {
-          captureFreezeFrame()
-          isMovingRef.current = false
-          setIsMoving(false)
-        }
       }
 
-      // STRICT GATE: Complete ONLY when 100% of all images have finished downloading/decoding
-      if (displayedProgressRef.current >= 100 && isAssetsReadyRef.current) {
-        isFinishedRef.current = true
-        captureFreezeFrame()
-        isMovingRef.current = false
-        setIsMoving(false)
+      // Complete when 100% reached or time elapsed
+      if (displayedProgressRef.current >= 100 || elapsed >= 1800) {
         clearInterval(timer)
-        setIsFadingOut(true)
-        setTimeout(() => {
-          if (mountedRef.current && onComplete) {
-            onComplete()
-          }
-        }, 220)
+        finishLoader()
       }
-    }, 20)
+    }, 25)
+
+    // Hard emergency safety timeout: never stay stuck past 2.0s
+    const hardTimeout = setTimeout(() => {
+      if (mountedRef.current && !isFinishedRef.current) {
+        finishLoader()
+      }
+    }, 2000)
 
     return () => {
       mountedRef.current = false
       clearInterval(timer)
+      clearTimeout(hardTimeout)
       assetCacheService.removeProgressListener(handleProgress)
     }
   }, [onComplete])
