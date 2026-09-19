@@ -536,8 +536,8 @@ function TezRafterBettingBoard({
 
             {/* Giant 3D Countdown Timer */}
             <div className={`tez-timer-display ${timerSeconds <= 5 ? 'tez-timer-display--urgent' : ''}`}>
-              <span key={timerSeconds} className="tez-timer-num tez-flip-digit">
-                {timerSeconds}
+              <span className="tez-timer-num">
+                {String(timerSeconds).padStart(2, '0')}
               </span>
               <div className="tez-timer-labels">
                 <span className="tez-timer-sub-sec">SEC</span>

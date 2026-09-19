@@ -6324,6 +6324,7 @@ button {
 .tez-bottom-right-cluster {
   display: flex;
   align-items: center;
+  flex-shrink: 0;
   gap: clamp(8px, 1.2vw, 18px);
 }
 
@@ -6331,10 +6332,12 @@ button {
 .tez-actions-cluster {
   display: flex;
   align-items: center;
+  flex-shrink: 0;
   gap: clamp(6px, 1vw, 12px);
 }
 
 .tez-action-btn {
+  flex-shrink: 0;
   background: linear-gradient(180deg, #78431e 0%, #4a230a 100%);
   border: 2px solid #bd7b43;
   color: #fff4dc;
@@ -6383,15 +6386,19 @@ button {
   transform: translateY(-2px) scale(1.03) !important;
 }
 
-/* Giant Bold 3D Countdown Timer */
+/* Giant Bold 3D Countdown Timer (Fixed Width, Tabular Nums & Rock Solid Layout) */
 .tez-timer-display {
-  background: linear-gradient(180deg, #1f1006 0%, #0a0401 100%);
+  flex-shrink: 0;
+  min-width: clamp(76px, 7.5vw, 110px);
+  background: linear-gradient(180deg, #180b03 0%, #080301 100%);
   border: 2px solid #9e612e;
   border-radius: 8px;
-  padding: clamp(3px, 0.6vh, 6px) clamp(10px, 1.4vw, 18px);
+  padding: clamp(3px, 0.6vh, 6px) clamp(8px, 1.2vw, 14px);
   display: flex;
   align-items: center;
-  gap: clamp(4px, 0.8vw, 10px);
+  justify-content: center;
+  gap: clamp(4px, 0.8vw, 8px);
+  box-sizing: border-box;
   box-shadow:
     inset 0 2px 6px rgba(0, 0, 0, 0.95),
     0 2px 6px rgba(255, 255, 255, 0.15);
@@ -6400,16 +6407,23 @@ button {
 .tez-timer-num {
   font-size: clamp(26px, 3.4vw, 42px);
   font-weight: 900;
-  font-family: 'Impact', 'Arial Black', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Arial Black', Impact, sans-serif;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
   color: #ffffff;
-  text-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.95), 0 0 10px rgba(255, 215, 0, 0.6);
   line-height: 1;
+  display: inline-block;
+  min-width: 2ch;
+  text-align: center;
+  letter-spacing: 0.02em;
 }
 
 .tez-timer-labels {
   display: flex;
   flex-direction: column;
   line-height: 1.05;
+  flex-shrink: 0;
 }
 
 .tez-timer-sub-sec {
@@ -6429,48 +6443,23 @@ button {
 .tez-timer-display--urgent {
   border-color: #ff3333;
   background: linear-gradient(180deg, #3d0a0a 0%, #170202 100%);
-  animation: urgent-pulse 0.5s infinite alternate;
+  animation: urgent-glow 0.5s infinite alternate;
 }
 
 .tez-timer-display--urgent .tez-timer-num {
   color: #ff3344;
-  text-shadow: 0 0 18px rgba(255, 0, 50, 0.95);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.95), 0 0 16px rgba(255, 0, 50, 0.95);
 }
 
-@keyframes page-flip-down {
-  0% {
-    transform: perspective(320px) rotateX(-75deg);
-    opacity: 0.2;
-    filter: brightness(0.6);
-  }
-
-  60% {
-    transform: perspective(320px) rotateX(12deg);
-    opacity: 0.95;
-    filter: brightness(1.25);
-  }
-
-  100% {
-    transform: perspective(320px) rotateX(0deg);
-    opacity: 1;
-    filter: brightness(1);
-  }
-}
-
-.tez-flip-digit {
-  display: inline-block;
-  transform-origin: 50% 80%;
-  animation: page-flip-down 0.26s cubic-bezier(0.18, 0.89, 0.32, 1.25) both;
-  will-change: transform, opacity;
-}
-
-@keyframes urgent-pulse {
+@keyframes urgent-glow {
   from {
-    transform: scale(1);
+    box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.95), 0 0 6px rgba(255, 50, 50, 0.4);
+    border-color: #ff3333;
   }
 
   to {
-    transform: scale(1.04);
+    box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.95), 0 0 14px rgba(255, 0, 50, 0.9);
+    border-color: #ff6666;
   }
 }
 

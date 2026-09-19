@@ -85,31 +85,30 @@ export default function WalletModal({ isOpen, onClose, wallet, onRecharge }) {
         {/* Quick Recharge Buttons */}
         <div style={{ marginBottom: '14px' }}>
           <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: '700', marginBottom: '6px', textTransform: 'uppercase' }}>
-            Instant Coin Recharge
+            Free Coin Reward
           </div>
-          <div className="wallet-modal__actions" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
-            {[100, 500, 1000].map((amount) => (
-              <button
-                key={amount}
-                onClick={() => onRecharge && onRecharge(amount)}
-                style={{
-                  background: 'rgba(245, 158, 11, 0.15)',
-                  border: '1px solid rgba(245, 158, 11, 0.4)',
-                  color: '#fbbf24',
-                  fontWeight: '700',
-                  padding: '8px',
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '4px',
-                }}
-              >
-                <PlusCircle size={14} /> +{amount}
-              </button>
-            ))}
-          </div>
+          <button
+            type="button"
+            onClick={() => onRecharge && onRecharge(10)}
+            style={{
+              width: '100%',
+              background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(5, 150, 105, 0.25) 100%)',
+              border: '1.5px solid #10b981',
+              color: '#34d399',
+              fontWeight: '800',
+              padding: '10px 14px',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+              fontSize: '13px',
+              boxShadow: '0 2px 10px rgba(16, 185, 129, 0.2)',
+            }}
+          >
+            <PlusCircle size={16} /> CLAIM +10 FREE COINS
+          </button>
         </div>
 
         {/* Filter Ledger Tabs */}
