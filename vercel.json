@@ -1,16 +1,25 @@
 {
+  "rewrites": [
+    {
+      "source": "/api/:match*",
+      "destination": "https://horseracing.siberiancrane.tech/api/:match*"
+    },
+    {
+      "source": "/socket.io/:match*",
+      "destination": "https://horseracing.siberiancrane.tech/socket.io/:match*"
+    },
+    {
+      "source": "/uploads/:match*",
+      "destination": "https://horseracing.siberiancrane.tech/uploads/:match*"
+    },
+    {
+      "source": "/((?!assets|HORSES|Bet_horses|bet_coins|sprites|top|loader|SOUND|favicon.ico|favicon.png).*)",
+      "destination": "/index.html"
+    }
+  ],
   "headers": [
     {
       "source": "/(assets|HORSES|Bet_horses|bet_coins|sprites|top|loader|SOUND)/(.*)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
-        }
-      ]
-    },
-    {
-      "source": "/(.*).(png|jpg|jpeg|gif|webp|svg|ico|mp3)",
       "headers": [
         {
           "key": "Cache-Control",
