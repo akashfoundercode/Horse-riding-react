@@ -1261,16 +1261,8 @@ export default function App() {
       const serial = race.game_serial ?? race.gameSerial ?? race.serialNumber ?? race.serial_number ?? race.id ?? race.roundId
       const status = (race.status || race.state || '').toUpperCase()
       const winnerHorseId = race.winner_horse_id ?? race.winnerHorse ?? race.winner_number ?? race.winnerNumber ?? race.winnerId
-      
-      const jackpotObj = race.jackpot || raw.jackpot || raw.data?.jackpot
-      const rawJackpotMult = jackpotObj?.multiplier ?? race.jackpot_multiplier ?? race.jackpotMultiplier ?? race.multiplier ?? 1
-      const jackpotMult = typeof rawJackpotMult === 'string' 
-        ? (parseFloat(rawJackpotMult.replace(/[^0-9.]/g, '')) || 1)
-        : (parseFloat(rawJackpotMult) || 1)
-      const isJackpot = jackpotObj?.isJackpot !== undefined 
-        ? Boolean(jackpotObj.isJackpot) 
-        : (Boolean(race.is_jackpot) || jackpotMult > 1)
-      const jackpotLabel = jackpotObj?.multiplierLabel || (jackpotMult > 1 ? `${jackpotMult}X` : 'N')
+      const jackpotMult = parseFloat(race.jackpot_multiplier || race.jackpotMultiplier || race.multiplier || 1) || 1
+      const isJackpot = Boolean(race.is_jackpot)
 
       // Calculate live timeLeft from timestamps if available
       let computedTimeLeft = typeof race.timeLeft === 'number' ? race.timeLeft : (typeof race.timer === 'number' ? race.timer : null)
@@ -1293,7 +1285,6 @@ export default function App() {
         status,
         winnerHorseId: winnerHorseId !== undefined && winnerHorseId !== null ? Number(winnerHorseId) : null,
         jackpotMultiplier: jackpotMult,
-        jackpotDisplay: jackpotLabel,
         isJackpot,
         timeLeft: computedTimeLeft,
       }
@@ -1358,12 +1349,6 @@ export default function App() {
           localStorage.setItem('horse_game_serial_no', parsed.serialNumber)
         } catch (_) { }
       }
-      if (parsed.jackpotMultiplier !== undefined && parsed.jackpotMultiplier !== null) {
-        setJackpotMultiplier(parsed.jackpotMultiplier)
-        setJackpotDisplay(parsed.jackpotDisplay || (parsed.jackpotMultiplier === 1 ? 'N' : `${parsed.jackpotMultiplier}X`))
-        roundJackpotRef.current = parsed.jackpotMultiplier
-      }
-
       if (parsed.timeLeft !== null) setTimerSeconds(parsed.timeLeft)
       if (parsed.winnerHorseId) {
         handleWinnerUpdate(parsed.winnerHorseId)
@@ -1409,7 +1394,6 @@ export default function App() {
         }
         if (parsed.jackpotMultiplier) {
           setJackpotMultiplier(parsed.jackpotMultiplier)
-          setJackpotDisplay(parsed.jackpotDisplay || (parsed.jackpotMultiplier === 1 ? 'N' : `${parsed.jackpotMultiplier}X`))
           roundJackpotRef.current = parsed.jackpotMultiplier
         }
         if (phase !== 'result' && phase !== 'resultOpen') setPhase('result')
@@ -1431,11 +1415,6 @@ export default function App() {
         handleWinnerUpdate(parsed.winnerHorseId)
       } else {
         serverWinnerRef.current = null
-      }
-      if (parsed.jackpotMultiplier !== undefined && parsed.jackpotMultiplier !== null) {
-        setJackpotMultiplier(parsed.jackpotMultiplier)
-        setJackpotDisplay(parsed.jackpotDisplay || (parsed.jackpotMultiplier === 1 ? 'N' : `${parsed.jackpotMultiplier}X`))
-        roundJackpotRef.current = parsed.jackpotMultiplier
       }
       const tLeft = parsed.timeLeft !== null ? parsed.timeLeft : 40
       setTimerSeconds(tLeft)
@@ -1723,16 +1702,11 @@ export default function App() {
     // 13. race:jackpot / admin jackpot triggers
     const handleJackpot = (data) => {
       const parsed = parseRacePayload(data)
-      const jackpotObj = data?.jackpot || parsed?.jackpot || data
-      const rawMult = jackpotObj?.multiplier ?? parsed?.jackpotMultiplier ?? data?.multiplier ?? data?.jackpotMultiplier ?? data?.jackpot ?? data?.value ?? data?.mult
-      const mult = typeof rawMult === 'string'
-        ? (parseFloat(rawMult.replace(/[^0-9.]/g, '')) || 1)
-        : (parseFloat(rawMult) || 1)
-      const label = jackpotObj?.multiplierLabel || parsed?.jackpotDisplay || (mult > 1 ? `${mult}X` : 'N')
-
+      const rawMult = parsed?.jackpotMultiplier ?? data?.multiplier ?? data?.jackpotMultiplier ?? data?.jackpot ?? data?.value ?? data?.mult
+      const mult = parseFloat(rawMult) || (typeof rawMult === 'number' ? rawMult : 1)
       if (typeof mult === 'number' && mult >= 1) {
         setJackpotMultiplier(mult)
-        setJackpotDisplay(label)
+        setJackpotDisplay(mult === 1 ? 'N' : `${mult}X`)
         roundJackpotRef.current = mult
       }
     }
@@ -2655,9 +2629,6 @@ export default function App() {
             isGuest={isGuest}
             onOpenAuth={() => setIsAuthModalOpen(true)}
             onOpenProfile={() => setIsProfileModalOpen(true)}
-            jackpotMultiplier={jackpotMultiplier}
-            jackpotDisplay={jackpotDisplay}
-            onOpenAdmin={handleOpenAdmin}
             onToggleCheat={() => {
               setIsCheatEnabled((prev) => {
                 const next = !prev
