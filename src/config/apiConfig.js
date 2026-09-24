@@ -4,14 +4,17 @@
  */
 
 const API_CONFIG = {
-  // Base URL for backend REST API (Overridable via .env)
-  BASE_URL: import.meta.env.VITE_API_BASE_URL || 'https://api.derbyarena.game/v1',
+  // Base URL for backend REST API
+  BASE_URL: import.meta.env.VITE_API_BASE_URL || (typeof window !== 'undefined' && window.location.hostname === 'localhost' ? 'http://localhost:3000' : ''),
 
-  // WebSocket Server URL for live multiplayer / round events TESTING
-  WS_URL: import.meta.env.VITE_WS_URL || 'wss://api.derbyarena.game/ws',
+  // Socket.IO Server URL for live multiplayer / round events
+  SOCKET_URL: import.meta.env.VITE_SOCKET_URL || (typeof window !== 'undefined' && window.location.hostname === 'localhost' ? 'http://localhost:3000' : ''),
 
-  // Flag to enable client-side mock adapter if backend is not reachable or in standalone demo mode
-  USE_MOCK_API: import.meta.env.VITE_USE_MOCK_API !== 'false',
+  // WebSocket Server URL for live multiplayer / round events
+  // WS_URL: import.meta.env.VITE_WS_URL || 'ws://localhost:3000',
+
+  // Mock API fallback switch - Strictly disabled for real backend API
+  USE_MOCK_API: false,
 
   // Request Timeout in milliseconds
   REQUEST_TIMEOUT_MS: 15000,

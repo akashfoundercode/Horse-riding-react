@@ -31,11 +31,20 @@ class ApiClient {
       headers['Authorization'] = `Bearer ${token}`
     }
 
+    const userId = storageService.getUserId()
+    if (userId !== undefined && userId !== null) {
+      headers['X-User-Id'] = String(userId)
+      headers['User-Id'] = String(userId)
+    }
+
     return headers
   }
 
   async request(endpoint, options = {}) {
-    const url = `${this.baseURL}${endpoint}`
+    let url = endpoint
+    if (!endpoint.startsWith('http://') && !endpoint.startsWith('https://')) {
+      url = `${this.baseURL}${endpoint}`
+    }
     const config = {
       ...options,
       headers: this.getHeaders(options.headers),
@@ -47,7 +56,18 @@ class ApiClient {
     config.signal = controller.signal
 
     try {
-      const response = await fetch(url, config)
+      let response
+      try {
+        response = await fetch(url, config)
+      } catch (networkErr) {
+        // If relative URL failed on localhost, retry directly with localhost:3000
+        if (!url.startsWith('http') && typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+          const directUrl = `http://localhost:3000${endpoint}`
+          response = await fetch(directUrl, config)
+        } else {
+          throw networkErr
+        }
+      }
       clearTimeout(timeoutId)
 
       // Handle 401 Unauthorized (Expired Session)
@@ -56,10 +76,21 @@ class ApiClient {
         window.dispatchEvent(new CustomEvent('derby:unauthorized'))
       }
 
-      const data = await response.json()
+      let data = {}
+      try {
+        data = await response.json()
+      } catch (_) {
+        data = {}
+      }
 
       if (!response.ok) {
-        throw new Error(data.message || `API Error: ${response.status} ${response.statusText}`)
+        const errorMsg =
+          data.message ||
+          data.error ||
+          data.msg ||
+          data.err ||
+          (typeof data === 'string' ? data : `API Error: ${response.status} ${response.statusText}`)
+        throw new Error(errorMsg)
       }
 
       return data

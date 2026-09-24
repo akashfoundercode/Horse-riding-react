@@ -16,9 +16,11 @@ import {
   History,
   HelpCircle,
   Lock,
+  User,
 } from 'lucide-react'
 
 import { getSafeAudioContext } from '../utils/audioContextHelper.js'
+import { useWallet } from '../context/WalletContext.jsx'
 
 export const CHIP_OPTIONS = [
   { value: 2, label: '2', img: '/bet_coins/betcoin2.png' },
@@ -31,11 +33,12 @@ export const CHIP_OPTIONS = [
 
 function TezRafterBettingBoard({
   horses,
-  balance,
+  balance: propBalance,
   totalBet,
   lastWin,
   betsByHorse,
   betCoinsByHorse,
+  poolByHorse = {},
   selectedChip,
   setSelectedChip,
   onPlaceBet,
@@ -55,7 +58,16 @@ function TezRafterBettingBoard({
   isCheatEnabled,
   onToggleCheat,
   isVisible = true,
+  user,
+  isGuest,
+  onOpenAuth,
+  onOpenProfile,
 }) {
+  const { balance: liveWalletBalance, totalWon: liveTotalWon, totalWins: liveTotalWins } = useWallet()
+  const balance = typeof liveWalletBalance === 'number' ? liveWalletBalance : (typeof propBalance === 'number' ? propBalance : 0)
+  const totalWon = typeof liveTotalWon === 'number' ? liveTotalWon : 0
+  const totalWins = typeof liveTotalWins === 'number' ? liveTotalWins : 0
+
   const [showInfoModal, setShowInfoModal] = useState(false)
   const prevTimerRef = useRef(timerSeconds)
   const end5SecAudioRef = useRef(null)
@@ -246,10 +258,13 @@ function TezRafterBettingBoard({
             </div>
 
             {/* Win Display */}
-            <div className="tez-counter-box tez-counter-box--win">
+            <div
+              className="tez-counter-box tez-counter-box--win"
+              title={`Round Win: ₹${(Number(lastWin) || 0).toFixed(2)}`}
+            >
               <span className="tez-cbox-label">Win</span>
               <span className="tez-cbox-value">
-                {lastWin !== null ? lastWin.toFixed(2) : '0.00'}
+                {(Number(lastWin) || 0).toFixed(2)}
               </span>
             </div>
 
@@ -263,11 +278,40 @@ function TezRafterBettingBoard({
                 <span className="tez-cbox-label">Coins</span>
                 <span className="tez-cbox-plus-btn">+</span>
               </div>
-              <span className="tez-cbox-value">{balance.toFixed(2)}</span>
+              <span className="tez-cbox-value">
+                {typeof balance === 'number' ? balance.toFixed(2) : (Number(balance) || 0).toFixed(2)}
+              </span>
             </div>
           </div>
 
           <div className="tez-header-actions">
+            {(onOpenAuth || onOpenProfile) && (
+              <button
+                type="button"
+                className="tez-header-icon-btn"
+                onClick={user && !isGuest ? onOpenProfile : onOpenAuth}
+                title={user && !isGuest ? `Account: ${user.name || user.username}` : 'Login / Register (लॉगिन / रजिस्टर)'}
+                style={{
+                  background: user && !isGuest ? 'linear-gradient(135deg, #10b981 0%, #047857 100%)' : 'linear-gradient(135deg, #f59e0b 0%, #b45309 100%)',
+                  borderColor: user && !isGuest ? '#34d399' : '#fde68a',
+                  color: user && !isGuest ? '#ffffff' : '#000000',
+                  padding: '4px 10px',
+                  width: 'auto',
+                  borderRadius: '8px',
+                  fontWeight: '900',
+                  fontSize: '11.5px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.5)',
+                  letterSpacing: '0.5px',
+                }}
+              >
+                <User size={14} />
+                <span>{user && !isGuest ? (user.name?.split(' ')[0] || user.username) : 'LOGIN'}</span>
+              </button>
+            )}
+
             {onOpenHistory && (
               <button
                 className="tez-header-icon-btn"
@@ -304,10 +348,10 @@ function TezRafterBettingBoard({
 
           {/* Betting Grid Area */}
           <div className="tez-grid-section">
-            {/* Top row above horses with Game ID on the left side */}
+            {/* Top row above horses with Game Serial Number on the left side */}
             <div className="tez-grid-top-bar">
-              <div className="tez-grid-game-id-badge" title={`Current Game Round ID #${gameSerialNumber}`}>
-                <span className="tez-ggid-tag">GAME ID:</span>
+              <div className="tez-grid-game-id-badge" title={`Live Game Serial Number #${gameSerialNumber}`}>
+                <span className="tez-ggid-tag">GAME SERIAL NUMBER:</span>
                 <span className="tez-ggid-num">#{gameSerialNumber}</span>
               </div>
             </div>
@@ -351,9 +395,27 @@ function TezRafterBettingBoard({
                       }`}
                     onClick={() => handleCardClick(h.number)}
                   >
-                    {/* Top Name Bar */}
-                    <div className="tez-card-header">
+                    {/* Top Name Bar + Live Pool Chip Counter */}
+                    <div className="tez-card-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 4px' }}>
                       <span className="tez-card-name">{h.name}</span>
+                      {poolByHorse?.[h.number] > 0 && (
+                        <span
+                          style={{
+                            fontSize: '9px',
+                            fontWeight: 900,
+                            color: '#ffd33d',
+                            background: 'rgba(0, 0, 0, 0.65)',
+                            border: '1px solid rgba(255, 211, 61, 0.4)',
+                            borderRadius: '4px',
+                            padding: '1px 4px',
+                            letterSpacing: '0.02em',
+                            whiteSpace: 'nowrap',
+                          }}
+                          title={`Total Pool Bet on #${h.number}: ₹${poolByHorse[h.number]}`}
+                        >
+                          🔥 ₹{poolByHorse[h.number]}
+                        </span>
+                      )}
                     </div>
 
                     {/* Card Portrait Body (Clean image without floating coin obstruction) */}
@@ -363,6 +425,12 @@ function TezRafterBettingBoard({
                         alt={h.name}
                         className="tez-card-horse-img"
                         draggable="false"
+                        onError={(e) => {
+                          const fallback = `/Bet_horses/horses${h.number}.png`
+                          if (e.currentTarget.src !== fallback && !e.currentTarget.src.endsWith(fallback)) {
+                            e.currentTarget.src = fallback
+                          }
+                        }}
                       />
                     </div>
 
@@ -391,7 +459,9 @@ function TezRafterBettingBoard({
                                 alt="Coin"
                                 className="tez-stepper-coin-img"
                               />
-                              <span className="tez-slot-bet-val">{horseBet}</span>
+                              <span className="tez-stepper-coins-val">
+                                {horseBet.toLocaleString()}
+                              </span>
                             </div>
 
                             <button
@@ -445,6 +515,12 @@ function TezRafterBettingBoard({
                             alt={res.name}
                             className="tez-res-photo"
                             draggable="false"
+                            onError={(e) => {
+                              const fallback = `/Bet_horses/horses${res.number}.png`
+                              if (e.currentTarget.src !== fallback && !e.currentTarget.src.endsWith(fallback)) {
+                                e.currentTarget.src = fallback
+                              }
+                            }}
                           />
                         </div>
                         <div className="tez-res-name">{res.name}</div>
@@ -529,26 +605,6 @@ function TezRafterBettingBoard({
               >
                 Double
               </button>
-              {onStartRace && (
-                <button
-                  type="button"
-                  onClick={onStartRace}
-                  style={{
-                    opacity: 0,
-                    width: '36px',
-                    height: '32px',
-                    background: 'transparent',
-                    border: 'none',
-                    outline: 'none',
-                    cursor: 'pointer',
-                    padding: 0,
-                    margin: 0,
-                  }}
-                  title="Instant start race"
-                  aria-label="Instant start race"
-                  tabIndex={-1}
-                />
-              )}
             </div>
 
             {/* Giant 3D Countdown Timer */}

@@ -242,7 +242,12 @@ function LiveLeaderboard({
         lastSortTimeRef.current = now
         const source = runnersRef?.current && runnersRef.current.length > 0 ? runnersRef.current : runners
         if (source && source.length > 0) {
-          const sorted = [...source].sort((a, b) => (b.position || 0) - (a.position || 0))
+          const sorted = [...source].sort((a, b) => {
+            if (typeof a.currentRank === 'number' && typeof b.currentRank === 'number') {
+              return a.currentRank - b.currentRank
+            }
+            return (b.position || 0) - (a.position || 0)
+          })
           setRankedRunners(sorted)
         }
       }
