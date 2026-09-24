@@ -20,13 +20,21 @@ export function AuthProvider({ children }) {
   const isGuest = Boolean(user?.isGuest)
 
   useEffect(() => {
-    // If no user/token on first launch, auto-initialize a guest session so user can play immediately!
-    if (!user || !token) {
-      authService.guestLogin().then((res) => {
-        setUser(res.user)
-        setToken(res.token)
-      }).catch(() => { })
+    const urlParams = storageService.getUrlParams()
+    if (urlParams.userId !== undefined && urlParams.userId !== null) {
+      const activeUser = storageService.getUser()
+      setUser(activeUser)
     }
+
+    // On page reload/mount, sync fresh profile and balance from backend GET /api/auth/me
+    authService
+      .getProfile()
+      .then((refreshedUser) => {
+        if (refreshedUser && Object.keys(refreshedUser).length > 0) {
+          setUser(refreshedUser)
+        }
+      })
+      .catch(() => { })
 
     // Listen for unauthorized 401 events to auto logout
     const handleUnauthorized = () => {
@@ -46,6 +54,7 @@ export function AuthProvider({ children }) {
       setUser(data.user)
       setToken(data.token)
       setIsAuthModalOpen(false)
+      window.dispatchEvent(new CustomEvent('derby:auth_changed', { detail: data }))
       return { success: true, data }
     } catch (err) {
       return { success: false, error: err.message }
@@ -61,6 +70,7 @@ export function AuthProvider({ children }) {
       setUser(data.user)
       setToken(data.token)
       setIsAuthModalOpen(false)
+      window.dispatchEvent(new CustomEvent('derby:auth_changed', { detail: data }))
       return { success: true, data }
     } catch (err) {
       return { success: false, error: err.message }
@@ -88,11 +98,10 @@ export function AuthProvider({ children }) {
     setIsLoading(true)
     try {
       await authService.logout()
-      // Create fresh guest session after logout
-      const guestRes = await authService.guestLogin()
-      setUser(guestRes.user)
-      setToken(guestRes.token)
+      setUser(null)
+      setToken(null)
       setIsProfileModalOpen(false)
+      setIsAuthModalOpen(true)
     } finally {
       setIsLoading(false)
     }

@@ -28,21 +28,11 @@ class MockBackendAdapter {
     // Initialize Mock Wallet
     const savedWallet = storageService.getWallet()
     this.wallet = savedWallet || {
-      balance: 10000,
+      balance: 0,
       currency: 'COINS',
-      totalDeposited: 10000,
+      totalDeposited: 0,
       totalWithdrawn: 0,
-      transactions: [
-        {
-          id: 'tx_init_1',
-          type: 'deposit',
-          amount: 10000,
-          balanceAfter: 10000,
-          note: 'Welcome Bonus Credits',
-          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          timestamp: Date.now(),
-        },
-      ],
+      transactions: [],
     }
   }
 
@@ -51,77 +41,59 @@ class MockBackendAdapter {
   }
 
   // --- AUTHENTICATION MOCK ---
-  async login({ identifier, password }) {
-    await delay(300)
-    if (!identifier || !password) {
-      throw new Error('Please provide email/phone and password')
+  async login({ username, password }) {
+    await delay(250)
+    if (!username || !password) {
+      throw new Error('Invalid username or password')
     }
 
-    const token = `jwt_mock_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
+    const token = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.${btoa(JSON.stringify({ username, time: Date.now() }))}.signature`
     const user = {
-      id: `usr_${Math.floor(1000 + Math.random() * 9000)}`,
-      username: identifier.includes('@') ? identifier.split('@')[0] : `Player_${identifier.slice(-4)}`,
-      email: identifier.includes('@') ? identifier : `${identifier}@derbyarena.game`,
-      phone: !identifier.includes('@') ? identifier : '+91 98000 00000',
-      vipLevel: 1,
-      avatar: '/Bet_horses/horses1.png',
-      createdAt: new Date().toISOString(),
+      id: `usr_${Math.floor(100000 + Math.random() * 900000)}`,
+      username: username,
+      name: username,
+      role: 'user',
+      coins: 1000,
     }
 
     return {
       success: true,
       data: {
         token,
-        refreshToken: `ref_${token}`,
         user,
-        wallet: this.wallet,
       },
       message: 'Login successful',
     }
   }
 
-  async register({ username, identifier, password }) {
-    await delay(350)
-    const token = `jwt_mock_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
-    const user = {
-      id: `usr_${Math.floor(1000 + Math.random() * 9000)}`,
-      username: username || (identifier.includes('@') ? identifier.split('@')[0] : `Player_${identifier.slice(-4)}`),
-      email: identifier.includes('@') ? identifier : `${identifier}@derbyarena.game`,
-      phone: !identifier.includes('@') ? identifier : '',
-      vipLevel: 1,
-      avatar: '/Bet_horses/horses7.png',
-      createdAt: new Date().toISOString(),
+  async register({ username, password, name, role = 'user' }) {
+    await delay(300)
+    if (!username || username.length < 4) {
+      throw new Error('Username must be at least 4 characters')
+    }
+    if (!password || password.length < 6) {
+      throw new Error('Password must be at least 6 characters')
+    }
+    if (!name) {
+      throw new Error('Name is required')
     }
 
-    // Reset wallet with 10,000 welcome bonus for new user
-    this.wallet = {
-      balance: 10000,
-      currency: 'COINS',
-      totalDeposited: 10000,
-      totalWithdrawn: 0,
-      transactions: [
-        {
-          id: `tx_welcome_${Date.now()}`,
-          type: 'deposit',
-          amount: 10000,
-          balanceAfter: 10000,
-          note: 'New Player Welcome Grant',
-          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          timestamp: Date.now(),
-        },
-      ],
+    const token = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.${btoa(JSON.stringify({ username, time: Date.now() }))}.signature`
+    const user = {
+      id: `usr_${Date.now().toString(16)}`,
+      username,
+      name,
+      role: role || 'user',
+      coins: 0,
     }
-    this.saveWalletState()
 
     return {
       success: true,
       data: {
         token,
-        refreshToken: `ref_${token}`,
         user,
-        wallet: this.wallet,
       },
-      message: 'Account registered successfully',
+      message: 'Account created successfully',
     }
   }
 
@@ -152,12 +124,149 @@ class MockBackendAdapter {
     }
   }
 
+  // --- HORSES MOCK ---
+  async getHorses() {
+    await delay(120)
+    return {
+      success: true,
+      total: 12,
+      horses: [
+        {
+          id: 1,
+          serialNumber: 1,
+          name: "Thunder Bolt",
+          imageUrl: "/uploads/horses/horse-1789992757920-304993474.png",
+          status: "active",
+          createdAt: "2026-09-21T05:12:54.000Z",
+          updatedAt: "2026-09-21T12:12:37.000Z",
+        },
+        {
+          id: 2,
+          serialNumber: 2,
+          name: "Storm Runner",
+          imageUrl: "/uploads/horses/horse-1789992775113-883806446.png",
+          status: "active",
+          createdAt: "2026-09-21T05:12:54.000Z",
+          updatedAt: "2026-09-21T12:12:55.000Z",
+        },
+        {
+          id: 3,
+          serialNumber: 3,
+          name: "Golden Arrow",
+          imageUrl: "/uploads/horses/horse-1789992784249-448629018.png",
+          status: "active",
+          createdAt: "2026-09-21T05:12:54.000Z",
+          updatedAt: "2026-09-21T12:13:04.000Z",
+        },
+        {
+          id: 4,
+          serialNumber: 4,
+          name: "Shadow Blaze",
+          imageUrl: "/uploads/horses/horse-1789992790732-424217818.png",
+          status: "active",
+          createdAt: "2026-09-21T05:12:54.000Z",
+          updatedAt: "2026-09-21T12:13:10.000Z",
+        },
+        {
+          id: 5,
+          serialNumber: 5,
+          name: "Midnight Star",
+          imageUrl: "/uploads/horses/horse-1789992798522-532481144.png",
+          status: "active",
+          createdAt: "2026-09-21T05:12:54.000Z",
+          updatedAt: "2026-09-21T12:13:18.000Z",
+        },
+        {
+          id: 6,
+          serialNumber: 6,
+          name: "Royal Knight",
+          imageUrl: "/uploads/horses/horse-1789992807133-984511268.png",
+          status: "active",
+          createdAt: "2026-09-21T05:12:54.000Z",
+          updatedAt: "2026-09-21T12:13:27.000Z",
+        },
+        {
+          id: 7,
+          serialNumber: 7,
+          name: "Silver Bullet",
+          imageUrl: "/uploads/horses/horse-1789992815581-307958118.png",
+          status: "active",
+          createdAt: "2026-09-21T05:12:54.000Z",
+          updatedAt: "2026-09-21T12:13:35.000Z",
+        },
+        {
+          id: 8,
+          serialNumber: 8,
+          name: "Fire Steed",
+          imageUrl: "/uploads/horses/horse-1789992824631-61547573.png",
+          status: "active",
+          createdAt: "2026-09-21T05:12:54.000Z",
+          updatedAt: "2026-09-21T12:13:44.000Z",
+        },
+        {
+          id: 9,
+          serialNumber: 9,
+          name: "Wild Pegasus",
+          imageUrl: "/uploads/horses/horse-1789992834298-874173119.png",
+          status: "active",
+          createdAt: "2026-09-21T05:12:54.000Z",
+          updatedAt: "2026-09-21T12:13:54.000Z",
+        },
+        {
+          id: 10,
+          serialNumber: 10,
+          name: "Iron Gallop",
+          imageUrl: "/uploads/horses/horse-1789992843551-626375333.png",
+          status: "active",
+          createdAt: "2026-09-21T05:12:54.000Z",
+          updatedAt: "2026-09-21T12:14:03.000Z",
+        },
+        {
+          id: 11,
+          serialNumber: 11,
+          name: "Desert Comet",
+          imageUrl: "/uploads/horses/horse-1789992851346-282039429.png",
+          status: "active",
+          createdAt: "2026-09-21T05:12:54.000Z",
+          updatedAt: "2026-09-21T12:14:11.000Z",
+        },
+        {
+          id: 12,
+          serialNumber: 12,
+          name: "Victory Spirit",
+          imageUrl: "/uploads/horses/horse-1789992859019-987469921.png",
+          status: "active",
+          createdAt: "2026-09-21T05:12:54.000Z",
+          updatedAt: "2026-09-21T12:14:19.000Z",
+        },
+      ],
+    }
+  }
+
+  // --- USER PROFILE MOCK ---
+  async getProfile() {
+    await delay(100)
+    const currentUser = storageService.getUser()
+    return {
+      success: true,
+      data: {
+        username: currentUser?.username || 'player_01',
+        name: currentUser?.name || 'Akash Rai',
+        coins: this.wallet.balance,
+        totalBets: currentUser?.totalBets ?? 34,
+        totalWon: currentUser?.totalWon ?? 12,
+        totalLost: currentUser?.totalLost ?? 22,
+      },
+    }
+  }
+
   // --- WALLET MOCK ---
   async getBalance() {
     await delay(80)
     return {
       success: true,
       data: {
+        coins: this.wallet.balance,
         balance: this.wallet.balance,
         currency: this.wallet.currency,
         transactions: this.wallet.transactions,

@@ -756,6 +756,7 @@ button {
 .bg-panel-clone {
   width: 50%;
   height: 100%;
+  position: relative;
   background-image: url('/top/fullimage.jpg');
   background-repeat: no-repeat;
   background-size: 100% 100%;
@@ -766,6 +767,18 @@ button {
   -webkit-transform: translateZ(0);
 }
 
+.track-bg-img,
+.finish-bg-img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  display: block;
+  pointer-events: none;
+}
+
 .full-bg-track--running {
   animation: perfect-infinite-scroll 1.4s linear infinite;
 }
@@ -774,7 +787,9 @@ button {
   animation: perfect-infinite-scroll 2.0s linear infinite;
 }
 
-.full-bg-track--frozen {
+.full-bg-track--frozen,
+.stage--result .full-bg-track,
+.stage--resultOpen .full-bg-track {
   animation-play-state: paused !important;
 }
 
@@ -811,7 +826,9 @@ button {
   -webkit-backface-visibility: hidden;
 }
 
-.single-pass-finish-bg--frozen {
+.single-pass-finish-bg--frozen,
+.stage--result .single-pass-finish-bg,
+.stage--resultOpen .single-pass-finish-bg {
   animation-play-state: paused !important;
 }
 
@@ -824,15 +841,17 @@ button {
   width: 2px;
   z-index: 50;
   pointer-events: none;
-  background: transparent;
-  box-shadow: none;
-  opacity: 0;
+  background: transparent !important;
+  box-shadow: none !important;
+  opacity: 0 !important;
   animation: finish-track-scroll 2.8s linear forwards;
   transform: translate3d(100vw, 0, 0);
   will-change: transform;
 }
 
-.finish-sensor-line--frozen {
+.finish-sensor-line--frozen,
+.stage--result .finish-sensor-line,
+.stage--resultOpen .finish-sensor-line {
   animation-play-state: paused !important;
 }
 
@@ -8613,4 +8632,23 @@ screen and (min-width: 1900px) {
   color: #adbad2;
   text-align: center;
   font-size: 12px
+}
+
+/* =========================================================
+   HIDE SCROLLBAR GLOBALLY & FOR MODAL LISTS
+   ========================================================= */
+.hide-scrollbar,
+.game-history-modal,
+.game-history-modal * {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+.hide-scrollbar::-webkit-scrollbar,
+.game-history-modal::-webkit-scrollbar,
+.game-history-modal *::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
 }

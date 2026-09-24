@@ -35,6 +35,9 @@ export default function DerbyAssetLoader({ onComplete }) {
     }
   }
 
+  const onCompleteRef = useRef(onComplete)
+  onCompleteRef.current = onComplete
+
   useEffect(() => {
     mountedRef.current = true
     isFinishedRef.current = false
@@ -53,14 +56,14 @@ export default function DerbyAssetLoader({ onComplete }) {
       setIsMoving(false)
       setIsFadingOut(true)
       setTimeout(() => {
-        if (mountedRef.current && onComplete) {
-          onComplete()
+        if (mountedRef.current && onCompleteRef.current) {
+          onCompleteRef.current()
         }
       }, 200)
     }
 
     const handleProgress = (pct) => {
-      if (!mountedRef.current) return
+      if (!mountedRef.current || isFinishedRef.current) return
       realProgressRef.current = Math.max(realProgressRef.current, pct)
     }
 
@@ -68,13 +71,13 @@ export default function DerbyAssetLoader({ onComplete }) {
     assetCacheService
       .cacheAllAssets(handleProgress)
       .then(() => {
-        if (!mountedRef.current) return
+        if (!mountedRef.current || isFinishedRef.current) return
         isAssetsReadyRef.current = true
         realProgressRef.current = 100
       })
       .catch((err) => {
         console.warn('Asset loading warning:', err)
-        if (!mountedRef.current) return
+        if (!mountedRef.current || isFinishedRef.current) return
         isAssetsReadyRef.current = true
         realProgressRef.current = 100
       })
@@ -85,16 +88,16 @@ export default function DerbyAssetLoader({ onComplete }) {
       if (!mountedRef.current || isFinishedRef.current) return
 
       const elapsed = Date.now() - startTime
-      // Natural progress based on elapsed time (reaches 100% by ~1.5s)
-      const timeBasedProgress = Math.min(100, Math.floor((elapsed / 1500) * 100))
+      // Natural progress based on elapsed time (reaches 100% by ~1.2s)
+      const timeBasedProgress = Math.min(100, Math.floor((elapsed / 1200) * 100))
 
       const target = isAssetsReadyRef.current
         ? 100
         : Math.max(timeBasedProgress, realProgressRef.current)
 
-      // Smooth step towards target
+      // Smooth step towards target (strictly monotonic: never decreases)
       if (displayedProgressRef.current < target) {
-        const step = Math.max(1, Math.ceil((target - displayedProgressRef.current) * 0.2))
+        const step = Math.max(1, Math.ceil((target - displayedProgressRef.current) * 0.25))
         displayedProgressRef.current = Math.min(100, displayedProgressRef.current + step)
         setProgress(displayedProgressRef.current)
       }
@@ -110,18 +113,18 @@ export default function DerbyAssetLoader({ onComplete }) {
       }
 
       // Complete when 100% reached or time elapsed
-      if (displayedProgressRef.current >= 100 || elapsed >= 1800) {
+      if (displayedProgressRef.current >= 100 || elapsed >= 1600) {
         clearInterval(timer)
         finishLoader()
       }
     }, 25)
 
-    // Hard emergency safety timeout: never stay stuck past 2.0s
+    // Hard emergency safety timeout: never stay stuck past 1.8s
     const hardTimeout = setTimeout(() => {
       if (mountedRef.current && !isFinishedRef.current) {
         finishLoader()
       }
-    }, 2000)
+    }, 1800)
 
     return () => {
       mountedRef.current = false
@@ -129,7 +132,7 @@ export default function DerbyAssetLoader({ onComplete }) {
       clearTimeout(hardTimeout)
       assetCacheService.removeProgressListener(handleProgress)
     }
-  }, [onComplete])
+  }, [])
 
   // Precise forward position calculation for horse on loaderline.png
   // Start Gate at ~10%, Finish Gate at ~82%
