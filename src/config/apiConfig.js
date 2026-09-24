@@ -3,18 +3,15 @@
  * Centralized configuration for REST API and WebSocket connections.
  */
 
-const LIVE_URL = 'https://horseracing.siberiancrane.tech'
-const LIVE_WS_URL = 'wss://horseracing.siberiancrane.tech'
-
 const API_CONFIG = {
   // Base URL for backend REST API
-  BASE_URL: import.meta.env.VITE_API_BASE_URL || LIVE_URL,
+  BASE_URL: import.meta.env.VITE_API_BASE_URL || (typeof window !== 'undefined' && window.location.hostname === 'localhost' ? 'http://localhost:3000' : ''),
 
   // Socket.IO Server URL for live multiplayer / round events
-  SOCKET_URL: import.meta.env.VITE_SOCKET_URL || LIVE_URL,
+  SOCKET_URL: import.meta.env.VITE_SOCKET_URL || (typeof window !== 'undefined' && window.location.hostname === 'localhost' ? 'http://localhost:3000' : ''),
 
   // WebSocket Server URL for live multiplayer / round events
-  WS_URL: import.meta.env.VITE_WS_URL || LIVE_WS_URL,
+  // WS_URL: import.meta.env.VITE_WS_URL || 'ws://localhost:3000',
 
   // Mock API fallback switch - Strictly disabled for real backend API
   USE_MOCK_API: false,
@@ -33,3 +30,4 @@ const API_CONFIG = {
 }
 
 export default API_CONFIG
+
