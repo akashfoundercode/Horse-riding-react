@@ -39,14 +39,11 @@ const AudioSettingsModal = React.lazy(() => import('./components/AudioSettingsMo
 const WalletModal = React.lazy(() => import('./components/WalletModal.jsx'))
 const AuthModal = React.lazy(() => import('./components/auth/AuthModal.jsx'))
 const UserProfileModal = React.lazy(() => import('./components/auth/UserProfileModal.jsx'))
-const AdminLoginModal = React.lazy(() => import('./components/admin/AdminLoginModal.jsx'))
-const AdminJackpotControlModal = React.lazy(() => import('./components/admin/AdminJackpotControlModal.jsx'))
 
 import { horseService, DEFAULT_HORSES } from './services/horseService.js'
 import { socketService } from './services/socketService.js'
 import { gameApiService } from './services/gameApiService.js'
 import { storageService } from './services/storageService.js'
-import { adminAuthService } from './services/adminAuthService.js'
 
 const HORSES = DEFAULT_HORSES
 
@@ -315,29 +312,6 @@ export default function App() {
   const [isAddCoinsOpen, setIsAddCoinsOpen] = useState(false)
   const [isTutorialOpen, setIsTutorialOpen] = useState(false)
   const [isHistoryOpen, setIsHistoryOpen] = useState(false)
-  const [isAdminLoginOpen, setIsAdminLoginOpen] = useState(false)
-  const [isAdminJackpotOpen, setIsAdminJackpotOpen] = useState(false)
-
-  const handleOpenAdmin = useCallback(() => {
-    if (adminAuthService.isAdminAuthenticated()) {
-      setIsAdminJackpotOpen(true)
-    } else {
-      setIsAdminLoginOpen(true)
-    }
-  }, [])
-
-  // Keyboard shortcut: Ctrl + Shift + A / Cmd + Shift + A for Admin Portal
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'A' || e.key === 'a')) {
-        e.preventDefault()
-        handleOpenAdmin()
-      }
-    }
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [handleOpenAdmin])
-
   const [raceHistory, setRaceHistory] = useState(() => {
     try {
       const saved = localStorage.getItem('horse_race_history')
@@ -2378,26 +2352,6 @@ export default function App() {
             audioSettings={audioSettings}
             setAudioSettings={setAudioSettings}
             onTestSound={handleTestSound}
-          />
-        )}
-
-        {/* 5. ADMIN AUTHENTICATION & JACKPOT CONTROL MODALS */}
-        {isAdminLoginOpen && (
-          <AdminLoginModal
-            isOpen={isAdminLoginOpen}
-            onClose={() => setIsAdminLoginOpen(false)}
-            onLoginSuccess={() => {
-              setIsAdminLoginOpen(false)
-              setIsAdminJackpotOpen(true)
-            }}
-          />
-        )}
-        {isAdminJackpotOpen && (
-          <AdminJackpotControlModal
-            isOpen={isAdminJackpotOpen}
-            onClose={() => setIsAdminJackpotOpen(false)}
-            currentMultiplier={jackpotMultiplier}
-            currentDisplay={jackpotDisplay}
           />
         )}
       </React.Suspense>
