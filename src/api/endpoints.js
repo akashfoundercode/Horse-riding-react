@@ -68,6 +68,10 @@ export const ENDPOINTS = {
 
   // Admin & Management
   ADMIN: {
+    LOGIN: '/api/admin/login',
+    FORGOT_PASSWORD: '/api/admin/forgot-password',
+    RESET_PASSWORD: '/api/admin/reset-password',
+    ME: '/api/admin/me',
     JACKPOT_FORCE: '/api/admin/jackpot/force',
     JACKPOT_CANCEL: '/api/admin/jackpot/cancel',
     JACKPOT_QUEUE: '/api/admin/jackpot/queue',
