@@ -60,9 +60,9 @@ class ApiClient {
       try {
         response = await fetch(url, config)
       } catch (networkErr) {
-        // If relative URL failed, retry directly with configured BASE_URL
-        if (!url.startsWith('http') && this.baseURL) {
-          const directUrl = `${this.baseURL}${endpoint}`
+        // If relative URL failed on localhost, retry directly with localhost:3000
+        if (!url.startsWith('http') && typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+          const directUrl = `http://localhost:3000${endpoint}`
           response = await fetch(directUrl, config)
         } else {
           throw networkErr
