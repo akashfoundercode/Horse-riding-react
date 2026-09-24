@@ -38,9 +38,7 @@ class SocketService {
 
     const serverUrl =
       API_CONFIG.SOCKET_URL ||
-      (typeof window !== 'undefined' && window.location.hostname === 'localhost'
-        ? 'http://localhost:3000'
-        : '')
+      'https://horseracing.siberiancrane.tech'
 
     try {
       this.socket = io(serverUrl, {
