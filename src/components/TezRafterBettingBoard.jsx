@@ -17,6 +17,7 @@ import {
   HelpCircle,
   Lock,
   User,
+  ShieldCheck,
 } from 'lucide-react'
 
 import { getSafeAudioContext } from '../utils/audioContextHelper.js'
@@ -62,6 +63,9 @@ function TezRafterBettingBoard({
   isGuest,
   onOpenAuth,
   onOpenProfile,
+  jackpotMultiplier = 1,
+  jackpotDisplay = 'N',
+  onOpenAdmin,
 }) {
   const { balance: liveWalletBalance, totalWon: liveTotalWon, totalWins: liveTotalWins } = useWallet()
   const balance = typeof liveWalletBalance === 'number' ? liveWalletBalance : (typeof propBalance === 'number' ? propBalance : 0)
@@ -338,6 +342,21 @@ function TezRafterBettingBoard({
             >
               <HelpCircle size={18} />
             </button>
+
+            {onOpenAdmin && (
+              <button
+                className="tez-header-icon-btn tez-admin-header-btn"
+                onClick={onOpenAdmin}
+                title="Admin Control Portal (Ctrl + Shift + A)"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(212, 175, 55, 0.3) 0%, rgba(184, 134, 11, 0.2) 100%)',
+                  borderColor: '#ffd700',
+                  color: '#ffd700',
+                }}
+              >
+                <ShieldCheck size={18} />
+              </button>
+            )}
           </div>
         </header>
 
@@ -348,13 +367,40 @@ function TezRafterBettingBoard({
 
           {/* Betting Grid Area */}
           <div className="tez-grid-section">
-            {/* Top row above horses with Game Serial Number on the left side */}
+            {/* Top row above horses with Game Serial Number and Jackpot Slots Reel */}
             <div className="tez-grid-top-bar">
               <div className="tez-grid-game-id-badge" title={`Live Game Serial Number #${gameSerialNumber}`}>
                 <span className="tez-ggid-tag">GAME SERIAL NUMBER:</span>
                 <span className="tez-ggid-num">#{gameSerialNumber}</span>
               </div>
+
+              {/* Real-time Jackpot Multiplier Reel / Strip */}
+              <div className="tez-jackpot-slot-strip" title="Current Round Jackpot Multiplier">
+                <span className="tez-jackpot-strip-label">JACKPOT:</span>
+                <div className="tez-jackpot-slots">
+                  {['N', '2X', '3X', '4X'].map((slot) => {
+                    const isSlotActive = (jackpotDisplay === slot) || (!jackpotDisplay && slot === 'N' && jackpotMultiplier === 1) || (jackpotMultiplier > 1 && `${jackpotMultiplier}X` === slot)
+                    return (
+                      <span
+                        key={slot}
+                        className={`tez-jackpot-slot-item ${isSlotActive ? 'active-glow' : ''}`}
+                      >
+                        {slot}
+                      </span>
+                    )
+                  })}
+                </div>
+              </div>
             </div>
+
+            {/* Jackpot Active Celebration Banner */}
+            {jackpotMultiplier > 1 && (
+              <div className="tez-jackpot-celebration-banner">
+                <Flame size={14} className="tez-jackpot-flame" />
+                <span>🔥 JACKPOT ACTIVE: {jackpotMultiplier}X PAYOUT MULTIPLIER! (MAX: {10 * jackpotMultiplier}X) 🔥</span>
+                <Flame size={14} className="tez-jackpot-flame" />
+              </div>
+            )}
 
             {isBettingLocked && (
               <div className="tez-lock-banner">

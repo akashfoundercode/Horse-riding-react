@@ -39,11 +39,14 @@ const AudioSettingsModal = React.lazy(() => import('./components/AudioSettingsMo
 const WalletModal = React.lazy(() => import('./components/WalletModal.jsx'))
 const AuthModal = React.lazy(() => import('./components/auth/AuthModal.jsx'))
 const UserProfileModal = React.lazy(() => import('./components/auth/UserProfileModal.jsx'))
+const AdminLoginModal = React.lazy(() => import('./components/admin/AdminLoginModal.jsx'))
+const AdminJackpotControlModal = React.lazy(() => import('./components/admin/AdminJackpotControlModal.jsx'))
 
 import { horseService, DEFAULT_HORSES } from './services/horseService.js'
 import { socketService } from './services/socketService.js'
 import { gameApiService } from './services/gameApiService.js'
 import { storageService } from './services/storageService.js'
+import { adminAuthService } from './services/adminAuthService.js'
 
 const HORSES = DEFAULT_HORSES
 
@@ -312,6 +315,29 @@ export default function App() {
   const [isAddCoinsOpen, setIsAddCoinsOpen] = useState(false)
   const [isTutorialOpen, setIsTutorialOpen] = useState(false)
   const [isHistoryOpen, setIsHistoryOpen] = useState(false)
+  const [isAdminLoginOpen, setIsAdminLoginOpen] = useState(false)
+  const [isAdminJackpotOpen, setIsAdminJackpotOpen] = useState(false)
+
+  const handleOpenAdmin = useCallback(() => {
+    if (adminAuthService.isAdminAuthenticated()) {
+      setIsAdminJackpotOpen(true)
+    } else {
+      setIsAdminLoginOpen(true)
+    }
+  }, [])
+
+  // Keyboard shortcut: Ctrl + Shift + A / Cmd + Shift + A for Admin Portal
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'A' || e.key === 'a')) {
+        e.preventDefault()
+        handleOpenAdmin()
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [handleOpenAdmin])
+
   const [raceHistory, setRaceHistory] = useState(() => {
     try {
       const saved = localStorage.getItem('horse_race_history')
@@ -1235,8 +1261,16 @@ export default function App() {
       const serial = race.game_serial ?? race.gameSerial ?? race.serialNumber ?? race.serial_number ?? race.id ?? race.roundId
       const status = (race.status || race.state || '').toUpperCase()
       const winnerHorseId = race.winner_horse_id ?? race.winnerHorse ?? race.winner_number ?? race.winnerNumber ?? race.winnerId
-      const jackpotMult = parseFloat(race.jackpot_multiplier || race.jackpotMultiplier || race.multiplier || 1) || 1
-      const isJackpot = Boolean(race.is_jackpot)
+      
+      const jackpotObj = race.jackpot || raw.jackpot || raw.data?.jackpot
+      const rawJackpotMult = jackpotObj?.multiplier ?? race.jackpot_multiplier ?? race.jackpotMultiplier ?? race.multiplier ?? 1
+      const jackpotMult = typeof rawJackpotMult === 'string' 
+        ? (parseFloat(rawJackpotMult.replace(/[^0-9.]/g, '')) || 1)
+        : (parseFloat(rawJackpotMult) || 1)
+      const isJackpot = jackpotObj?.isJackpot !== undefined 
+        ? Boolean(jackpotObj.isJackpot) 
+        : (Boolean(race.is_jackpot) || jackpotMult > 1)
+      const jackpotLabel = jackpotObj?.multiplierLabel || (jackpotMult > 1 ? `${jackpotMult}X` : 'N')
 
       // Calculate live timeLeft from timestamps if available
       let computedTimeLeft = typeof race.timeLeft === 'number' ? race.timeLeft : (typeof race.timer === 'number' ? race.timer : null)
@@ -1259,6 +1293,7 @@ export default function App() {
         status,
         winnerHorseId: winnerHorseId !== undefined && winnerHorseId !== null ? Number(winnerHorseId) : null,
         jackpotMultiplier: jackpotMult,
+        jackpotDisplay: jackpotLabel,
         isJackpot,
         timeLeft: computedTimeLeft,
       }
@@ -1323,6 +1358,12 @@ export default function App() {
           localStorage.setItem('horse_game_serial_no', parsed.serialNumber)
         } catch (_) { }
       }
+      if (parsed.jackpotMultiplier !== undefined && parsed.jackpotMultiplier !== null) {
+        setJackpotMultiplier(parsed.jackpotMultiplier)
+        setJackpotDisplay(parsed.jackpotDisplay || (parsed.jackpotMultiplier === 1 ? 'N' : `${parsed.jackpotMultiplier}X`))
+        roundJackpotRef.current = parsed.jackpotMultiplier
+      }
+
       if (parsed.timeLeft !== null) setTimerSeconds(parsed.timeLeft)
       if (parsed.winnerHorseId) {
         handleWinnerUpdate(parsed.winnerHorseId)
@@ -1368,6 +1409,7 @@ export default function App() {
         }
         if (parsed.jackpotMultiplier) {
           setJackpotMultiplier(parsed.jackpotMultiplier)
+          setJackpotDisplay(parsed.jackpotDisplay || (parsed.jackpotMultiplier === 1 ? 'N' : `${parsed.jackpotMultiplier}X`))
           roundJackpotRef.current = parsed.jackpotMultiplier
         }
         if (phase !== 'result' && phase !== 'resultOpen') setPhase('result')
@@ -1389,6 +1431,11 @@ export default function App() {
         handleWinnerUpdate(parsed.winnerHorseId)
       } else {
         serverWinnerRef.current = null
+      }
+      if (parsed.jackpotMultiplier !== undefined && parsed.jackpotMultiplier !== null) {
+        setJackpotMultiplier(parsed.jackpotMultiplier)
+        setJackpotDisplay(parsed.jackpotDisplay || (parsed.jackpotMultiplier === 1 ? 'N' : `${parsed.jackpotMultiplier}X`))
+        roundJackpotRef.current = parsed.jackpotMultiplier
       }
       const tLeft = parsed.timeLeft !== null ? parsed.timeLeft : 40
       setTimerSeconds(tLeft)
@@ -1676,11 +1723,16 @@ export default function App() {
     // 13. race:jackpot / admin jackpot triggers
     const handleJackpot = (data) => {
       const parsed = parseRacePayload(data)
-      const rawMult = parsed?.jackpotMultiplier ?? data?.multiplier ?? data?.jackpotMultiplier ?? data?.jackpot ?? data?.value ?? data?.mult
-      const mult = parseFloat(rawMult) || (typeof rawMult === 'number' ? rawMult : 1)
+      const jackpotObj = data?.jackpot || parsed?.jackpot || data
+      const rawMult = jackpotObj?.multiplier ?? parsed?.jackpotMultiplier ?? data?.multiplier ?? data?.jackpotMultiplier ?? data?.jackpot ?? data?.value ?? data?.mult
+      const mult = typeof rawMult === 'string'
+        ? (parseFloat(rawMult.replace(/[^0-9.]/g, '')) || 1)
+        : (parseFloat(rawMult) || 1)
+      const label = jackpotObj?.multiplierLabel || parsed?.jackpotDisplay || (mult > 1 ? `${mult}X` : 'N')
+
       if (typeof mult === 'number' && mult >= 1) {
         setJackpotMultiplier(mult)
-        setJackpotDisplay(mult === 1 ? 'N' : `${mult}X`)
+        setJackpotDisplay(label)
         roundJackpotRef.current = mult
       }
     }
@@ -2354,6 +2406,26 @@ export default function App() {
             onTestSound={handleTestSound}
           />
         )}
+
+        {/* 5. ADMIN AUTHENTICATION & JACKPOT CONTROL MODALS */}
+        {isAdminLoginOpen && (
+          <AdminLoginModal
+            isOpen={isAdminLoginOpen}
+            onClose={() => setIsAdminLoginOpen(false)}
+            onLoginSuccess={() => {
+              setIsAdminLoginOpen(false)
+              setIsAdminJackpotOpen(true)
+            }}
+          />
+        )}
+        {isAdminJackpotOpen && (
+          <AdminJackpotControlModal
+            isOpen={isAdminJackpotOpen}
+            onClose={() => setIsAdminJackpotOpen(false)}
+            currentMultiplier={jackpotMultiplier}
+            currentDisplay={jackpotDisplay}
+          />
+        )}
       </React.Suspense>
 
       {/* 5. MAIN HORSE DERBY RACETRACK & BETTING GAME */}
@@ -2583,6 +2655,9 @@ export default function App() {
             isGuest={isGuest}
             onOpenAuth={() => setIsAuthModalOpen(true)}
             onOpenProfile={() => setIsProfileModalOpen(true)}
+            jackpotMultiplier={jackpotMultiplier}
+            jackpotDisplay={jackpotDisplay}
+            onOpenAdmin={handleOpenAdmin}
             onToggleCheat={() => {
               setIsCheatEnabled((prev) => {
                 const next = !prev
