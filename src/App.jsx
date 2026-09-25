@@ -398,7 +398,7 @@ export default function App() {
   const [isWalletOpen, setIsWalletOpen] = useState(false)
 
   // Enterprise Auth & Wallet Providers
-  const { user, isGuest, isAuthModalOpen, setIsAuthModalOpen, isProfileModalOpen, setIsProfileModalOpen } = useAuth()
+  const { user, isAuthenticated, isGuest, isAuthModalOpen, setIsAuthModalOpen, isProfileModalOpen, setIsProfileModalOpen } = useAuth()
   const {
     balance,
     setBalance,
@@ -1757,9 +1757,19 @@ export default function App() {
   // Automatically transition to 3-2-1 countdown when timer reaches 0
   useEffect(() => {
     if (phase === 'idle' && timerSeconds === 0 && !isAssetLoading) {
+      if (!isAuthenticated || isGuest) {
+        setIsAuthModalOpen(true)
+        return
+      }
       prepareAndStartCountdown()
     }
-  }, [phase, timerSeconds, prepareAndStartCountdown, isAssetLoading])
+  }, [phase, timerSeconds, prepareAndStartCountdown, isAssetLoading, isAuthenticated, isGuest, setIsAuthModalOpen])
+
+  useEffect(() => {
+    if (!isAssetLoading && phase === 'idle' && (!isAuthenticated || isGuest)) {
+      setIsAuthModalOpen(true)
+    }
+  }, [isAssetLoading, phase, isAuthenticated, isGuest, setIsAuthModalOpen])
 
   const [raceId, setRaceId] = useState(0)
   const screenshotTakenRef = useRef(false)
@@ -2303,7 +2313,13 @@ export default function App() {
 
       {/* 0. AUTHENTICATION & USER PROFILE MODALS (Suspense Code-Split) */}
       <React.Suspense fallback={null}>
-        {isAuthModalOpen && <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />}
+        {isAuthModalOpen && (
+          <AuthModal
+            isOpen={isAuthModalOpen}
+            required={!isAuthenticated || isGuest}
+            onClose={() => setIsAuthModalOpen(false)}
+          />
+        )}
         {isProfileModalOpen && <UserProfileModal isOpen={isProfileModalOpen} onClose={() => setIsProfileModalOpen(false)} />}
 
         {/* 1. STEP-BY-STEP ONBOARDING TUTORIAL */}

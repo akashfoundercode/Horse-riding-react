@@ -4971,6 +4971,18 @@ button {
   animation: fadeIn 0.2s ease-out;
 }
 
+.auth-modal-card {
+  max-height: calc(100dvh - 24px);
+  overflow-y: auto;
+}
+
+@media (max-width: 520px) {
+  .auth-modal-card {
+    padding: 18px !important;
+    border-radius: 12px !important;
+  }
+}
+
 .add-coins-modal {
   width: min(92vw, 540px);
   background: linear-gradient(180deg, #260a4c 0%, #100222 100%);
