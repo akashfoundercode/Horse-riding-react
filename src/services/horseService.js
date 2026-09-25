@@ -27,24 +27,38 @@ export function mapApiHorses(apiHorses) {
   if (!Array.isArray(apiHorses) || apiHorses.length === 0) return DEFAULT_HORSES
 
   // Sort by serialNumber or id ascending
-  const sorted = [...apiHorses].sort((a, b) => (a.serialNumber || a.id) - (b.serialNumber || b.id))
+  const sorted = [...apiHorses].sort((a, b) => (Number(a.serialNumber || a.id || a.number || 0)) - (Number(b.serialNumber || b.id || b.number || 0)))
 
   return sorted.map((h, i) => {
-    const num = Number(h.serialNumber || h.id || i + 1)
+    const num = Number(h.serialNumber || h.id || h.number || i + 1)
     const defaultHorse = DEFAULT_HORSES.find((dh) => dh.number === num) || DEFAULT_HORSES[i] || DEFAULT_HORSES[0]
+
+    // Normalize image URL from backend API (support /uploads/..., full URL, etc.)
+    let portraitImg = h.imageUrl || h.image_url || h.image || h.portraitImg || defaultHorse.portraitImg
+    if (typeof portraitImg === 'string') {
+      if (portraitImg.startsWith('/uploads')) {
+        portraitImg = `https://horseracing.siberiancrane.tech${portraitImg}`
+      } else if (portraitImg.includes('localhost:3000')) {
+        portraitImg = portraitImg.replace('http://localhost:3000', 'https://horseracing.siberiancrane.tech')
+      }
+    } else {
+      portraitImg = defaultHorse.portraitImg
+    }
+
+    const horseName = (h.name || h.horseName || h.horse_name || defaultHorse.name || `HORSE ${num}`).toString().toUpperCase()
 
     return {
       id: h.id || num,
       number: num,
       serialNumber: num,
-      name: h.name || defaultHorse.name,
-      portraitImg: h.imageUrl || defaultHorse.portraitImg, // Dynamic image from API for bet screen
+      name: horseName,
+      portraitImg: portraitImg, // Dynamic image from API for bet screen
       img: defaultHorse.img, // Animation gif stays identical for deterministic 3D race
       status: h.status || 'active',
       hue: defaultHorse.hue || 0,
       saturate: defaultHorse.saturate || 1.0,
       brightness: defaultHorse.brightness || 1.0,
-      speedRating: defaultHorse.speedRating || '9.8',
+      speedRating: h.speedRating || defaultHorse.speedRating || '9.8',
     }
   })
 }
