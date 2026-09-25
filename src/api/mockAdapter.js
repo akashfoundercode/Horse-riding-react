@@ -41,17 +41,17 @@ class MockBackendAdapter {
   }
 
   // --- AUTHENTICATION MOCK ---
-  async login({ username, password }) {
+  async login({ email, password }) {
     await delay(250)
-    if (!username || !password) {
-      throw new Error('Invalid username or password')
+    if (!email || !password) {
+      throw new Error('Invalid email or password')
     }
 
-    const token = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.${btoa(JSON.stringify({ username, time: Date.now() }))}.signature`
+    const token = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.${btoa(JSON.stringify({ email, time: Date.now() }))}.signature`
     const user = {
       id: `usr_${Math.floor(100000 + Math.random() * 900000)}`,
-      username: username,
-      name: username,
+      email,
+      name: email,
       role: 'user',
       coins: 1000,
     }
@@ -66,10 +66,10 @@ class MockBackendAdapter {
     }
   }
 
-  async register({ username, password, name, role = 'user' }) {
+  async register({ email, password, name, role = 'user' }) {
     await delay(300)
-    if (!username || username.length < 4) {
-      throw new Error('Username must be at least 4 characters')
+    if (!email || !email.includes('@')) {
+      throw new Error('A valid email is required')
     }
     if (!password || password.length < 6) {
       throw new Error('Password must be at least 6 characters')
@@ -78,10 +78,10 @@ class MockBackendAdapter {
       throw new Error('Name is required')
     }
 
-    const token = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.${btoa(JSON.stringify({ username, time: Date.now() }))}.signature`
+    const token = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.${btoa(JSON.stringify({ email, time: Date.now() }))}.signature`
     const user = {
       id: `usr_${Date.now().toString(16)}`,
-      username,
+      email,
       name,
       role: role || 'user',
       coins: 0,

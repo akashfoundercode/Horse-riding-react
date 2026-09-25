@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
 import {
-  User,
   Lock,
   Mail,
   ArrowRight,
@@ -16,12 +15,11 @@ import {
 } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext.jsx'
 
-export default function AuthModal({ isOpen, onClose }) {
+export default function AuthModal({ isOpen, onClose, required = false }) {
   const { login, register, isLoading } = useAuth()
   const [tab, setTab] = useState('login') // 'login' | 'register'
 
   // Form fields
-  const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [name, setName] = useState('')
@@ -37,17 +35,16 @@ export default function AuthModal({ isOpen, onClose }) {
     setSuccessMessage('')
 
     if (tab === 'login') {
-      if (!username.trim() || !password) {
-        setErrorMessage('Please enter username/email and password.')
+      if (!email.trim() || !password) {
+        setErrorMessage('Please enter your email and password.')
         return
       }
       const res = await login({
-        username: username.trim(),
-        email: username.includes('@') ? username.trim() : email.trim(),
+        email: email.trim(),
         password,
       })
       if (!res.success) {
-        setErrorMessage(res.error || 'Invalid username/email or password')
+        setErrorMessage(res.error || 'Invalid email or password')
       } else {
         setSuccessMessage('Logged in successfully!')
         setTimeout(() => {
@@ -55,8 +52,8 @@ export default function AuthModal({ isOpen, onClose }) {
         }, 800)
       }
     } else {
-      if (!username.trim() || username.trim().length < 3) {
-        setErrorMessage('Username must be at least 3 characters.')
+      if (!name.trim()) {
+        setErrorMessage('Please enter your full name.')
         return
       }
       if (!email.trim() || !email.includes('@')) {
@@ -68,14 +65,13 @@ export default function AuthModal({ isOpen, onClose }) {
         return
       }
       const res = await register({
-        username: username.trim(),
         email: email.trim(),
         password,
-        name: name.trim() || username.trim(),
+        name: name.trim(),
         role: 'user',
       })
       if (!res.success) {
-        setErrorMessage(res.error || 'Registration failed. Username or email may already exist.')
+        setErrorMessage(res.error || 'Registration failed. This email may already be registered.')
       } else {
         setSuccessMessage('Account created successfully!')
         setTimeout(() => {
@@ -86,7 +82,7 @@ export default function AuthModal({ isOpen, onClose }) {
   }
 
   return (
-    <div className="modal-backdrop-generic" onClick={onClose} style={{ zIndex: 99999 }}>
+    <div className="modal-backdrop-generic" onClick={() => !required && onClose()} style={{ zIndex: 99999 }}>
       <div
         className="auth-modal-card"
         onClick={(e) => e.stopPropagation()}
@@ -106,7 +102,7 @@ export default function AuthModal({ isOpen, onClose }) {
       >
         {/* Close Button */}
         <button
-          onClick={onClose}
+          onClick={() => !required && onClose()}
           style={{
             position: 'absolute',
             top: '16px',
@@ -121,6 +117,8 @@ export default function AuthModal({ isOpen, onClose }) {
             alignItems: 'center',
             justifyContent: 'center',
             cursor: 'pointer',
+            opacity: required ? 0 : 1,
+            pointerEvents: required ? 'none' : 'auto',
             transition: '0.2s',
           }}
         >
@@ -281,18 +279,18 @@ export default function AuthModal({ isOpen, onClose }) {
             </div>
           )}
 
-          {/* Username (Min 3 chars) */}
+          {/* Email Address */}
           <div>
             <label style={{ display: 'block', fontSize: '11px', color: '#cbd5e1', fontWeight: '700', marginBottom: '5px' }}>
-              {tab === 'login' ? 'USERNAME OR EMAIL' : 'USERNAME'} {tab === 'register' && <span style={{ color: '#94a3b8', fontWeight: 'normal' }}>(min 3 chars)</span>}
+              EMAIL ADDRESS
             </label>
             <div style={{ position: 'relative' }}>
-              <User size={16} style={{ position: 'absolute', left: '12px', top: '12px', color: '#64748b' }} />
+              <Mail size={16} style={{ position: 'absolute', left: '12px', top: '12px', color: '#64748b' }} />
               <input
-                type="text"
-                placeholder={tab === 'login' ? 'e.g. akashr123 or akashr@example.com' : 'e.g. akashr123'}
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                type="email"
+                placeholder="e.g. player@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 style={{
                   width: '100%',
                   boxSizing: 'border-box',
@@ -307,35 +305,6 @@ export default function AuthModal({ isOpen, onClose }) {
               />
             </div>
           </div>
-
-          {/* Email Address (Only for Register) */}
-          {tab === 'register' && (
-            <div>
-              <label style={{ display: 'block', fontSize: '11px', color: '#cbd5e1', fontWeight: '700', marginBottom: '5px' }}>
-                EMAIL ADDRESS
-              </label>
-              <div style={{ position: 'relative' }}>
-                <Mail size={16} style={{ position: 'absolute', left: '12px', top: '12px', color: '#64748b' }} />
-                <input
-                  type="email"
-                  placeholder="e.g. akashr@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  style={{
-                    width: '100%',
-                    boxSizing: 'border-box',
-                    padding: '10px 12px 10px 38px',
-                    background: 'rgba(15, 23, 42, 0.8)',
-                    border: '1px solid rgba(255, 255, 255, 0.12)',
-                    borderRadius: '8px',
-                    color: '#ffffff',
-                    fontSize: '13px',
-                    outline: 'none',
-                  }}
-                />
-              </div>
-            </div>
-          )}
 
           {/* Password (Min 6 chars) */}
           <div>

@@ -10,10 +10,10 @@ import API_CONFIG from '../config/apiConfig.js'
 import { storageService } from './storageService.js'
 
 class AuthService {
-  async login({ username, password, email, phone, rememberMe = true }) {
+  async login({ email, password, phone, rememberMe = true }) {
     try {
       const payload = {
-        username: username || email || phone,
+        email: email || phone,
         password,
       }
       if (email) payload.email = email
@@ -29,12 +29,11 @@ class AuthService {
     }
   }
 
-  async register({ username, password, name, email, phone, role = 'user', rememberMe = true }) {
+  async register({ password, name, email, phone, role = 'user', rememberMe = true }) {
     try {
       const payload = {
-        username,
         password,
-        name: name || username,
+        name,
         role: role || 'user',
       }
       if (email) payload.email = email
