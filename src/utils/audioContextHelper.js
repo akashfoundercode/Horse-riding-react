@@ -2,13 +2,34 @@
  * Audio Context & Sound Effects Manager
  * Provides reliable, cross-browser audio playback with:
  * - Automatic user-gesture unlocking (Chrome, Safari, iOS, Android)
- * - MP3 playback with automatic fallback to WebAudio procedural synthesis
- * - Horse neigh, galloping hooves, coins, camera shutter, and countdown sounds
+ * - MP3 playback with instant fallback to WebAudio procedural synthesis
+ * - Ultra-reliable Camera Shutter / Screenshot sound (guaranteed 100% trigger)
+ * - Horse neigh, galloping hooves, coins, start bell, and countdown sounds
  */
 
 let sharedAudioCtx = null
 let isAudioUnlocked = false
 let activeGallopSynthTimer = null
+
+// Pre-cached audio elements pool for camera shutter to eliminate latency and concurrency blocks
+const shutterPool = []
+const POOL_SIZE = 4
+
+function getShutterFromPool() {
+  if (typeof window === 'undefined') return null
+  if (shutterPool.length === 0) {
+    for (let i = 0; i < POOL_SIZE; i++) {
+      try {
+        const audio = new Audio('/SOUND/screenshot.mp3')
+        audio.preload = 'auto'
+        shutterPool.push(audio)
+      } catch (_) {}
+    }
+  }
+  const audio = shutterPool.shift() || new Audio('/SOUND/screenshot.mp3')
+  shutterPool.push(audio)
+  return audio
+}
 
 /**
  * Get or initialize safe AudioContext
@@ -73,7 +94,92 @@ if (typeof window !== 'undefined') {
 }
 
 /**
- * 1. PROCEDURAL HORSE GALLOP SYNTHESIZER
+ * 1. PROCEDURAL CAMERA SHUTTER & FINISH SOUND
+ * Guaranteed zero-latency mechanical SLR mirror flip + curtain click
+ */
+export function playProceduralShutter(volume = 0.85) {
+  try {
+    const ctx = getSafeAudioContext()
+    if (!ctx || volume <= 0) return
+    const t = ctx.currentTime
+
+    // 1. Mechanical Mirror Flip Thump (Low-mid impulse)
+    const osc1 = ctx.createOscillator()
+    const gain1 = ctx.createGain()
+    osc1.type = 'triangle'
+    osc1.frequency.setValueAtTime(800, t)
+    osc1.frequency.exponentialRampToValueAtTime(60, t + 0.07)
+    gain1.gain.setValueAtTime(volume * 0.75, t)
+    gain1.gain.exponentialRampToValueAtTime(0.01, t + 0.07)
+    osc1.connect(gain1)
+    gain1.connect(ctx.destination)
+    osc1.start(t)
+    osc1.stop(t + 0.07)
+
+    // 2. Crisp Shutter Curtain Snap (High-frequency sawtooth transient)
+    const osc2 = ctx.createOscillator()
+    const gain2 = ctx.createGain()
+    osc2.type = 'sawtooth'
+    osc2.frequency.setValueAtTime(1600, t + 0.03)
+    osc2.frequency.exponentialRampToValueAtTime(140, t + 0.15)
+    gain2.gain.setValueAtTime(volume * 0.85, t + 0.03)
+    gain2.gain.exponentialRampToValueAtTime(0.01, t + 0.15)
+    osc2.connect(gain2)
+    gain2.connect(ctx.destination)
+    osc2.start(t + 0.03)
+    osc2.stop(t + 0.15)
+
+    // 3. Film Advance / Metallic Click Texture
+    const bufferSize = Math.floor(ctx.sampleRate * 0.08)
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate)
+    const data = buffer.getChannelData(0)
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (ctx.sampleRate * 0.015))
+    }
+    const noise = ctx.createBufferSource()
+    noise.buffer = buffer
+
+    const filter = ctx.createBiquadFilter()
+    filter.type = 'highpass'
+    filter.frequency.setValueAtTime(2500, t)
+
+    const noiseGain = ctx.createGain()
+    noiseGain.gain.setValueAtTime(volume * 0.45, t + 0.04)
+    noiseGain.gain.exponentialRampToValueAtTime(0.001, t + 0.10)
+
+    noise.connect(filter)
+    filter.connect(noiseGain)
+    noiseGain.connect(ctx.destination)
+    noise.start(t + 0.04)
+  } catch (_) {}
+}
+
+/**
+ * Complete Reliable Camera Shutter Player (Dual-Trigger: MP3 + WebAudio fallback)
+ */
+export function playCameraShutter(volume = 0.85) {
+  unlockAudio()
+  if (volume <= 0) return
+
+  // Play procedural synth for instant 0ms tactile feedback
+  playProceduralShutter(volume)
+
+  // Also play the MP3 in parallel for rich acoustic reverb
+  try {
+    const audio = getShutterFromPool()
+    if (audio) {
+      audio.volume = Math.max(0.1, Math.min(1.0, volume))
+      audio.currentTime = 0
+      const p = audio.play()
+      if (p) {
+        p.catch(() => {})
+      }
+    }
+  } catch (_) {}
+}
+
+/**
+ * 2. PROCEDURAL HORSE GALLOP SYNTHESIZER
  * Simulates rhythmic turf hoofbeats (dum-dum-clop-clop) via WebAudio
  */
 export function startProceduralGallop(volume = 0.8) {
@@ -143,7 +249,7 @@ export function stopProceduralGallop() {
 }
 
 /**
- * 2. PROCEDURAL HORSE NEIGH SYNTHESIZER
+ * 3. PROCEDURAL HORSE NEIGH SYNTHESIZER
  * Simulates expressive horse whinny/neigh
  */
 export function playProceduralHorseNeigh(volume = 0.9) {
@@ -191,43 +297,6 @@ export function playProceduralHorseNeigh(volume = 0.9) {
     osc1.start(t)
     lfo.stop(t + 0.85)
     osc1.stop(t + 0.85)
-  } catch (_) {}
-}
-
-/**
- * 3. CAMERA SHUTTER & FINISH SOUND
- */
-export function playProceduralShutter(volume = 0.85) {
-  try {
-    const ctx = getSafeAudioContext()
-    if (!ctx || volume <= 0) return
-    const t = ctx.currentTime
-
-    // Mechanical Mirror Slap
-    const osc = ctx.createOscillator()
-    const gain = ctx.createGain()
-    osc.type = 'triangle'
-    osc.frequency.setValueAtTime(750, t)
-    osc.frequency.exponentialRampToValueAtTime(50, t + 0.08)
-    gain.gain.setValueAtTime(volume * 0.7, t)
-    gain.gain.exponentialRampToValueAtTime(0.01, t + 0.08)
-    osc.connect(gain)
-    gain.connect(ctx.destination)
-    osc.start(t)
-    osc.stop(t + 0.08)
-
-    // Crisp snap
-    const snapOsc = ctx.createOscillator()
-    const snapGain = ctx.createGain()
-    snapOsc.type = 'sawtooth'
-    snapOsc.frequency.setValueAtTime(1400, t + 0.04)
-    snapOsc.frequency.exponentialRampToValueAtTime(120, t + 0.16)
-    snapGain.gain.setValueAtTime(volume * 0.6, t + 0.04)
-    snapGain.gain.exponentialRampToValueAtTime(0.01, t + 0.16)
-    snapOsc.connect(snapGain)
-    snapGain.connect(ctx.destination)
-    snapOsc.start(t + 0.04)
-    snapOsc.stop(t + 0.16)
   } catch (_) {}
 }
 

@@ -30,6 +30,7 @@ import { DEFAULT_AUDIO_SETTINGS } from './config/audioConstants.js'
 import {
   getSafeAudioContext,
   unlockAudio,
+  playCameraShutter,
   startProceduralGallop,
   stopProceduralGallop,
   playProceduralHorseNeigh,
@@ -908,31 +909,17 @@ export default function App() {
   const activeHorse = horses.find((h) => h.number === selectedHorseId) || horses[0]
 
   // Audio Refs for Sound Effects
+  // Audio Refs for Sound Effects
   const neighAudioRef = useRef(null)
   const gallopAudioRef = useRef(null)
   const shutterAudioRef = useRef(null)
+  const hasPlayedShutterThisRoundRef = useRef(false)
 
-  // Camera shutter sound playback with instant trigger and fallback
+  // Camera shutter sound playback with guaranteed dual-trigger (MP3 + Procedural)
   const playCameraShutterSound = useCallback(() => {
     unlockAudio()
     const gameVol = getEffectiveVolume('gameVoice')
-    if (gameVol <= 0) return
-    try {
-      if (shutterAudioRef.current) {
-        shutterAudioRef.current.volume = gameVol * 1.0
-        shutterAudioRef.current.currentTime = 0
-        const p = shutterAudioRef.current.play()
-        if (p) {
-          p.catch(() => {
-            playProceduralShutter(gameVol)
-          })
-        }
-      } else {
-        playProceduralShutter(gameVol)
-      }
-    } catch (_) {
-      playProceduralShutter(gameVol)
-    }
+    playCameraShutter(gameVol)
   }, [getEffectiveVolume])
 
   // Audio Settings & Multi-Channel Volume Control
@@ -958,14 +945,13 @@ export default function App() {
     const effectiveVol = vol !== undefined ? vol : getEffectiveVolume('horseVoice')
     if (effectiveVol <= 0) return
 
-    let played = false
     if (neighAudioRef.current) {
       try {
         neighAudioRef.current.volume = Math.max(0.1, effectiveVol * 0.95)
         neighAudioRef.current.currentTime = 0
         const p = neighAudioRef.current.play()
         if (p) {
-          p.then(() => { played = true }).catch(() => {
+          p.catch(() => {
             playProceduralHorseNeigh(effectiveVol)
           })
         }
@@ -1089,30 +1075,44 @@ export default function App() {
     }
   }, [audioSettings, getEffectiveVolume])
 
-  // Sound Playback: Neigh at start, Galloping during race loop, Stop on finish/result
+  // Sound Playback: Neigh & Gallop during race, Reliable Shutter on Photo Finish / Result
   useEffect(() => {
     if (phase === 'racing') {
+      hasPlayedShutterThisRoundRef.current = false
       const horseVol = getEffectiveVolume('horseVoice')
       const gameVol = getEffectiveVolume('gameVoice')
       playRaceStartBell(gameVol)
       playHorseNeighSound(horseVol)
       startHorseGallopSound(horseVol)
+    } else if (phase === 'photofinish' || phase === 'result' || phase === 'resultOpen') {
+      stopHorseGallopSound()
+      if (!hasPlayedShutterThisRoundRef.current) {
+        hasPlayedShutterThisRoundRef.current = true
+        playCameraShutterSound()
+      }
+      if (neighAudioRef.current) {
+        try {
+          neighAudioRef.current.pause()
+          neighAudioRef.current.currentTime = 0
+        } catch (_) { }
+      }
     } else {
       stopHorseGallopSound()
-      if (neighAudioRef.current && phase !== 'racing') {
+      if (neighAudioRef.current) {
         try {
           neighAudioRef.current.pause()
           neighAudioRef.current.currentTime = 0
         } catch (_) { }
       }
     }
-  }, [phase, getEffectiveVolume, playHorseNeighSound, startHorseGallopSound, stopHorseGallopSound])
+  }, [phase, getEffectiveVolume, playHorseNeighSound, startHorseGallopSound, stopHorseGallopSound, playCameraShutterSound])
 
   const resetRace = useCallback(() => {
     if (rafRef.current) {
       cancelAnimationFrame(rafRef.current)
       rafRef.current = null
     }
+    hasPlayedShutterThisRoundRef.current = false
     stopHorseGallopSound()
     if (neighAudioRef.current) {
       try {
