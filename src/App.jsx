@@ -1517,10 +1517,10 @@ export default function App() {
           )
           if (serverHorse) {
             let targetRatio = null
-            if (typeof serverHorse.progressPercent === 'number') {
-              targetRatio = Math.max(0, Math.min(1, serverHorse.progressPercent / 100))
-            } else if (typeof serverHorse.currentDistanceM === 'number') {
+            if (typeof serverHorse.currentDistanceM === 'number') {
               targetRatio = Math.max(0, Math.min(1, serverHorse.currentDistanceM / 1000))
+            } else if (typeof serverHorse.progressPercent === 'number') {
+              targetRatio = Math.max(0, Math.min(1, serverHorse.progressPercent / 100))
             } else if (typeof serverHorse.progressRatio === 'number') {
               targetRatio = Math.max(0, Math.min(1, serverHorse.progressRatio))
             } else if (typeof (serverHorse.position ?? serverHorse.pos) === 'number') {
@@ -1529,10 +1529,13 @@ export default function App() {
             }
 
             if (targetRatio !== null) {
+              const prevArrival = runner.lastTickArrival || (now - 200)
+              const measuredTickDuration = Math.min(350, Math.max(120, now - prevArrival))
+              runner.tickDurationMs = measuredTickDuration
+              runner.lastTickArrival = now
+              runner.fromRatio = runner.visualRatio !== undefined ? runner.visualRatio : targetRatio
               runner.targetRatio = targetRatio
-              if (typeof runner.visualRatio !== 'number') {
-                runner.visualRatio = targetRatio
-              }
+              runner.serverTargetRatio = targetRatio
             }
 
             const rank = serverHorse.currentRank ?? serverHorse.rank
@@ -1884,16 +1887,27 @@ export default function App() {
         const gallopWave = Math.sin(elapsed * r.gallopFreq + r.phaseOffset) * r.gallopAmp
 
         let curPos
-        if (typeof r.targetRatio === 'number') {
-          if (typeof r.visualRatio !== 'number') {
-            r.visualRatio = r.targetRatio
-          }
-          // 📡 Smooth Exponential LERP Interpolation (0.10 - 0.14 per 60fps frame):
-          // visualPosition += (targetPosition - visualPosition) * lerpFactor
-          const lerpFactor = Math.min(1.0, 1.0 - Math.exp(-7.5 * dt))
-          r.visualRatio += (r.targetRatio - r.visualRatio) * lerpFactor
+        if (typeof r.targetRatio === 'number' || typeof r.serverTargetRatio === 'number') {
+          // 📡 LIVE SOCKET DUAL-BUFFER CONTINUOUS INTERPOLATION:
+          // Smooth Hermite cubic curve eliminates all 5Hz stuttering and accordion jerks
+          const target = typeof r.targetRatio === 'number' ? r.targetRatio : r.serverTargetRatio
+          const from = typeof r.fromRatio === 'number' ? r.fromRatio : target
+          const duration = r.tickDurationMs || 200
+          const elapsedSinceTick = now - (r.lastTickArrival || now)
+          const normT = Math.min(1.0, Math.max(0, elapsedSinceTick / duration))
+          // Hermite smoothstep curve: 3t^2 - 2t^3 (Continuous velocity, zero jerk)
+          const smoothT = normT * normT * (3 - 2 * normT)
 
-          // Subtle natural gallop oscillation
+          let interpolatedRatio = from + (target - from) * smoothT
+
+          // Extrapolate gently if tick is slightly delayed
+          if (elapsedSinceTick > duration && target < 1.0) {
+            const extraElapsed = (elapsedSinceTick - duration) / 1000
+            const estimatedVelocity = (target - from) / (duration / 1000)
+            interpolatedRatio = Math.min(1.0, target + estimatedVelocity * extraElapsed * 0.5)
+          }
+
+          r.visualRatio = interpolatedRatio
           const microStride = Math.sin(elapsed * r.gallopFreq + r.phaseOffset) * 0.08
           curPos = Math.max(0, r.visualRatio * r.targetEndPosition + microStride)
         } else {
