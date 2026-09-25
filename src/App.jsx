@@ -27,9 +27,15 @@ import DerbyAssetLoader from './components/DerbyAssetLoader.jsx'
 import LiveLeaderboard from './components/LiveLeaderboard.jsx'
 import HangingJackpotSign from './components/HangingJackpotSign.jsx'
 import { DEFAULT_AUDIO_SETTINGS } from './config/audioConstants.js'
-import { useAuth } from './context/AuthContext.jsx'
-import { useWallet } from './context/WalletContext.jsx'
-import { getSafeAudioContext } from './utils/audioContextHelper.js'
+import {
+  getSafeAudioContext,
+  unlockAudio,
+  startProceduralGallop,
+  stopProceduralGallop,
+  playProceduralHorseNeigh,
+  playProceduralShutter,
+  playRaceStartBell,
+} from './utils/audioContextHelper.js'
 
 // Code-split auxiliary modals to shrink initial JS payload
 const BettingTutorial = React.lazy(() => import('./components/BettingTutorial.jsx'))
@@ -908,54 +914,26 @@ export default function App() {
 
   // Camera shutter sound playback with instant trigger and fallback
   const playCameraShutterSound = useCallback(() => {
+    unlockAudio()
+    const gameVol = getEffectiveVolume('gameVoice')
+    if (gameVol <= 0) return
     try {
       if (shutterAudioRef.current) {
+        shutterAudioRef.current.volume = gameVol * 1.0
         shutterAudioRef.current.currentTime = 0
         const p = shutterAudioRef.current.play()
         if (p) {
           p.catch(() => {
-            playSynthShutter()
+            playProceduralShutter(gameVol)
           })
         }
       } else {
-        playSynthShutter()
+        playProceduralShutter(gameVol)
       }
     } catch (_) {
-      playSynthShutter()
+      playProceduralShutter(gameVol)
     }
-  }, [])
-
-  const playSynthShutter = () => {
-    try {
-      const ctx = getSafeAudioContext()
-      if (!ctx) return
-      // Mechanical mirror flip
-      const osc1 = ctx.createOscillator()
-      const gain1 = ctx.createGain()
-      osc1.type = 'triangle'
-      osc1.frequency.setValueAtTime(750, ctx.currentTime)
-      osc1.frequency.exponentialRampToValueAtTime(60, ctx.currentTime + 0.08)
-      gain1.gain.setValueAtTime(0.85, ctx.currentTime)
-      gain1.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.08)
-      osc1.connect(gain1)
-      gain1.connect(ctx.destination)
-      osc1.start(ctx.currentTime)
-      osc1.stop(ctx.currentTime + 0.08)
-
-      // Crisp shutter snap
-      const osc2 = ctx.createOscillator()
-      const gain2 = ctx.createGain()
-      osc2.type = 'sawtooth'
-      osc2.frequency.setValueAtTime(1300, ctx.currentTime + 0.04)
-      osc2.frequency.exponentialRampToValueAtTime(100, ctx.currentTime + 0.16)
-      gain2.gain.setValueAtTime(0.75, ctx.currentTime + 0.04)
-      gain2.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.16)
-      osc2.connect(gain2)
-      gain2.connect(ctx.destination)
-      osc2.start(ctx.currentTime + 0.04)
-      osc2.stop(ctx.currentTime + 0.16)
-    } catch (_) { }
-  }
+  }, [getEffectiveVolume])
 
   // Audio Settings & Multi-Channel Volume Control
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
@@ -971,22 +949,82 @@ export default function App() {
     if (audioSettings.masterMute) return 0
     const cat = audioSettings[category]
     if (!cat || cat.muted) return 0
-    return Math.max(0, Math.min(1, cat.volume))
+    return Math.max(0, Math.min(1, typeof cat.volume === 'number' ? cat.volume : 0.85))
   }, [audioSettings])
 
+  // Play Horse Neigh with automatic procedural fallback
+  const playHorseNeighSound = useCallback((vol) => {
+    unlockAudio()
+    const effectiveVol = vol !== undefined ? vol : getEffectiveVolume('horseVoice')
+    if (effectiveVol <= 0) return
+
+    let played = false
+    if (neighAudioRef.current) {
+      try {
+        neighAudioRef.current.volume = Math.max(0.1, effectiveVol * 0.95)
+        neighAudioRef.current.currentTime = 0
+        const p = neighAudioRef.current.play()
+        if (p) {
+          p.then(() => { played = true }).catch(() => {
+            playProceduralHorseNeigh(effectiveVol)
+          })
+        }
+      } catch (_) {
+        playProceduralHorseNeigh(effectiveVol)
+      }
+    } else {
+      playProceduralHorseNeigh(effectiveVol)
+    }
+  }, [getEffectiveVolume])
+
+  // Start continuous horse galloping sound with procedural fallback
+  const startHorseGallopSound = useCallback((vol) => {
+    unlockAudio()
+    const effectiveVol = vol !== undefined ? vol : getEffectiveVolume('horseVoice')
+    if (effectiveVol <= 0) return
+
+    if (gallopAudioRef.current) {
+      try {
+        gallopAudioRef.current.loop = true
+        gallopAudioRef.current.volume = Math.max(0.1, effectiveVol * 0.85)
+        gallopAudioRef.current.currentTime = 0
+        const p = gallopAudioRef.current.play()
+        if (p) {
+          p.catch(() => {
+            startProceduralGallop(effectiveVol)
+          })
+        }
+      } catch (_) {
+        startProceduralGallop(effectiveVol)
+      }
+    } else {
+      startProceduralGallop(effectiveVol)
+    }
+  }, [getEffectiveVolume])
+
+  // Stop horse galloping sound
+  const stopHorseGallopSound = useCallback(() => {
+    if (gallopAudioRef.current) {
+      try {
+        gallopAudioRef.current.pause()
+        gallopAudioRef.current.currentTime = 0
+      } catch (_) { }
+    }
+    stopProceduralGallop()
+  }, [])
+
   const handleTestSound = useCallback((type) => {
+    unlockAudio()
     if (type === 'game') {
-      const vol = getEffectiveVolume('gameVoice')
-      if (vol <= 0) return
       playCameraShutterSound()
     } else if (type === 'horse') {
       const vol = getEffectiveVolume('horseVoice')
       if (vol <= 0) return
-      if (neighAudioRef.current) {
-        neighAudioRef.current.currentTime = 0
-        neighAudioRef.current.volume = vol * 0.95
-        neighAudioRef.current.play().catch(() => { })
-      }
+      playHorseNeighSound(vol)
+      startHorseGallopSound(vol)
+      setTimeout(() => {
+        stopHorseGallopSound()
+      }, 1800)
     } else if (type === 'coin') {
       const vol = getEffectiveVolume('coinVoice')
       if (vol <= 0) return
@@ -1006,86 +1044,81 @@ export default function App() {
         osc.stop(ctx.currentTime + 0.06)
       } catch (_) { }
     }
-  }, [getEffectiveVolume])
+  }, [getEffectiveVolume, playCameraShutterSound, playHorseNeighSound, startHorseGallopSound, stopHorseGallopSound])
 
   useEffect(() => {
-    neighAudioRef.current = new Audio('/SOUND/dragon-studio-horse-neigh-390297.mp3')
-    gallopAudioRef.current = new Audio('/SOUND/pwlpl-horses-galloping-sound-effect-359257.mp3')
-    shutterAudioRef.current = new Audio('/SOUND/SCREESHOTCAPTURE.mp3')
-    gallopAudioRef.current.loop = true
+    try {
+      neighAudioRef.current = new Audio('/SOUND/horse_neigh.mp3')
+      gallopAudioRef.current = new Audio('/SOUND/horse_gallop.mp3')
+      shutterAudioRef.current = new Audio('/SOUND/screenshot.mp3')
+      gallopAudioRef.current.loop = true
 
-    const horseVol = getEffectiveVolume('horseVoice')
-    const gameVol = getEffectiveVolume('gameVoice')
-    gallopAudioRef.current.volume = horseVol * 0.85
-    neighAudioRef.current.volume = horseVol * 0.95
-    if (shutterAudioRef.current) {
-      shutterAudioRef.current.volume = gameVol * 1.0
-      shutterAudioRef.current.load()
-    }
+      const horseVol = getEffectiveVolume('horseVoice')
+      const gameVol = getEffectiveVolume('gameVoice')
+      gallopAudioRef.current.volume = Math.max(0.1, horseVol * 0.85)
+      neighAudioRef.current.volume = Math.max(0.1, horseVol * 0.95)
+      if (shutterAudioRef.current) {
+        shutterAudioRef.current.volume = Math.max(0.1, gameVol * 1.0)
+        shutterAudioRef.current.load()
+      }
+    } catch (_) { }
 
     return () => {
-      if (gallopAudioRef.current) {
-        gallopAudioRef.current.pause()
-      }
+      stopHorseGallopSound()
       if (neighAudioRef.current) {
-        neighAudioRef.current.pause()
+        try { neighAudioRef.current.pause() } catch (_) { }
       }
       if (shutterAudioRef.current) {
-        shutterAudioRef.current.pause()
+        try { shutterAudioRef.current.pause() } catch (_) { }
       }
     }
-  }, [])
+  }, [getEffectiveVolume, stopHorseGallopSound])
 
   // Live dynamic volume update on settings slider change
   useEffect(() => {
     const horseVol = getEffectiveVolume('horseVoice')
     const gameVol = getEffectiveVolume('gameVoice')
     if (gallopAudioRef.current) {
-      gallopAudioRef.current.volume = horseVol * 0.85
+      gallopAudioRef.current.volume = Math.max(0.1, horseVol * 0.85)
     }
     if (neighAudioRef.current) {
-      neighAudioRef.current.volume = horseVol * 0.95
+      neighAudioRef.current.volume = Math.max(0.1, horseVol * 0.95)
     }
     if (shutterAudioRef.current) {
-      shutterAudioRef.current.volume = gameVol * 1.0
+      shutterAudioRef.current.volume = Math.max(0.1, gameVol * 1.0)
     }
   }, [audioSettings, getEffectiveVolume])
 
   // Sound Playback: Neigh at start, Galloping during race loop, Stop on finish/result
   useEffect(() => {
     if (phase === 'racing') {
-      if (neighAudioRef.current) {
-        neighAudioRef.current.currentTime = 0
-        neighAudioRef.current.play().catch(() => { })
-      }
-      if (gallopAudioRef.current) {
-        gallopAudioRef.current.currentTime = 0
-        gallopAudioRef.current.play().catch(() => { })
-      }
+      const horseVol = getEffectiveVolume('horseVoice')
+      const gameVol = getEffectiveVolume('gameVoice')
+      playRaceStartBell(gameVol)
+      playHorseNeighSound(horseVol)
+      startHorseGallopSound(horseVol)
     } else {
-      if (gallopAudioRef.current) {
-        gallopAudioRef.current.pause()
-        gallopAudioRef.current.currentTime = 0
-      }
+      stopHorseGallopSound()
       if (neighAudioRef.current && phase !== 'racing') {
-        neighAudioRef.current.pause()
-        neighAudioRef.current.currentTime = 0
+        try {
+          neighAudioRef.current.pause()
+          neighAudioRef.current.currentTime = 0
+        } catch (_) { }
       }
     }
-  }, [phase])
+  }, [phase, getEffectiveVolume, playHorseNeighSound, startHorseGallopSound, stopHorseGallopSound])
 
   const resetRace = useCallback(() => {
     if (rafRef.current) {
       cancelAnimationFrame(rafRef.current)
       rafRef.current = null
     }
-    if (gallopAudioRef.current) {
-      gallopAudioRef.current.pause()
-      gallopAudioRef.current.currentTime = 0
-    }
+    stopHorseGallopSound()
     if (neighAudioRef.current) {
-      neighAudioRef.current.pause()
-      neighAudioRef.current.currentTime = 0
+      try {
+        neighAudioRef.current.pause()
+        neighAudioRef.current.currentTime = 0
+      } catch (_) { }
     }
     if (gameCanvasRef.current) {
       const trackEl = gameCanvasRef.current.querySelector('.full-bg-track')
