@@ -610,6 +610,15 @@ class GameApiService {
             (100 + idx)
           )
 
+          let portraitImg = r?.imageUrl || r?.image_url || r?.image || r?.portraitImg || r?.winnerHorseImage || r?.winner_horse_image || null
+          if (typeof portraitImg === 'string') {
+            if (portraitImg.startsWith('/uploads')) {
+              portraitImg = `https://horseracing.siberiancrane.tech${portraitImg}`
+            } else if (portraitImg.includes('localhost:3000')) {
+              portraitImg = portraitImg.replace('http://localhost:3000', 'https://horseracing.siberiancrane.tech')
+            }
+          }
+
           const timeVal = r?.finishedAt || r?.finished_at || r?.createdAt || r?.created_at
           const timeStr = timeVal
             ? new Date(timeVal).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
@@ -618,6 +627,8 @@ class GameApiService {
           return {
             number: horseNum,
             name: horseName,
+            portraitImg: portraitImg,
+            imageUrl: portraitImg,
             multiplier: mult,
             jackpot: r?.jackpot || (mult > 1 ? `${mult}X` : 'N'),
             isJackpot: Boolean(r?.isJackpot || mult > 1),

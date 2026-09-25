@@ -339,7 +339,7 @@ function LiveLeaderboard({
           }
 
           const portraitSrc =
-            runner.portraitImg || `/Bet_horses/horses${runner.number}.png`
+            runner.portraitImg || runner.imageUrl || runner.image || `/Bet_horses/horses${runner.number}.png`
 
           return (
             <div
@@ -400,9 +400,9 @@ function LiveLeaderboard({
                   className="rlb-portrait-img"
                   draggable="false"
                   onError={(e) => {
-                    // Fallback if double extension or format difference
-                    if (!e.currentTarget.src.includes('.png.png')) {
-                      e.currentTarget.src = `/Bet_horses/horses${runner.number}.png.png`
+                    const fallback = `/Bet_horses/horses${runner.number}.png`
+                    if (e.currentTarget.src !== fallback && !e.currentTarget.src.endsWith(fallback)) {
+                      e.currentTarget.src = fallback
                     }
                   }}
                 />

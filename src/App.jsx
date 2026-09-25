@@ -40,7 +40,7 @@ const WalletModal = React.lazy(() => import('./components/WalletModal.jsx'))
 const AuthModal = React.lazy(() => import('./components/auth/AuthModal.jsx'))
 const UserProfileModal = React.lazy(() => import('./components/auth/UserProfileModal.jsx'))
 
-import { horseService, DEFAULT_HORSES, mapApiHorses } from './services/horseService.js'
+import { horseService, DEFAULT_HORSES } from './services/horseService.js'
 import { socketService } from './services/socketService.js'
 import { gameApiService } from './services/gameApiService.js'
 import { storageService } from './services/storageService.js'
@@ -351,9 +351,8 @@ export default function App() {
             setGameSerialNumber(serial)
           }
           if (Array.isArray(curr.horses) && curr.horses.length > 0) {
-            const mapped = mapApiHorses(curr.horses)
-            setHorses(mapped)
-            setRunners((prev) => (recoveredSessionRef.current?.runners ? prev : makeRunners(null, mapped)))
+            setHorses(curr.horses)
+            setRunners((prev) => (recoveredSessionRef.current?.runners ? prev : makeRunners(null, curr.horses)))
           }
           if (typeof curr.timeLeft === 'number' && phase === 'idle') {
             setTimerSeconds(curr.timeLeft)
@@ -367,9 +366,8 @@ export default function App() {
             .getHorses()
             .then((fetched) => {
               if (Array.isArray(fetched) && fetched.length > 0) {
-                const mapped = mapApiHorses(fetched)
-                setHorses(mapped)
-                setRunners((prev) => (recoveredSessionRef.current?.runners ? prev : makeRunners(null, mapped)))
+                setHorses(fetched)
+                setRunners((prev) => (recoveredSessionRef.current?.runners ? prev : makeRunners(null, fetched)))
               }
             })
             .catch(() => { })
@@ -378,9 +376,8 @@ export default function App() {
       .catch(() => {
         horseService.getHorses().then((fetched) => {
           if (Array.isArray(fetched) && fetched.length > 0) {
-            const mapped = mapApiHorses(fetched)
-            setHorses(mapped)
-            setRunners((prev) => (recoveredSessionRef.current?.runners ? prev : makeRunners(null, mapped)))
+            setHorses(fetched)
+            setRunners((prev) => (recoveredSessionRef.current?.runners ? prev : makeRunners(null, fetched)))
           }
         }).catch(() => { })
       })
@@ -1326,13 +1323,6 @@ export default function App() {
           localStorage.setItem('horse_game_serial_no', parsed.serialNumber)
         } catch (_) { }
       }
-      if (Array.isArray(parsed.horses) && parsed.horses.length > 0) {
-        const mapped = mapApiHorses(parsed.horses)
-        setHorses(mapped)
-      } else if (Array.isArray(data?.horses) && data.horses.length > 0) {
-        const mapped = mapApiHorses(data.horses)
-        setHorses(mapped)
-      }
       if (parsed.timeLeft !== null) setTimerSeconds(parsed.timeLeft)
       if (parsed.winnerHorseId) {
         handleWinnerUpdate(parsed.winnerHorseId)
@@ -1394,13 +1384,6 @@ export default function App() {
         try {
           localStorage.setItem('horse_game_serial_no', parsed.serialNumber)
         } catch (_) { }
-      }
-      if (Array.isArray(parsed.horses) && parsed.horses.length > 0) {
-        const mapped = mapApiHorses(parsed.horses)
-        setHorses(mapped)
-      } else if (Array.isArray(data?.horses) && data.horses.length > 0) {
-        const mapped = mapApiHorses(data.horses)
-        setHorses(mapped)
       }
       if (parsed.winnerHorseId) {
         handleWinnerUpdate(parsed.winnerHorseId)

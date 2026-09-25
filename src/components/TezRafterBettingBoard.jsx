@@ -421,7 +421,7 @@ function TezRafterBettingBoard({
                     {/* Card Portrait Body (Clean image without floating coin obstruction) */}
                     <div className="tez-card-body">
                       <img
-                        src={h.portraitImg || h.img}
+                        src={h.portraitImg || h.imageUrl || h.image || `/Bet_horses/horses${h.number}.png`}
                         alt={h.name}
                         className="tez-card-horse-img"
                         draggable="false"
@@ -505,7 +505,7 @@ function TezRafterBettingBoard({
                 {previousResults && previousResults.length > 0 ? (
                   previousResults.slice(0, 10).map((res, idx) => {
                     const horseInfo = horses?.find((h) => h.number === Number(res.number))
-                    const horseImg = horseInfo?.portraitImg || horseInfo?.img || `/Bet_horses/horses${res.number}.png`
+                    const horseImg = res.portraitImg || res.imageUrl || horseInfo?.portraitImg || horseInfo?.imageUrl || `/Bet_horses/horses${res.number}.png`
                     return (
                       <div key={idx} className="tez-res-row">
                         <div className="tez-res-badge">{res.number}</div>
