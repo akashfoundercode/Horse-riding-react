@@ -2858,3 +2858,22 @@ export default function App() {
     </>
   )
 }
+<div className="rotate-arrow-indicator">
+  <RotateCw size={26} className="text-amber-400" />
+</div>
+              </div >
+              <h2 className="rotate-title">ROTATE YOUR DEVICE</h2>
+              <p className="rotate-subtitle">
+                Race viewing requires <strong>Landscape Mode</strong> for full track view.
+              </p>
+              <div className="rotate-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                <Smartphone size={14} className="text-amber-400" />
+                <span>PLEASE ROTATE TO HORIZONTAL</span>
+              </div>
+            </div >
+          </div >
+        )}
+      </div >
+    </>
+  )
+}
