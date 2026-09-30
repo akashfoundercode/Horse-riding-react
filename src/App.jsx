@@ -19,6 +19,8 @@ import {
   User,
   Crown,
   Coins,
+  Wifi,
+  WifiOff,
 } from 'lucide-react'
 import Horse from './components/Horse.jsx'
 import TezRafterBettingBoard from './components/TezRafterBettingBoard.jsx'
@@ -146,154 +148,88 @@ function getPersistedGameSession() {
 
 function computeInitialRecovery() {
   const initialSession = getPersistedGameSession()
-  if (!initialSession) {
-    return {
-      phase: 'idle',
-      timerSeconds: 40,
-      countdown: 3,
-      raceElapsed: 0,
-      isAssetLoading: true,
-      betsByHorse: {},
-      betCoinsByHorse: {},
-      runners: null,
-      winner: null,
-      gameSerialNumber: null,
-      jackpotMultiplier: 1,
-      jackpotDisplay: 'N',
-      initialSession: null,
-    }
+  // When user refreshes, if previous state was mid-race or countdown, or timer expired,
+  // clear the active session so horses do not start running prematurely!
+  if (initialSession && (initialSession.phase === 'racing' || initialSession.phase === 'countdown' || (initialSession.timerSeconds || 0) <= 3)) {
+    try {
+      sessionStorage.removeItem('tez_game_active_session')
+      localStorage.removeItem('tez_game_active_session')
+    } catch (_) { }
   }
-
-  const now = Date.now()
-  if (initialSession.phase === 'racing' && initialSession.raceStartTime) {
-    const elapsed = (now - initialSession.raceStartTime) / 1000
-    if (elapsed < 20.3) {
-      return {
-        phase: 'racing',
-        timerSeconds: 0,
-        countdown: 0,
-        raceElapsed: elapsed,
-        isAssetLoading: false,
-        betsByHorse: initialSession.betsByHorse || {},
-        betCoinsByHorse: initialSession.betCoinsByHorse || {},
-        runners: initialSession.runners || null,
-        winner: initialSession.winner || null,
-        gameSerialNumber: initialSession.gameSerialNumber || null,
-        jackpotMultiplier: initialSession.jackpotMultiplier || 1,
-        jackpotDisplay: initialSession.jackpotDisplay || 'N',
-        initialSession,
-      }
-    } else if (elapsed < 27.0) {
-      return {
-        phase: 'result',
-        timerSeconds: 0,
-        countdown: 0,
-        raceElapsed: 20.3,
-        isAssetLoading: false,
-        betsByHorse: initialSession.betsByHorse || {},
-        betCoinsByHorse: initialSession.betCoinsByHorse || {},
-        runners: initialSession.runners || null,
-        winner: initialSession.winner || (initialSession.runners ? initialSession.runners.find((r) => r.isWinner) : null),
-        gameSerialNumber: initialSession.gameSerialNumber || null,
-        jackpotMultiplier: initialSession.jackpotMultiplier || 1,
-        jackpotDisplay: initialSession.jackpotDisplay || 'N',
-        initialSession,
-      }
-    }
-  } else if (initialSession.phase === 'countdown' && initialSession.countdownStartTime) {
-    const elapsed = (now - initialSession.countdownStartTime) / 1000
-    if (elapsed < 3.5) {
-      return {
-        phase: 'countdown',
-        timerSeconds: 0,
-        countdown: Math.max(0, 3 - Math.floor(elapsed)),
-        raceElapsed: 0,
-        isAssetLoading: false,
-        betsByHorse: initialSession.betsByHorse || {},
-        betCoinsByHorse: initialSession.betCoinsByHorse || {},
-        runners: initialSession.runners || null,
-        winner: null,
-        gameSerialNumber: initialSession.gameSerialNumber || null,
-        jackpotMultiplier: initialSession.jackpotMultiplier || 1,
-        jackpotDisplay: initialSession.jackpotDisplay || 'N',
-        initialSession,
-      }
-    } else if (elapsed < 24.0) {
-      return {
-        phase: 'racing',
-        timerSeconds: 0,
-        countdown: 0,
-        raceElapsed: elapsed - 3.5,
-        isAssetLoading: false,
-        betsByHorse: initialSession.betsByHorse || {},
-        betCoinsByHorse: initialSession.betCoinsByHorse || {},
-        runners: initialSession.runners || null,
-        winner: null,
-        gameSerialNumber: initialSession.gameSerialNumber || null,
-        jackpotMultiplier: initialSession.jackpotMultiplier || 1,
-        jackpotDisplay: initialSession.jackpotDisplay || 'N',
-        initialSession,
-      }
-    }
-  } else if (initialSession.phase === 'result' && initialSession.resultStartTime) {
-    const elapsed = (now - initialSession.resultStartTime) / 1000
-    if (elapsed < 6.5) {
-      return {
-        phase: 'result',
-        timerSeconds: 0,
-        countdown: 0,
-        raceElapsed: 20.3,
-        isAssetLoading: false,
-        betsByHorse: initialSession.betsByHorse || {},
-        betCoinsByHorse: initialSession.betCoinsByHorse || {},
-        runners: initialSession.runners || null,
-        winner: initialSession.winner || null,
-        gameSerialNumber: initialSession.gameSerialNumber || null,
-        jackpotMultiplier: initialSession.jackpotMultiplier || 1,
-        jackpotDisplay: initialSession.jackpotDisplay || 'N',
-        initialSession,
-      }
-    }
-  } else if (initialSession.phase === 'idle') {
-    const elapsed = Math.floor((now - (initialSession.savedAt || now)) / 1000)
-    const remaining = Math.max(0, (initialSession.timerSeconds ?? 40) - elapsed)
-    return {
-      phase: 'idle',
-      timerSeconds: remaining > 0 ? remaining : 40,
-      countdown: 3,
-      raceElapsed: 0,
-      isAssetLoading: true,
-      betsByHorse: initialSession.betsByHorse || {},
-      betCoinsByHorse: initialSession.betCoinsByHorse || {},
-      runners: null,
-      winner: null,
-      gameSerialNumber: initialSession.gameSerialNumber || null,
-      jackpotMultiplier: initialSession.jackpotMultiplier || 1,
-      jackpotDisplay: initialSession.jackpotDisplay || 'N',
-      initialSession,
-    }
-  }
+  const safeTimer = (initialSession && initialSession.phase === 'idle' && typeof initialSession.timerSeconds === 'number' && initialSession.timerSeconds > 3)
+    ? initialSession.timerSeconds
+    : 40
 
   return {
     phase: 'idle',
-    timerSeconds: 40,
+    timerSeconds: safeTimer,
     countdown: 3,
     raceElapsed: 0,
     isAssetLoading: true,
-    betsByHorse: {},
-    betCoinsByHorse: {},
+    betsByHorse: initialSession?.phase === 'idle' ? (initialSession?.betsByHorse || {}) : {},
+    betCoinsByHorse: initialSession?.phase === 'idle' ? (initialSession?.betCoinsByHorse || {}) : {},
     runners: null,
     winner: null,
-    gameSerialNumber: null,
-    jackpotMultiplier: 1,
-    jackpotDisplay: 'N',
-    initialSession: null,
+    gameSerialNumber: initialSession?.gameSerialNumber || null,
+    jackpotMultiplier: initialSession?.jackpotMultiplier || 1,
+    jackpotDisplay: initialSession?.jackpotDisplay || 'N',
+    initialSession,
   }
 }
 
 export default function App() {
   const recoveredSessionRef = useRef(computeInitialRecovery())
   const recovered = recoveredSessionRef.current
+
+  // Live Network / Internet Connectivity State ('online' | 'lagging' | 'offline')
+  const [networkStatus, setNetworkStatus] = useState(() => (typeof navigator !== 'undefined' && navigator.onLine ? 'online' : 'offline'))
+  const lastPacketTimeRef = useRef(Date.now())
+
+  useEffect(() => {
+    const handleOnline = () => setNetworkStatus('online')
+    const handleOffline = () => setNetworkStatus('offline')
+    const handleSocketConnect = () => setNetworkStatus('online')
+    const handleSocketDisconnect = () => setNetworkStatus('offline')
+    const handleSocketLag = () => setNetworkStatus('lagging')
+
+    window.addEventListener('online', handleOnline)
+    window.addEventListener('offline', handleOffline)
+    window.addEventListener('derby:socket_connect', handleSocketConnect)
+    window.addEventListener('derby:socket_disconnect', handleSocketDisconnect)
+    window.addEventListener('derby:socket_error', handleSocketLag)
+    window.addEventListener('derby:socket_reconnecting', handleSocketLag)
+
+    const heartbeatTimer = setInterval(() => {
+      if (typeof navigator !== 'undefined' && !navigator.onLine) {
+        setNetworkStatus('offline')
+        return
+      }
+      const timeSinceLast = Date.now() - (socketService.lastActivityTime || lastPacketTimeRef.current)
+      if (phase === 'racing') {
+        if (timeSinceLast > 2500) {
+          setNetworkStatus('lagging')
+        } else if (socketService.connected) {
+          setNetworkStatus('online')
+        }
+      } else {
+        if (timeSinceLast > 10000 && !socketService.connected) {
+          setNetworkStatus('lagging')
+        } else if (socketService.connected) {
+          setNetworkStatus('online')
+        }
+      }
+    }, 1500)
+
+    return () => {
+      window.removeEventListener('online', handleOnline)
+      window.removeEventListener('offline', handleOffline)
+      window.removeEventListener('derby:socket_connect', handleSocketConnect)
+      window.removeEventListener('derby:socket_disconnect', handleSocketDisconnect)
+      window.removeEventListener('derby:socket_error', handleSocketLag)
+      window.removeEventListener('derby:socket_reconnecting', handleSocketLag)
+      clearInterval(heartbeatTimer)
+    }
+  }, [phase])
 
   const [isCheatEnabled, setIsCheatEnabled] = useState(() => {
     try {
@@ -398,7 +334,8 @@ export default function App() {
   const [isWalletOpen, setIsWalletOpen] = useState(false)
 
   // Enterprise Auth & Wallet Providers
-  const { user, isAuthenticated, isGuest, isAuthModalOpen, setIsAuthModalOpen, isProfileModalOpen, setIsProfileModalOpen } = useAuth()
+  const { user, isAuthenticated, isGuest, isAuthModalOpen, setIsAuthModalOpen, isProfileModalOpen, setIsProfileModalOpen, logout } = useAuth()
+  const isUserAuthenticated = Boolean(isAuthenticated && !isGuest)
   const {
     balance,
     setBalance,
@@ -1359,6 +1296,16 @@ export default function App() {
       } else if (rawStatus === 'RACING' || rawStatus === 'RUNNING') {
         setIsBettingLocked(true)
         if (phase !== 'racing') {
+          let elapsed = 0
+          if (parsed.started_at) {
+            elapsed = (Date.now() - new Date(parsed.started_at).getTime()) / 1000
+          }
+          if (elapsed > 18.5) {
+            return
+          }
+          if (elapsed > 0 && elapsed <= 18.5) {
+            raceResumeOffsetRef.current = elapsed
+          }
           startRaceNow(parsed.winnerHorseId)
         }
       } else if (rawStatus === 'RESULT' || rawStatus === 'FINISHED') {
@@ -1483,6 +1430,16 @@ export default function App() {
       } else if (st === 'RACING' || st === 'RUNNING') {
         setIsBettingLocked(true)
         if (phase !== 'racing') {
+          let elapsed = 0
+          if (parsed.started_at) {
+            elapsed = (Date.now() - new Date(parsed.started_at).getTime()) / 1000
+          }
+          if (elapsed > 18.5) {
+            return
+          }
+          if (elapsed > 0 && elapsed <= 18.5) {
+            raceResumeOffsetRef.current = elapsed
+          }
           startRaceNow(parsed.winnerHorseId)
         }
       } else if (st === 'RESULT' || st === 'FINISHED') {
@@ -1496,6 +1453,9 @@ export default function App() {
 
     // 7. race:running_track & race:track_update — Running horses live position (200ms socket stream)
     const handleRunningTrack = (data) => {
+      lastPacketTimeRef.current = Date.now()
+      setNetworkStatus((prev) => (prev !== 'online' && navigator.onLine ? 'online' : prev))
+
       const parsed = parseRacePayload(data)
       const horseList = Array.isArray(data) ? data : (data?.horses || data?.runners || data?.race?.horses || [])
       const winnerFromHorses = horseList.find((h) => h.isWinner || h.is_winner)?.serialNumber ?? data?.leader?.serialNumber
@@ -1529,6 +1489,10 @@ export default function App() {
             }
 
             if (targetRatio !== null) {
+              // Anti-jitter: during active race, horse progress must never roll backwards due to late/dropped packets
+              if (runner.visualRatio !== undefined && targetRatio < runner.visualRatio - 0.04 && targetRatio > 0.05) {
+                targetRatio = runner.visualRatio
+              }
               const prevArrival = runner.lastTickArrival || (now - 200)
               const measuredTickDuration = Math.min(350, Math.max(120, now - prevArrival))
               runner.tickDurationMs = measuredTickDuration
@@ -1756,27 +1720,17 @@ export default function App() {
 
   // Automatically transition to 3-2-1 countdown when timer reaches 0
   useEffect(() => {
-    if (phase === 'idle' && timerSeconds === 0 && !isAssetLoading) {
-      if (!isAuthenticated || isGuest) {
-        setIsAuthModalOpen(true)
-        return
-      }
+    if (phase === 'idle' && timerSeconds === 0 && !isAssetLoading && isUserAuthenticated) {
       prepareAndStartCountdown()
     }
-  }, [phase, timerSeconds, prepareAndStartCountdown, isAssetLoading, isAuthenticated, isGuest, setIsAuthModalOpen])
-
-  useEffect(() => {
-    if (!isAssetLoading && phase === 'idle' && (!isAuthenticated || isGuest)) {
-      setIsAuthModalOpen(true)
-    }
-  }, [isAssetLoading, phase, isAuthenticated, isGuest, setIsAuthModalOpen])
+  }, [phase, timerSeconds, prepareAndStartCountdown, isAssetLoading, isUserAuthenticated])
 
   const [raceId, setRaceId] = useState(0)
   const screenshotTakenRef = useRef(false)
 
   // Core race animation loop
   useEffect(() => {
-    if (phase !== 'racing') return
+    if (phase !== 'racing' || isAssetLoading) return
     const initialElapsedMs = raceResumeOffsetRef.current ? raceResumeOffsetRef.current * 1000 : 0
     startTimeRef.current = performance.now() - initialElapsedMs
     raceResumeOffsetRef.current = 0
@@ -1905,6 +1859,11 @@ export default function App() {
             const extraElapsed = (elapsedSinceTick - duration) / 1000
             const estimatedVelocity = (target - from) / (duration / 1000)
             interpolatedRatio = Math.min(1.0, target + estimatedVelocity * extraElapsed * 0.5)
+          }
+
+          // Anti-jitter: strictly forward-moving monotonic clamp
+          if (typeof r.visualRatio === 'number' && interpolatedRatio < r.visualRatio) {
+            interpolatedRatio = r.visualRatio
           }
 
           r.visualRatio = interpolatedRatio
@@ -2210,7 +2169,7 @@ export default function App() {
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current)
     }
-  }, [phase])
+  }, [phase, isAssetLoading])
 
   // Win / Loss balance update on race result & persistent history log (STRICTLY ONCE PER ROUND)
   useEffect(() => {
@@ -2430,18 +2389,59 @@ export default function App() {
               </span>
             </div>
 
-            {/* Right: Coins Balance Pill (Display only during race, no modal trigger) */}
-            <div
-              className="canvas-balance-badge"
-              title="Your Available Balance"
-            >
-              <Coins size={15} className="text-amber-400" style={{ marginRight: '2px' }} />
-              <span className="bal-tag">BALANCE:</span>
-              <span className="bal-pts">{balance}</span>
-              {totalBet > 0 && (
-                <span className="hud-bet-tag">
-                  | BET: {totalBet}
+            {/* Right: Network Status Indicator & Coins Balance */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', pointerEvents: 'auto' }}>
+              <div
+                className={`hud-network-badge hud-network-${networkStatus}`}
+                title={
+                  networkStatus === 'online'
+                    ? 'Internet Connection: Online & Synchronized'
+                    : networkStatus === 'lagging'
+                    ? 'Slow Internet / High Latency: Horse positions may fluctuate'
+                    : 'Internet Disconnected: Offline'
+                }
+              >
+                {networkStatus === 'offline' ? (
+                  <WifiOff size={13} className="net-icon-offline animate-pulse" />
+                ) : (
+                  <Wifi size={13} className={networkStatus === 'lagging' ? 'net-icon-lagging animate-pulse' : 'net-icon-online'} />
+                )}
+                <span className="net-status-text">
+                  {networkStatus === 'online' ? 'LIVE' : networkStatus === 'lagging' ? 'SLOW' : 'NO NET'}
                 </span>
+              </div>
+
+              <div
+                className="canvas-balance-badge"
+                title="Your Available Balance"
+              >
+                <Coins size={15} className="text-amber-400" style={{ marginRight: '2px' }} />
+                <span className="bal-tag">BALANCE:</span>
+                <span className="bal-pts">{balance}</span>
+                {totalBet > 0 && (
+                  <span className="hud-bet-tag">
+                    | BET: {totalBet}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Floating Real-Time Network Issue Alert (Shows when network is slow or offline so user knows why horses fluctuated) */}
+        {networkStatus !== 'online' && (
+          <div className={`network-issue-toast network-issue-${networkStatus}`}>
+            <div className="network-issue-content">
+              {networkStatus === 'offline' ? (
+                <>
+                  <WifiOff size={16} className="net-toast-icon animate-pulse" />
+                  <span>Internet Connection Lost. Attempting to reconnect...</span>
+                </>
+              ) : (
+                <>
+                  <Wifi size={16} className="net-toast-icon animate-pulse" />
+                  <span>Slow Internet / Network Delay Detected — Horse positions may fluctuate</span>
+                </>
               )}
             </div>
           </div>
@@ -2572,6 +2572,8 @@ export default function App() {
           {/* TEZ RAFTER CASINO BETTING BOARD (Persistently mounted in DOM for instant 0ms display without reloading) */}
           <TezRafterBettingBoard
             isVisible={phase === 'idle'}
+            networkStatus={networkStatus}
+            onLogout={logout}
             horses={horses}
             balance={balance}
             totalBet={totalBet}

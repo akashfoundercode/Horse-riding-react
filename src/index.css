@@ -5189,6 +5189,119 @@ button {
   transform: scale(1.04);
 }
 
+/* Wi-Fi & Network Health Indicator Badge */
+.hud-network-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: 14px;
+  font-size: clamp(9px, 0.9vw, 11px);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  pointer-events: auto;
+  user-select: none;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  transition: all 0.25s ease;
+  white-space: nowrap;
+}
+
+.hud-network-online {
+  background: rgba(16, 185, 129, 0.2);
+  border: 1px solid rgba(52, 211, 153, 0.55);
+  color: #34d399;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.25);
+}
+
+.hud-network-lagging {
+  background: rgba(245, 158, 11, 0.25);
+  border: 1px solid rgba(251, 191, 36, 0.7);
+  color: #fbbf24;
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.4);
+  animation: netPulse 1.6s ease-in-out infinite;
+}
+
+.hud-network-offline {
+  background: rgba(239, 68, 68, 0.3);
+  border: 1px solid rgba(248, 113, 113, 0.8);
+  color: #f87171;
+  box-shadow: 0 0 14px rgba(239, 68, 68, 0.5);
+  animation: netPulse 1s ease-in-out infinite;
+}
+
+.net-status-text {
+  font-size: 10px;
+  font-weight: 900;
+}
+
+/* Floating Real-Time Network Issue Alert Banner (Direct Feedback on Racetrack) */
+.network-issue-toast {
+  position: absolute;
+  top: 48px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  pointer-events: none;
+  animation: netToastDrop 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes netToastDrop {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -12px);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+@keyframes netPulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.65;
+    transform: scale(1.04);
+  }
+}
+
+.network-issue-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: clamp(10px, 1.1vw, 12.5px);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7);
+  white-space: nowrap;
+}
+
+.network-issue-lagging .network-issue-content {
+  background: rgba(217, 119, 6, 0.92);
+  color: #ffffff;
+  border: 1.5px solid #fef08a;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+}
+
+.network-issue-offline .network-issue-content {
+  background: rgba(185, 28, 28, 0.94);
+  color: #ffffff;
+  border: 1.5px solid #fecaca;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+}
+
+.net-toast-icon {
+  flex-shrink: 0;
+}
+
+
 @media (max-width: 768px) {
   .games-cards-grid {
     grid-template-columns: repeat(2, 1fr);

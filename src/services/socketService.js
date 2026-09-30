@@ -108,7 +108,19 @@ class SocketService {
     this.socket.on('connect_error', (error) => {
       this.connected = false
       console.warn('[Socket.IO] Connect error (will retry):', error.message)
+      this.emitInternal('connect_error', error)
+      window.dispatchEvent(new CustomEvent('derby:socket_error', { detail: { error } }))
     })
+
+    if (this.socket.io) {
+      this.socket.io.on('reconnect_attempt', (attempt) => {
+        window.dispatchEvent(new CustomEvent('derby:socket_reconnecting', { detail: { attempt } }))
+      })
+      this.socket.io.on('reconnect', () => {
+        this.connected = true
+        window.dispatchEvent(new CustomEvent('derby:socket_connect'))
+      })
+    }
 
     // ─────────────────────────────────────────────────────────────
     // 11 CORE SOCKET EVENTS SPECIFIED FOR HORSE RACING
