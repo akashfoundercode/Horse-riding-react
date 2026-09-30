@@ -181,6 +181,24 @@ export default function App() {
   const recoveredSessionRef = useRef(computeInitialRecovery())
   const recovered = recoveredSessionRef.current
 
+  const [phase, setPhase] = useState(recovered.phase) // 40-second automated betting & race cycle
+  const [horses, setHorses] = useState(DEFAULT_HORSES)
+  const horsesRef = useRef(horses)
+  const [runners, setRunners] = useState(() => recovered.runners || makeRunners(null, DEFAULT_HORSES))
+  const runnersRef = useRef(runners)
+  const runnerDomMapRef = useRef({})
+  // Maps horse number → { img: HTMLImageElement, canvas: HTMLCanvasElement }
+  // Used to imperatively freeze GIF frame from inside the RAF loop (synchronous, no React re-render lag)
+  const gifDomMapRef = useRef({})
+
+  useEffect(() => {
+    horsesRef.current = horses
+  }, [horses])
+
+  useEffect(() => {
+    runnersRef.current = runners
+  }, [runners])
+
   // Live Network / Internet Connectivity State ('online' | 'lagging' | 'offline')
   const [networkStatus, setNetworkStatus] = useState(() => (typeof navigator !== 'undefined' && navigator.onLine ? 'online' : 'offline'))
   const lastPacketTimeRef = useRef(Date.now())
@@ -257,23 +275,6 @@ export default function App() {
     }
   })
 
-  const [horses, setHorses] = useState(DEFAULT_HORSES)
-  const horsesRef = useRef(horses)
-  useEffect(() => {
-    horsesRef.current = horses
-  }, [horses])
-
-  const [phase, setPhase] = useState(recovered.phase) // 40-second automated betting & race cycle
-  const [runners, setRunners] = useState(() => recovered.runners || makeRunners(null, DEFAULT_HORSES))
-  const runnersRef = useRef(runners)
-  const runnerDomMapRef = useRef({})
-  // Maps horse number → { img: HTMLImageElement, canvas: HTMLCanvasElement }
-  // Used to imperatively freeze GIF frame from inside the RAF loop (synchronous, no React re-render lag)
-  const gifDomMapRef = useRef({})
-
-  useEffect(() => {
-    runnersRef.current = runners
-  }, [runners])
 
   // 2. Fetch Live Race & 12 Horses List (GET /api/races/current)
   useEffect(() => {
