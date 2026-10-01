@@ -17,9 +17,6 @@ import {
   HelpCircle,
   Lock,
   User,
-  LogOut,
-  Wifi,
-  WifiOff,
 } from 'lucide-react'
 
 import { getSafeAudioContext } from '../utils/audioContextHelper.js'
@@ -65,8 +62,6 @@ function TezRafterBettingBoard({
   isGuest,
   onOpenAuth,
   onOpenProfile,
-  onLogout,
-  networkStatus = 'online',
 }) {
   const { balance: liveWalletBalance, totalWon: liveTotalWon, totalWins: liveTotalWins } = useWallet()
   const balance = typeof liveWalletBalance === 'number' ? liveWalletBalance : (typeof propBalance === 'number' ? propBalance : 0)
@@ -317,66 +312,6 @@ function TezRafterBettingBoard({
               </button>
             )}
 
-            {user && !isGuest && onLogout && (
-              <button
-                type="button"
-                className="tez-header-icon-btn"
-                onClick={onLogout}
-                title="Logout from Arena (लॉगआउट)"
-                style={{
-                  background: 'rgba(239, 68, 68, 0.2)',
-                  borderColor: 'rgba(239, 68, 68, 0.45)',
-                  color: '#f87171',
-                }}
-              >
-                <LogOut size={16} />
-              </button>
-            )}
-
-            {/* Network Health / Wi-Fi Status Indicator */}
-            <div
-              className={`tez-header-icon-btn net-indicator-${networkStatus}`}
-              title={
-                networkStatus === 'online'
-                  ? 'Internet Connection: Online & Active'
-                  : networkStatus === 'lagging'
-                    ? 'Network Issue: High Latency / Slow Connection'
-                    : 'Internet Disconnected: Offline'
-              }
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '4px',
-                padding: '4px 8px',
-                width: 'auto',
-                borderRadius: '8px',
-                cursor: 'default',
-                border: networkStatus === 'online'
-                  ? '1px solid rgba(16, 185, 129, 0.45)'
-                  : networkStatus === 'lagging'
-                    ? '1px solid rgba(245, 158, 11, 0.65)'
-                    : '1px solid rgba(239, 68, 68, 0.65)',
-                background: networkStatus === 'online'
-                  ? 'rgba(16, 185, 129, 0.15)'
-                  : networkStatus === 'lagging'
-                    ? 'rgba(245, 158, 11, 0.25)'
-                    : 'rgba(239, 68, 68, 0.25)',
-                color: networkStatus === 'online'
-                  ? '#34d399'
-                  : networkStatus === 'lagging'
-                    ? '#fbbf24'
-                    : '#f87171',
-              }}
-            >
-              {networkStatus === 'offline' ? (
-                <WifiOff size={14} className="animate-pulse" />
-              ) : (
-                <Wifi size={14} className={networkStatus === 'lagging' ? 'animate-pulse' : ''} />
-              )}
-              <span style={{ fontSize: '10.5px', fontWeight: '800', letterSpacing: '0.5px' }}>
-                {networkStatus === 'online' ? 'LIVE' : networkStatus === 'lagging' ? 'SLOW' : 'NO NET'}
-              </span>
-            </div>
 
             {onOpenHistory && (
               <button

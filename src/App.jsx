@@ -2266,6 +2266,31 @@ export default function App() {
 
   return (
     <>
+      {/* Real-Time Center Internet Connection Issue Alert (Appears ONLY on late socket response / disconnect) */}
+      {networkStatus !== 'online' && !isAssetLoading && (
+        <div className="center-net-issue-overlay">
+          <div className={`center-net-issue-card center-net-${networkStatus}`}>
+            <div className="center-net-icon-wrap">
+              {networkStatus === 'offline' ? (
+                <WifiOff size={28} className="center-net-icon animate-pulse" />
+              ) : (
+                <Wifi size={28} className="center-net-icon animate-pulse" />
+              )}
+            </div>
+            <div className="center-net-text-wrap">
+              <div className="center-net-title">
+                {networkStatus === 'offline' ? 'INTERNET DISCONNECTED' : 'POOR INTERNET CONNECTION'}
+              </div>
+              <div className="center-net-subtitle">
+                {networkStatus === 'offline'
+                  ? 'Internet disconnect ho gaya hai. Reconnecting...'
+                  : 'Late socket response. Horses synchronize hone me delay ho sakta hai.'}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 0. STRICT FULLSCREEN ASSET LOADER GATEWAY */}
       {isAssetLoading && (
         <DerbyAssetLoader onComplete={handleLoaderComplete} />
@@ -2390,59 +2415,18 @@ export default function App() {
               </span>
             </div>
 
-            {/* Right: Network Status Indicator & Coins Balance */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', pointerEvents: 'auto' }}>
-              <div
-                className={`hud-network-badge hud-network-${networkStatus}`}
-                title={
-                  networkStatus === 'online'
-                    ? 'Internet Connection: Online & Synchronized'
-                    : networkStatus === 'lagging'
-                    ? 'Slow Internet / High Latency: Horse positions may fluctuate'
-                    : 'Internet Disconnected: Offline'
-                }
-              >
-                {networkStatus === 'offline' ? (
-                  <WifiOff size={13} className="net-icon-offline animate-pulse" />
-                ) : (
-                  <Wifi size={13} className={networkStatus === 'lagging' ? 'net-icon-lagging animate-pulse' : 'net-icon-online'} />
-                )}
-                <span className="net-status-text">
-                  {networkStatus === 'online' ? 'LIVE' : networkStatus === 'lagging' ? 'SLOW' : 'NO NET'}
+            {/* Right: Coins Balance Pill (Display only during race, no modal trigger) */}
+            <div
+              className="canvas-balance-badge"
+              title="Your Available Balance"
+            >
+              <Coins size={15} className="text-amber-400" style={{ marginRight: '2px' }} />
+              <span className="bal-tag">BALANCE:</span>
+              <span className="bal-pts">{balance}</span>
+              {totalBet > 0 && (
+                <span className="hud-bet-tag">
+                  | BET: {totalBet}
                 </span>
-              </div>
-
-              <div
-                className="canvas-balance-badge"
-                title="Your Available Balance"
-              >
-                <Coins size={15} className="text-amber-400" style={{ marginRight: '2px' }} />
-                <span className="bal-tag">BALANCE:</span>
-                <span className="bal-pts">{balance}</span>
-                {totalBet > 0 && (
-                  <span className="hud-bet-tag">
-                    | BET: {totalBet}
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Floating Real-Time Network Issue Alert (Shows when network is slow or offline so user knows why horses fluctuated) */}
-        {networkStatus !== 'online' && (
-          <div className={`network-issue-toast network-issue-${networkStatus}`}>
-            <div className="network-issue-content">
-              {networkStatus === 'offline' ? (
-                <>
-                  <WifiOff size={16} className="net-toast-icon animate-pulse" />
-                  <span>Internet Connection Lost. Attempting to reconnect...</span>
-                </>
-              ) : (
-                <>
-                  <Wifi size={16} className="net-toast-icon animate-pulse" />
-                  <span>Slow Internet / Network Delay Detected — Horse positions may fluctuate</span>
-                </>
               )}
             </div>
           </div>
@@ -2573,8 +2557,6 @@ export default function App() {
           {/* TEZ RAFTER CASINO BETTING BOARD (Persistently mounted in DOM for instant 0ms display without reloading) */}
           <TezRafterBettingBoard
             isVisible={phase === 'idle'}
-            networkStatus={networkStatus}
-            onLogout={logout}
             horses={horses}
             balance={balance}
             totalBet={totalBet}
