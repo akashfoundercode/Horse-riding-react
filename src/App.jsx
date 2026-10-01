@@ -47,6 +47,7 @@ import { horseService, DEFAULT_HORSES, mapApiHorses, extractHorsesArray } from '
 import { socketService } from './services/socketService.js'
 import { gameApiService } from './services/gameApiService.js'
 import { storageService } from './services/storageService.js'
+import { announceCountdownStep } from './utils/countdownAnnouncer.js'
 
 const HORSES = DEFAULT_HORSES
 
@@ -1743,10 +1744,10 @@ export default function App() {
       setCountdown((prev) => {
         if (prev <= 1) {
           clearInterval(countInterval)
-          // Display "GO!" for 500ms, then transition to racing phase
+          // Display "GO!" for 850ms, then transition to racing phase
           setTimeout(() => {
             setPhase('racing')
-          }, 500)
+          }, 850)
           return 0
         }
         return prev - 1
@@ -1755,6 +1756,19 @@ export default function App() {
 
     return () => clearInterval(countInterval)
   }, [phase])
+
+  // Announce 3, 2, 1, GO! with both spoken voice ("Three", "Two", "One", "GO!") and starter chimes
+  useEffect(() => {
+    if (phase !== 'countdown') {
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+        window.speechSynthesis.cancel()
+      }
+      return
+    }
+
+    const vol = getEffectiveVolume ? getEffectiveVolume('gameVoice') : 0.8
+    announceCountdownStep(countdown, vol)
+  }, [countdown, phase, getEffectiveVolume])
 
   // Master countdown loop during idle betting phase (always counts down 1s at a time continuously)
   useEffect(() => {

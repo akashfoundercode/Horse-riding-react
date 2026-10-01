@@ -79,6 +79,7 @@ export const RACE_IMAGE_ASSETS = [
 export const GAME_AUDIO_ASSETS = [
   '/SOUND/dragon-studio-horse-neigh-390297.mp3',
   '/SOUND/pwlpl-horses-galloping-sound-effect-359257.mp3',
+  '/SOUND/end5sec.mp3',
   '/SOUND/end5sec sound.mp3',
   '/SOUND/SCREESHOTCAPTURE.mp3',
 ]

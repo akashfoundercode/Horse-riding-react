@@ -83,13 +83,25 @@ function TezRafterBettingBoard({
   // Initialize and preload the end 5 sec sound file
   useEffect(() => {
     try {
-      const audio = new Audio('/SOUND/end5sec%20sound.mp3')
+      const audio = new Audio('/SOUND/end5sec.mp3')
       audio.preload = 'auto'
       audio.volume = 1.0
       end5SecAudioRef.current = audio
     } catch (_) { }
 
+    const unlockAudioElement = () => {
+      if (end5SecAudioRef.current) {
+        end5SecAudioRef.current.load()
+      }
+      window.removeEventListener('click', unlockAudioElement, true)
+      window.removeEventListener('touchstart', unlockAudioElement, true)
+    }
+    window.addEventListener('click', unlockAudioElement, { capture: true, once: true, passive: true })
+    window.addEventListener('touchstart', unlockAudioElement, { capture: true, once: true, passive: true })
+
     return () => {
+      window.removeEventListener('click', unlockAudioElement, true)
+      window.removeEventListener('touchstart', unlockAudioElement, true)
       if (end5SecAudioRef.current) {
         try {
           end5SecAudioRef.current.pause()
@@ -203,27 +215,27 @@ function TezRafterBettingBoard({
     if (prevTimerRef.current !== timerSeconds) {
       const gameVol = getEffectiveVolume('gameVoice')
       if (timerSeconds === 5) {
-        // Trigger user's custom end5sec sound
-        if (end5SecAudioRef.current && gameVol > 0) {
-          end5SecAudioRef.current.volume = gameVol * 1.0
-          end5SecAudioRef.current.currentTime = 0
-          end5SecAudioRef.current.play().catch(() => {
-            playAlertCountdownSound(5)
-          })
-        } else if (gameVol > 0) {
-          playAlertCountdownSound(5)
+        // Trigger user's custom end5sec sound cleanly
+        if (gameVol > 0) {
+          const audio = end5SecAudioRef.current || new Audio('/SOUND/end5sec.mp3')
+          end5SecAudioRef.current = audio
+          audio.volume = gameVol
+          audio.currentTime = 0
+          const playPromise = audio.play()
+          if (playPromise !== undefined) {
+            playPromise.catch((err) => {
+              console.warn('[Audio] end5sec sound playback waiting for interaction:', err?.message)
+            })
+          }
         }
-      } else if (timerSeconds < 5 && timerSeconds > 0) {
-        // If file is not playing (or not supported), use fallback
-        if (!end5SecAudioRef.current || end5SecAudioRef.current.paused) {
-          playAlertCountdownSound(timerSeconds)
-        }
-      } else if (timerSeconds > 5) {
+      } else if (timerSeconds === 0 || timerSeconds > 5) {
         if (end5SecAudioRef.current && !end5SecAudioRef.current.paused) {
           end5SecAudioRef.current.pause()
           end5SecAudioRef.current.currentTime = 0
         }
-        playPageFlipTickSound()
+        if (timerSeconds > 5) {
+          playPageFlipTickSound()
+        }
       }
       prevTimerRef.current = timerSeconds
     }
