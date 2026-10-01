@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { Sparkles, Trophy, Zap } from 'lucide-react'
+import { Zap } from 'lucide-react'
 import { assetCacheService } from '../services/assetCacheService.js'
 
 export default function DerbyAssetLoader({ onComplete }) {
@@ -11,9 +11,6 @@ export default function DerbyAssetLoader({ onComplete }) {
   const realProgressRef = useRef(0)
   const isAssetsReadyRef = useRef(false)
   const displayedProgressRef = useRef(0)
-  const prevProgressRef = useRef(0)
-  const lastMoveTimeRef = useRef(Date.now())
-  const isMovingRef = useRef(true)
   const imgRef = useRef(null)
   const canvasRef = useRef(null)
 
@@ -43,23 +40,21 @@ export default function DerbyAssetLoader({ onComplete }) {
     isFinishedRef.current = false
     isAssetsReadyRef.current = false
     displayedProgressRef.current = 0
-    prevProgressRef.current = 0
-    lastMoveTimeRef.current = Date.now()
-    isMovingRef.current = true
+    realProgressRef.current = 0
+    setIsMoving(true)
 
     const finishLoader = () => {
       if (isFinishedRef.current) return
       isFinishedRef.current = true
       setProgress(100)
       captureFreezeFrame()
-      isMovingRef.current = false
       setIsMoving(false)
       setIsFadingOut(true)
       setTimeout(() => {
         if (mountedRef.current && onCompleteRef.current) {
           onCompleteRef.current()
         }
-      }, 200)
+      }, 250)
     }
 
     const handleProgress = (pct) => {
@@ -67,7 +62,7 @@ export default function DerbyAssetLoader({ onComplete }) {
       realProgressRef.current = Math.max(realProgressRef.current, pct)
     }
 
-    // 1. Actively preload and decode all game images in parallel
+    // 1. Actively preload and decode ALL game assets (12 race horse GIFs, coins, tracks, sounds)
     assetCacheService
       .cacheAllAssets(handleProgress)
       .then(() => {
@@ -82,49 +77,42 @@ export default function DerbyAssetLoader({ onComplete }) {
         realProgressRef.current = 100
       })
 
-    // 2. Smoothly animate percentage bar towards 100%
-    const startTime = Date.now()
+    // 2. Smoothly animate percentage bar towards real asset loading progress
     const timer = setInterval(() => {
       if (!mountedRef.current || isFinishedRef.current) return
 
-      const elapsed = Date.now() - startTime
-      // Natural progress based on elapsed time (reaches 100% by ~1.2s)
-      const timeBasedProgress = Math.min(100, Math.floor((elapsed / 1200) * 100))
-
+      // Strictly stay under 95% until ALL assets are genuinely ready
       const target = isAssetsReadyRef.current
         ? 100
-        : Math.max(timeBasedProgress, realProgressRef.current)
+        : Math.min(95, Math.max(realProgressRef.current, 5))
 
-      // Smooth step towards target (strictly monotonic: never decreases)
       if (displayedProgressRef.current < target) {
-        const step = Math.max(1, Math.ceil((target - displayedProgressRef.current) * 0.25))
-        displayedProgressRef.current = Math.min(100, displayedProgressRef.current + step)
+        const diff = target - displayedProgressRef.current
+        const step = Math.max(1, Math.min(diff, Math.ceil(diff * 0.18)))
+        displayedProgressRef.current = Math.min(target, displayedProgressRef.current + step)
         setProgress(displayedProgressRef.current)
       }
 
-      // Check if horse is actively moving forward
-      if (displayedProgressRef.current > prevProgressRef.current) {
-        prevProgressRef.current = displayedProgressRef.current
-        lastMoveTimeRef.current = Date.now()
-        if (!isMovingRef.current) {
-          isMovingRef.current = true
-          setIsMoving(true)
-        }
-      }
-
-      // Complete when 100% reached or time elapsed
-      if (displayedProgressRef.current >= 100 || elapsed >= 1600) {
+      // Complete ONLY when all assets are confirmed ready AND displayed progress reaches 100%
+      if (isAssetsReadyRef.current && displayedProgressRef.current >= 100) {
         clearInterval(timer)
-        finishLoader()
+        setTimeout(() => {
+          if (mountedRef.current && !isFinishedRef.current) {
+            finishLoader()
+          }
+        }, 250)
       }
     }, 25)
 
-    // Hard emergency safety timeout: never stay stuck past 1.8s
+    // Hard emergency safety timeout (20s): avoids eternal lockup only on completely dead connections
     const hardTimeout = setTimeout(() => {
       if (mountedRef.current && !isFinishedRef.current) {
+        isAssetsReadyRef.current = true
+        displayedProgressRef.current = 100
+        setProgress(100)
         finishLoader()
       }
-    }, 1800)
+    }, 20000)
 
     return () => {
       mountedRef.current = false
@@ -178,7 +166,7 @@ export default function DerbyAssetLoader({ onComplete }) {
           />
         </div>
 
-        {/* Clean Loader Dock Container directly on top of background without any background box/shadow */}
+        {/* Clean Loader Dock Container directly on top of background */}
         <div className="derby-loader-dock">
           {/* LOADERLINE 3D TRACK CONTAINER WITH RUNNING HORSE */}
           <div className="derby-loader-track-wrap">
@@ -207,7 +195,7 @@ export default function DerbyAssetLoader({ onComplete }) {
                 transform: 'translateX(-50%)',
                 pointerEvents: 'none',
                 zIndex: 5,
-                transition: 'left 0.04s linear',
+                transition: 'left 0.05s linear',
               }}
             >
               {/* Animated Running Horse GIF while moving forward */}

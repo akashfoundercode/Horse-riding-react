@@ -6,10 +6,10 @@ import { assetCacheService } from '../services/assetCacheService.js'
  */
 export function useAssetLoader() {
   const [progress, setProgress] = useState(0)
-  const [isReady, setIsReady] = useState(assetCacheService.isCriticalReady)
+  const [isReady, setIsReady] = useState(assetCacheService.isAllReady)
 
   useEffect(() => {
-    if (assetCacheService.isCriticalReady) {
+    if (assetCacheService.isAllReady) {
       setProgress(100)
       setIsReady(true)
       return
@@ -22,7 +22,7 @@ export function useAssetLoader() {
       }
     }
 
-    assetCacheService.preloadCriticalAssets(handleProgress)
+    assetCacheService.cacheAllAssets(handleProgress)
 
     return () => {
       assetCacheService.removeProgressListener(handleProgress)
@@ -33,4 +33,3 @@ export function useAssetLoader() {
 }
 
 export default useAssetLoader
-

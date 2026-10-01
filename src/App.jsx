@@ -2120,7 +2120,7 @@ export default function App() {
                     }
 
                     // 3. Draw winner horse sprite / canvas
-                    const winnerGif = gifDomMapRef.current[r.number]?.img || assetCacheService.memoryCache?.get(r.gif)
+                    const winnerGif = gifDomMapRef.current[r.number]?.img || assetCacheService.memoryCache?.get(r.img) || assetCacheService.memoryCache?.get(r.gif)
                     if (winnerGif && (winnerGif.complete || winnerGif.naturalWidth > 0)) {
                       try {
                         ctx.drawImage(winnerGif, 580, 200, 260, 195)
