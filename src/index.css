@@ -8862,3 +8862,35 @@ screen and (min-width: 1900px) {
   height: 0 !important;
   background: transparent !important;
 }
+
+/* =========================================================
+   STAGE 1: ROUNDED CIRCLE LOADER STYLING
+   ========================================================= */
+.initial-spinner-ring {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: 3.5px solid rgba(212, 151, 85, 0.18);
+  border-top: 3.5px solid #ffd88a;
+  border-right: 3.5px solid #d49755;
+  box-shadow: 0 0 24px rgba(255, 216, 138, 0.35), inset 0 0 12px rgba(212, 151, 85, 0.2);
+  animation: initial-spin 0.75s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+}
+
+.initial-spinner-text {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 2.2px;
+  color: #e6be8a;
+  text-transform: uppercase;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9), 0 0 12px rgba(230, 190, 138, 0.4);
+}
+
+@keyframes initial-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}

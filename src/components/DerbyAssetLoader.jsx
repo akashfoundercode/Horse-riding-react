@@ -2,6 +2,14 @@ import React, { useState, useEffect, useRef } from 'react'
 import { Zap } from 'lucide-react'
 import { assetCacheService } from '../services/assetCacheService.js'
 
+// Core assets required by the main 3D loader itself
+export const LOADER_CORE_ASSETS = [
+  '/loader/laoder.png',
+  '/loader/loaderline.png',
+  '/sprites/mainlogo.png',
+  '/HORSES/horse5_1mb.gif',
+]
+
 export default function DerbyAssetLoader({ onComplete }) {
   const [progress, setProgress] = useState(0)
   const [isFadingOut, setIsFadingOut] = useState(false)
@@ -13,6 +21,12 @@ export default function DerbyAssetLoader({ onComplete }) {
   const displayedProgressRef = useRef(0)
   const imgRef = useRef(null)
   const canvasRef = useRef(null)
+
+  // Stage 1: Rounded Circle Loader state (shows until loader's own assets are decoded)
+  const [isLoaderAssetsReady, setIsLoaderAssetsReady] = useState(() => {
+    return LOADER_CORE_ASSETS.every((url) => assetCacheService.memoryCache.has(url))
+  })
+  const [showCircleLoader, setShowCircleLoader] = useState(!isLoaderAssetsReady)
 
   const captureFreezeFrame = () => {
     if (imgRef.current && canvasRef.current) {
@@ -43,6 +57,27 @@ export default function DerbyAssetLoader({ onComplete }) {
     realProgressRef.current = 0
     setIsMoving(true)
 
+    // 0. Stage 1: Preload the loader's own assets first so rounded loader can smoothly transition
+    if (!isLoaderAssetsReady) {
+      Promise.all(LOADER_CORE_ASSETS.map((url) => assetCacheService.preloadImage(url)))
+        .then(() => {
+          if (mountedRef.current) {
+            setIsLoaderAssetsReady(true)
+            setTimeout(() => {
+              if (mountedRef.current) setShowCircleLoader(false)
+            }, 350)
+          }
+        })
+        .catch(() => {
+          if (mountedRef.current) {
+            setIsLoaderAssetsReady(true)
+            setTimeout(() => {
+              if (mountedRef.current) setShowCircleLoader(false)
+            }, 350)
+          }
+        })
+    }
+
     const finishLoader = () => {
       if (isFinishedRef.current) return
       isFinishedRef.current = true
@@ -62,7 +97,7 @@ export default function DerbyAssetLoader({ onComplete }) {
       realProgressRef.current = Math.max(realProgressRef.current, pct)
     }
 
-    // 1. Actively preload and decode ALL game assets (12 race horse GIFs, coins, tracks, sounds)
+    // 1. Stage 2: Actively preload and decode ALL game assets (12 race horse GIFs, coins, tracks, sounds)
     assetCacheService
       .cacheAllAssets(handleProgress)
       .then(() => {
@@ -135,6 +170,34 @@ export default function DerbyAssetLoader({ onComplete }) {
         pointerEvents: isFadingOut ? 'none' : 'all',
       }}
     >
+      {/* STAGE 1: ROUNDED CIRCLE LOADER (Active until loader's background, logo, trackline, and horse gif are decoded) */}
+      {showCircleLoader && (
+        <div
+          className="derby-circle-loader-overlay"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 99999999,
+            backgroundColor: '#070b14',
+            backgroundImage: 'radial-gradient(ellipse at 50% 50%, #1e1308 0%, #070b14 85%)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '16px',
+            fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+            userSelect: 'none',
+            transition: 'opacity 0.35s ease-out',
+            opacity: isLoaderAssetsReady ? 0 : 1,
+            pointerEvents: isLoaderAssetsReady ? 'none' : 'all',
+          }}
+        >
+          <div className="initial-spinner-ring" />
+          <div className="initial-spinner-text">LOADING...</div>
+        </div>
+      )}
+
+      {/* STAGE 2: 3D DERBY TRACK LOADER (Preloaded with background, logo, trackline, and running horse) */}
       {/* User Uploaded Loader Background Image - Subtle Blur Background */}
       <img
         src="/loader/laoder.png"
