@@ -11,8 +11,8 @@ import API_CONFIG from '../config/apiConfig.js'
 export const DEFAULT_HORSES = [
   { number: 1, name: 'TOOFAN', img: '/HORSES/horse_no1_1mb.gif', portraitImg: '/Bet_horses/horses1.png', hue: 0, saturate: 1.0, brightness: 1.0, speedRating: '9.8' },
   { number: 2, name: 'RANGEELA', img: '/HORSES/horse_number_2_1MB.gif', portraitImg: '/Bet_horses/horses2.png', hue: 0, saturate: 1.0, brightness: 1.0, speedRating: '9.6' },
-  { number: 3, name: 'ARJUN', img: '/HORSES/horse_no3_1mb.gif', portraitImg: '/Bet_horses/horses3.png.png', hue: 0, saturate: 1.0, brightness: 1.0, speedRating: '9.7' },
-  { number: 4, name: 'ROYAL', img: '/HORSES/horse_4mb_hd.gif', portraitImg: '/Bet_horses/horses4.png.png', hue: 0, saturate: 1.0, brightness: 1.0, speedRating: '9.5' },
+  { number: 3, name: 'ARJUN', img: '/HORSES/horse_no3_1mb.gif', portraitImg: '/Bet_horses/horses3.png', hue: 0, saturate: 1.0, brightness: 1.0, speedRating: '9.7' },
+  { number: 4, name: 'ROYAL', img: '/HORSES/horse_4mb_hd.gif', portraitImg: '/Bet_horses/horses4.png', hue: 0, saturate: 1.0, brightness: 1.0, speedRating: '9.5' },
   { number: 5, name: 'TARZAN', img: '/HORSES/horse5_1mb.gif', portraitImg: '/Bet_horses/horses5.png', hue: 0, saturate: 1.0, brightness: 1.0, speedRating: '9.6' },
   { number: 6, name: 'CHETAK', img: '/HORSES/horse_jockey_6mb.gif', portraitImg: '/Bet_horses/horses6.png', hue: 0, saturate: 1.0, brightness: 1.0, speedRating: '9.6' },
   { number: 7, name: 'LUCKY', img: '/HORSES/horse_no7_1mb.gif', portraitImg: '/Bet_horses/horses7.png', hue: 0, saturate: 1.0, brightness: 1.0, speedRating: '9.7' },

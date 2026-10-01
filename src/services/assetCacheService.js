@@ -9,7 +9,6 @@ const CACHE_NAME = 'derby-asset-cache-v6'
 // All Game Image Assets (Loader, Betting Screen, and Race Screen Horses)
 export const ALL_GAME_IMAGE_ASSETS = [
   // 1. Loader Graphics
-  '/loader/loader.png',
   '/loader/laoder.png',
   '/loader/loaderline.png',
 
@@ -19,7 +18,6 @@ export const ALL_GAME_IMAGE_ASSETS = [
   '/sprites/GATE.png',
   '/sprites/jackpot (2).png',
   '/top/fullimage.jpg',
-  '/top/fullimage.png',
   '/top/MAINFINSHLINE.png',
   '/top/top123.png',
 
@@ -41,9 +39,7 @@ export const ALL_GAME_IMAGE_ASSETS = [
   '/Bet_horses/horses1.png',
   '/Bet_horses/horses2.png',
   '/Bet_horses/horses3.png',
-  '/Bet_horses/horses3.png.png',
   '/Bet_horses/horses4.png',
-  '/Bet_horses/horses4.png.png',
   '/Bet_horses/horses5.png',
   '/Bet_horses/horses6.png',
   '/Bet_horses/horses7.png',
@@ -84,7 +80,6 @@ export const GAME_AUDIO_ASSETS = [
   '/SOUND/dragon-studio-horse-neigh-390297.mp3',
   '/SOUND/pwlpl-horses-galloping-sound-effect-359257.mp3',
   '/SOUND/end5sec sound.mp3',
-  '/SOUND/end5sec%20sound.mp3',
   '/SOUND/SCREESHOTCAPTURE.mp3',
 ]
 
