@@ -2137,7 +2137,7 @@ export default function App() {
                   const ctx = fallbackCanvas.getContext('2d', { willReadFrequently: true })
                   if (ctx) {
                     // 1. Draw racetrack background
-                    const bgImg = assetCacheService.memoryCache?.get('/top/fullimage.jpg') || assetCacheService.memoryCache?.get('/top/fullimage.png')
+                    const bgImg = assetCacheService.memoryCache?.get('/top/fullimage.jpg')
                     if (bgImg && (bgImg.complete || bgImg.naturalWidth > 0)) {
                       ctx.drawImage(bgImg, 0, 0, 960, 540)
                     } else {
