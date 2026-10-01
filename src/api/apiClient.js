@@ -70,17 +70,34 @@ class ApiClient {
       }
       clearTimeout(timeoutId)
 
-      // Handle 401 Unauthorized (Expired Session)
-      if (response.status === 401) {
-        storageService.clearSession()
-        window.dispatchEvent(new CustomEvent('derby:unauthorized'))
-      }
-
       let data = {}
       try {
         data = await response.json()
       } catch (_) {
         data = {}
+      }
+
+      // Handle 401 Unauthorized / 403 Forbidden (Expired Session or Multiple Device Login)
+      if (response.status === 401 || response.status === 403) {
+        const errorMsg =
+          data.message ||
+          data.error ||
+          data.msg ||
+          data.err ||
+          ''
+
+        storageService.clearSession()
+
+        window.dispatchEvent(
+          new CustomEvent('derby:multiple_device_login', {
+            detail: {
+              message: errorMsg || 'Aapka account kisi doosre device par login ho gaya hai.',
+              status: response.status,
+              data,
+            },
+          })
+        )
+        window.dispatchEvent(new CustomEvent('derby:unauthorized'))
       }
 
       if (!response.ok) {

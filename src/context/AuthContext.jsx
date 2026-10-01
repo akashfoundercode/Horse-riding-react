@@ -15,6 +15,8 @@ export function AuthProvider({ children }) {
   const [isLoading, setIsLoading] = useState(false)
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false)
+  const [isMultipleDeviceModalOpen, setIsMultipleDeviceModalOpen] = useState(false)
+  const [multipleDeviceReason, setMultipleDeviceReason] = useState('')
 
   const isAuthenticated = Boolean(user && token)
   const isGuest = Boolean(user?.isGuest)
@@ -40,11 +42,31 @@ export function AuthProvider({ children }) {
     const handleUnauthorized = () => {
       setUser(null)
       setToken(null)
-      setIsAuthModalOpen(true)
+      setIsMultipleDeviceModalOpen((isOpen) => {
+        if (!isOpen) {
+          setIsAuthModalOpen(true)
+        }
+        return isOpen
+      })
+    }
+
+    // Listen for multiple device login / session termination
+    const handleMultipleDeviceLogin = (event) => {
+      setUser(null)
+      setToken(null)
+      setIsAuthModalOpen(false)
+      setIsProfileModalOpen(false)
+      const msg = event?.detail?.message || 'Aapka account kisi doosre device par login ho gaya hai.'
+      setMultipleDeviceReason(msg)
+      setIsMultipleDeviceModalOpen(true)
     }
 
     window.addEventListener('derby:unauthorized', handleUnauthorized)
-    return () => window.removeEventListener('derby:unauthorized', handleUnauthorized)
+    window.addEventListener('derby:multiple_device_login', handleMultipleDeviceLogin)
+    return () => {
+      window.removeEventListener('derby:unauthorized', handleUnauthorized)
+      window.removeEventListener('derby:multiple_device_login', handleMultipleDeviceLogin)
+    }
   }, [])
 
   const login = async (credentials) => {
@@ -54,6 +76,7 @@ export function AuthProvider({ children }) {
       setUser(data.user)
       setToken(data.token)
       setIsAuthModalOpen(false)
+      setIsMultipleDeviceModalOpen(false)
       window.dispatchEvent(new CustomEvent('derby:auth_changed', { detail: data }))
       return { success: true, data }
     } catch (err) {
@@ -70,6 +93,7 @@ export function AuthProvider({ children }) {
       setUser(data.user)
       setToken(data.token)
       setIsAuthModalOpen(false)
+      setIsMultipleDeviceModalOpen(false)
       window.dispatchEvent(new CustomEvent('derby:auth_changed', { detail: data }))
       return { success: true, data }
     } catch (err) {
@@ -86,6 +110,7 @@ export function AuthProvider({ children }) {
       setUser(data.user)
       setToken(data.token)
       setIsAuthModalOpen(false)
+      setIsMultipleDeviceModalOpen(false)
       return { success: true, data }
     } catch (err) {
       return { success: false, error: err.message }
@@ -117,6 +142,10 @@ export function AuthProvider({ children }) {
     setIsAuthModalOpen,
     isProfileModalOpen,
     setIsProfileModalOpen,
+    isMultipleDeviceModalOpen,
+    setIsMultipleDeviceModalOpen,
+    multipleDeviceReason,
+    setMultipleDeviceReason,
     login,
     register,
     guestLogin,

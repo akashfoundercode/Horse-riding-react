@@ -15,6 +15,7 @@ class SocketService {
     this.listeners = new Map()
     this.hasServerActivity = false
     this.lastActivityTime = 0
+    this.isForceLoggedOut = false
 
     // Auto-reconnect with new token when player logs in or registers
     if (typeof window !== 'undefined') {
@@ -25,9 +26,21 @@ class SocketService {
   }
 
   /**
+   * Reset force logout lock so player can login anew
+   */
+  resetForceLogout() {
+    this.isForceLoggedOut = false
+  }
+
+  /**
    * Connect to Socket.IO server with JWT token and userId auth
    */
   connect() {
+    if (this.isForceLoggedOut) {
+      console.warn('[Socket.IO] Connection skipped: user was force-logged out on this device.')
+      return null
+    }
+
     if (this.socket && (this.connected || this.socket.connected)) {
       return this.socket
     }
@@ -114,12 +127,92 @@ class SocketService {
 
     if (this.socket.io) {
       this.socket.io.on('reconnect_attempt', (attempt) => {
+        if (this.isForceLoggedOut) {
+          try {
+            this.socket.disconnect()
+          } catch (_) {}
+          return
+        }
         window.dispatchEvent(new CustomEvent('derby:socket_reconnecting', { detail: { attempt } }))
       })
       this.socket.io.on('reconnect', () => {
+        if (this.isForceLoggedOut) {
+          try {
+            this.socket.disconnect()
+          } catch (_) {}
+          return
+        }
         this.connected = true
         window.dispatchEvent(new CustomEvent('derby:socket_connect'))
       })
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // MULTIPLE DEVICE LOGIN & FORCE LOGOUT LISTENERS
+    // ─────────────────────────────────────────────────────────────
+    const triggerForceLogout = (data = {}) => {
+      console.warn('[Socket.IO] Force logout / Multiple device login triggered by backend:', data)
+      this.isForceLoggedOut = true
+      this.connected = false
+
+      if (this.socket) {
+        try {
+          this.socket.disconnect()
+        } catch (_) {}
+      }
+
+      const message =
+        data?.message ||
+        data?.msg ||
+        data?.reason ||
+        data?.error ||
+        'Aapka account kisi doosre device par login ho gaya hai.'
+
+      storageService.clearSession()
+
+      window.dispatchEvent(
+        new CustomEvent('derby:multiple_device_login', {
+          detail: {
+            message,
+            data,
+            timestamp: Date.now(),
+          },
+        })
+      )
+    }
+
+    // Event names used by backends for multiple device / session invalidation
+    const forceLogoutEvents = [
+      'force_logout',
+      'auth:force_logout',
+      'user:force_logout',
+      'user_force_logout',
+      'session_terminated',
+      'session:terminated',
+      'session_expired',
+      'session:expired',
+      'multiple_device_login',
+      'multiple_device',
+      'multiple_login',
+      'device_conflict',
+      'concurrent_login',
+      'logout_user',
+      'user:logout',
+      'auth:logout',
+    ]
+
+    forceLogoutEvents.forEach((evt) => {
+      this.socket.on(evt, triggerForceLogout)
+    })
+
+    const currentUserId = storageService.getUserId()
+    if (currentUserId) {
+      this.socket.on(`user_${currentUserId}:force_logout`, triggerForceLogout)
+      this.socket.on(`user:${currentUserId}:force_logout`, triggerForceLogout)
+      this.socket.on(`user_${currentUserId}:session_terminated`, triggerForceLogout)
+      this.socket.on(`user:${currentUserId}:session_terminated`, triggerForceLogout)
+      this.socket.on(`user_${currentUserId}:multiple_device_login`, triggerForceLogout)
+      this.socket.on(`user:${currentUserId}:multiple_device_login`, triggerForceLogout)
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -227,6 +320,17 @@ class SocketService {
       this.socket.onAny((eventName, ...args) => {
         if (typeof eventName === 'string') {
           const lower = eventName.toLowerCase()
+          if (
+            lower.includes('force_logout') ||
+            lower.includes('forcelogout') ||
+            lower.includes('multiple_device') ||
+            lower.includes('multiple_login') ||
+            lower.includes('session_terminate') ||
+            lower.includes('concurrent_login')
+          ) {
+            triggerForceLogout(args && args[0])
+            return
+          }
           if ((lower.includes('force') || (lower.includes('winner') && !lower.includes('result'))) && args && args[0]) {
             triggerForcedWinner(args[0])
           }
@@ -425,6 +529,7 @@ class SocketService {
    * Reconnect socket (e.g. after login/register with new JWT token)
    */
   reconnect() {
+    this.isForceLoggedOut = false
     if (this.socket) {
       try {
         this.socket.disconnect()

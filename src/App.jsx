@@ -41,6 +41,7 @@ const AudioSettingsModal = React.lazy(() => import('./components/AudioSettingsMo
 const WalletModal = React.lazy(() => import('./components/WalletModal.jsx'))
 const AuthModal = React.lazy(() => import('./components/auth/AuthModal.jsx'))
 const UserProfileModal = React.lazy(() => import('./components/auth/UserProfileModal.jsx'))
+const MultipleDeviceModal = React.lazy(() => import('./components/auth/MultipleDeviceModal.jsx'))
 
 import { horseService, DEFAULT_HORSES, mapApiHorses, extractHorsesArray } from './services/horseService.js'
 import { socketService } from './services/socketService.js'
@@ -352,7 +353,19 @@ export default function App() {
   const [isWalletOpen, setIsWalletOpen] = useState(false)
 
   // Enterprise Auth & Wallet Providers
-  const { user, isAuthenticated, isGuest, isAuthModalOpen, setIsAuthModalOpen, isProfileModalOpen, setIsProfileModalOpen, logout } = useAuth()
+  const {
+    user,
+    isAuthenticated,
+    isGuest,
+    isAuthModalOpen,
+    setIsAuthModalOpen,
+    isProfileModalOpen,
+    setIsProfileModalOpen,
+    isMultipleDeviceModalOpen,
+    setIsMultipleDeviceModalOpen,
+    multipleDeviceReason,
+    logout,
+  } = useAuth()
   const isUserAuthenticated = Boolean(isAuthenticated && !isGuest)
   const {
     balance,
@@ -2341,6 +2354,17 @@ export default function App() {
           />
         )}
         {isProfileModalOpen && <UserProfileModal isOpen={isProfileModalOpen} onClose={() => setIsProfileModalOpen(false)} />}
+        {isMultipleDeviceModalOpen && (
+          <MultipleDeviceModal
+            isOpen={isMultipleDeviceModalOpen}
+            reason={multipleDeviceReason}
+            onClose={() => setIsMultipleDeviceModalOpen(false)}
+            onLoginAgain={() => {
+              setIsMultipleDeviceModalOpen(false)
+              setIsAuthModalOpen(true)
+            }}
+          />
+        )}
 
         {/* 1. STEP-BY-STEP ONBOARDING TUTORIAL */}
         {isTutorialOpen && (
