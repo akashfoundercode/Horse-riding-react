@@ -21,6 +21,7 @@ import {
 
 import { getSafeAudioContext } from '../utils/audioContextHelper.js'
 import { useWallet } from '../context/WalletContext.jsx'
+import { DEFAULT_NAMES } from '../services/horseService.js'
 
 export const CHIP_OPTIONS = [
   { value: 2, label: '2', img: '/bet_coins/betcoin2.png' },
@@ -389,6 +390,14 @@ function TezRafterBettingBoard({
                   CHIP_OPTIONS.find((c) => c.value === selectedChip) ||
                   CHIP_OPTIONS[0]
 
+                // Dynamic name and image resolution: prefers API name and image, falls back gracefully
+                const prevMatch = previousResults?.find((r) => Number(r.number) === Number(h.number))
+                const isStaticDefaultName = DEFAULT_NAMES.includes(h.name)
+                const cardName = (!isStaticDefaultName && h.name) ? h.name : (prevMatch?.name || h.name)
+                const cardImg = (h.portraitImg && !h.portraitImg.includes('/Bet_horses/horses'))
+                  ? h.portraitImg
+                  : (prevMatch?.image || prevMatch?.imageUrl || h.portraitImg || h.img || `/Bet_horses/horses${h.number}.png`)
+
                 return (
                   <div
                     key={h.number}
@@ -398,7 +407,7 @@ function TezRafterBettingBoard({
                   >
                     {/* Top Name Bar + Live Pool Chip Counter */}
                     <div className="tez-card-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 4px' }}>
-                      <span className="tez-card-name">{h.name}</span>
+                      <span className="tez-card-name">{cardName}</span>
                       {poolByHorse?.[h.number] > 0 && (
                         <span
                           style={{
@@ -422,8 +431,8 @@ function TezRafterBettingBoard({
                     {/* Card Portrait Body (Clean image without floating coin obstruction) */}
                     <div className="tez-card-body">
                       <img
-                        src={h.portraitImg || h.img}
-                        alt={h.name}
+                        src={cardImg}
+                        alt={cardName}
                         className="tez-card-horse-img"
                         draggable="false"
                         onError={(e) => {
@@ -506,7 +515,7 @@ function TezRafterBettingBoard({
                 {previousResults && previousResults.length > 0 ? (
                   previousResults.slice(0, 10).map((res, idx) => {
                     const horseInfo = horses?.find((h) => h.number === Number(res.number))
-                    const horseImg = horseInfo?.portraitImg || horseInfo?.img || `/Bet_horses/horses${res.number}.png`
+                    const horseImg = res.image || res.imageUrl || (horseInfo?.portraitImg && !horseInfo.portraitImg.includes('/Bet_horses/horses') ? horseInfo.portraitImg : null) || horseInfo?.portraitImg || horseInfo?.img || `/Bet_horses/horses${res.number}.png`
                     return (
                       <div key={idx} className="tez-res-row">
                         <div className="tez-res-badge">{res.number}</div>

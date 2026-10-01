@@ -615,9 +615,31 @@ class GameApiService {
             ? new Date(timeVal).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
             : (r?.time || new Date().toLocaleTimeString())
 
+          const rawImg =
+            r?.winnerHorseImage ??
+            r?.winner_horse_image ??
+            r?.winnerImage ??
+            r?.winner_image ??
+            r?.horseImage ??
+            r?.horse_image ??
+            r?.imageUrl ??
+            r?.image_url ??
+            r?.image ??
+            r?.img ??
+            r?.photo ??
+            r?.avatar ??
+            null
+
+          let horseImg = rawImg
+          if (horseImg && typeof horseImg === 'string' && horseImg.trim().startsWith('uploads/')) {
+            horseImg = '/' + horseImg.trim()
+          }
+
           return {
             number: horseNum,
             name: horseName,
+            image: horseImg,
+            imageUrl: horseImg,
             multiplier: mult,
             jackpot: r?.jackpot || (mult > 1 ? `${mult}X` : 'N'),
             isJackpot: Boolean(r?.isJackpot || mult > 1),

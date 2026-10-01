@@ -42,7 +42,7 @@ const WalletModal = React.lazy(() => import('./components/WalletModal.jsx'))
 const AuthModal = React.lazy(() => import('./components/auth/AuthModal.jsx'))
 const UserProfileModal = React.lazy(() => import('./components/auth/UserProfileModal.jsx'))
 
-import { horseService, DEFAULT_HORSES } from './services/horseService.js'
+import { horseService, DEFAULT_HORSES, mapApiHorses, extractHorsesArray } from './services/horseService.js'
 import { socketService } from './services/socketService.js'
 import { gameApiService } from './services/gameApiService.js'
 import { storageService } from './services/storageService.js'
@@ -276,9 +276,22 @@ export default function App() {
   })
 
 
-  // 2. Fetch Live Race & 12 Horses List (GET /api/races/current)
+  // 2. Fetch Live Race, 12 Horses List, and Previous Results
   useEffect(() => {
-    // 1. Fetch current race & horses
+    // 1. Unconditionally fetch dynamic 12 horses from /api/horses
+    horseService
+      .getHorses()
+      .then((fetched) => {
+        if (Array.isArray(fetched) && fetched.length > 0) {
+          setHorses(fetched)
+          setRunners((prev) => (recoveredSessionRef.current?.runners ? prev : makeRunners(null, fetched)))
+        }
+      })
+      .catch((err) => {
+        console.warn('[App] Error fetching horses from horseService:', err)
+      })
+
+    // 2. Fetch current live race state & synchronize horses if race payload has them
     gameApiService
       .getCurrentRace()
       .then((curr) => {
@@ -287,9 +300,11 @@ export default function App() {
             const serial = String(curr.gameSerial || curr.serialNumber || curr.raceId)
             setGameSerialNumber(serial)
           }
-          if (Array.isArray(curr.horses) && curr.horses.length > 0) {
-            setHorses(curr.horses)
-            setRunners((prev) => (recoveredSessionRef.current?.runners ? prev : makeRunners(null, curr.horses)))
+          const currHorses = extractHorsesArray(curr)
+          if (Array.isArray(currHorses) && currHorses.length > 0) {
+            const mapped = mapApiHorses(currHorses)
+            setHorses(mapped)
+            setRunners((prev) => (recoveredSessionRef.current?.runners ? prev : makeRunners(null, mapped)))
           }
           if (typeof curr.timeLeft === 'number' && phase === 'idle') {
             setTimerSeconds(curr.timeLeft)
@@ -297,34 +312,36 @@ export default function App() {
           if (curr.jackpotMultiplier) {
             setJackpotMultiplier(curr.jackpotMultiplier)
           }
-        } else {
-          // Fallback to /api/horses
-          horseService
-            .getHorses()
-            .then((fetched) => {
-              if (Array.isArray(fetched) && fetched.length > 0) {
-                setHorses(fetched)
-                setRunners((prev) => (recoveredSessionRef.current?.runners ? prev : makeRunners(null, fetched)))
-              }
-            })
-            .catch(() => { })
         }
       })
-      .catch(() => {
-        horseService.getHorses().then((fetched) => {
-          if (Array.isArray(fetched) && fetched.length > 0) {
-            setHorses(fetched)
-            setRunners((prev) => (recoveredSessionRef.current?.runners ? prev : makeRunners(null, fetched)))
-          }
-        }).catch(() => { })
-      })
+      .catch(() => { })
 
-    // 6. Fetch previous race winners from /api/races/previous-results
+    // 3. Fetch previous race winners from /api/races/previous-results
     gameApiService
       .fetchPreviousResults(20)
       .then((res) => {
         if (Array.isArray(res) && res.length > 0) {
           setPreviousResults(res)
+          // Cross-enrich horses state if any horse is still using static default names
+          setHorses((prevHorses) => {
+            let changed = false
+            const next = prevHorses.map((h) => {
+              const match = res.find((r) => Number(r.number) === Number(h.number))
+              if (match && match.name && match.name !== `HORSE #${h.number}`) {
+                const isStaticName = DEFAULT_HORSES.some((dh) => dh.number === h.number && dh.name === h.name)
+                if (isStaticName) {
+                  changed = true
+                  return {
+                    ...h,
+                    name: match.name,
+                    portraitImg: match.image || match.imageUrl || h.portraitImg,
+                  }
+                }
+              }
+              return h
+            })
+            return changed ? next : prevHorses
+          })
         }
       })
       .catch(() => { })
@@ -1255,6 +1272,12 @@ export default function App() {
       const parsed = parseRacePayload(data)
       if (!parsed) return
 
+      const incomingHorses = extractHorsesArray(data)
+      if (Array.isArray(incomingHorses) && incomingHorses.length > 0) {
+        const mapped = mapApiHorses(incomingHorses)
+        setHorses(mapped)
+      }
+
       if (parsed.serialNumber) {
         setGameSerialNumber(parsed.serialNumber)
         try {
@@ -1326,6 +1349,18 @@ export default function App() {
     const handleBettingOpen = (data) => {
       const parsed = parseRacePayload(data)
       if (!parsed) return
+
+      const incomingHorses = extractHorsesArray(data)
+      if (Array.isArray(incomingHorses) && incomingHorses.length > 0) {
+        const mapped = mapApiHorses(incomingHorses)
+        setHorses(mapped)
+        setRunners((prev) => makeRunners(null, mapped))
+      }
+
+      // Refresh previous results on new round
+      gameApiService.fetchPreviousResults(20).then((res) => {
+        if (Array.isArray(res) && res.length > 0) setPreviousResults(res)
+      }).catch(() => { })
 
       if (parsed.serialNumber) {
         setGameSerialNumber(parsed.serialNumber)
